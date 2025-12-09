@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddSingleton<IDbConnectionFactory, SqliteConnectionFactory>();
+builder.Services.AddSingleton<IDbConnectionFactory, SqlServerConnectionFactory>();
 builder.Services.AddScoped<DatabaseInitializer>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<DashboardService>();

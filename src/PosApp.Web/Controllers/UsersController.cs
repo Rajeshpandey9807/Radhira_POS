@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
+using Microsoft.Data.SqlClient;
 using PosApp.Web.Features.Users;
 
 namespace PosApp.Web.Controllers;
@@ -48,7 +48,7 @@ public class UsersController : Controller
             TempData["ToastMessage"] = $"User {model.DisplayName} invited";
             return RedirectToAction(nameof(Index));
         }
-        catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
+        catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
         {
             ModelState.AddModelError(nameof(model.Username), "Username already exists. Choose another one.");
             await PopulateRolesAsync(model);
