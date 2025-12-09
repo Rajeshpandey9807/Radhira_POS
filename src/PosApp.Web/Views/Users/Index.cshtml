@@ -1,0 +1,66 @@
+@model IReadOnlyList<UserAccount>
+@{
+    ViewData["Title"] = "Team";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Team roster</p>
+        <h2>Dynamic user management</h2>
+        <p>Invite, edit, or disable operators with a couple of taps. All powered by Dapper + SQLite.</p>
+    </div>
+    <div class="hero-actions">
+        <a asp-action="Create" class="btn primary">Invite teammate</a>
+        <a asp-controller="Home" asp-action="Pos" class="btn ghost">Back to POS</a>
+    </div>
+</section>
+
+<table class="modern-table">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="5">
+                    <div class="empty">No users yet. Invite your first teammate.</div>
+                </td>
+            </tr>
+        }
+        else
+        {
+            foreach (var user in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="avatar-circle">@user.DisplayName[0]</div>
+                            <div>
+                                <strong>@user.DisplayName</strong>
+                                <p>@user.Email</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@user.RoleName</td>
+                    <td>
+                        <span class="status-pill @(user.IsActive ? "online" : "offline")">@(user.IsActive ? "Active" : "Disabled")</span>
+                    </td>
+                    <td>@user.CreatedAt.ToString("MMM dd")</td>
+                    <td class="actions">
+                        <a asp-action="Edit" asp-route-id="@user.Id">Edit</a>
+                        <form asp-action="Toggle" asp-route-id="@user.Id" method="post">
+                            <button type="submit">@(user.IsActive ? "Disable" : "Activate")</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

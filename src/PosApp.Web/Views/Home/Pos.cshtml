@@ -1,0 +1,74 @@
+@{
+    ViewData["Title"] = "Point of Sale";
+}
+
+<section class="pos-screen">
+    <header class="pos-header">
+        <div>
+            <p class="eyebrow">Live checkout</p>
+            <h2>Pink-forward selling experience</h2>
+        </div>
+        <div class="pos-actions">
+            <button class="btn ghost" type="button">Suspend Order</button>
+            <button class="btn primary" type="button">Charge $42.00</button>
+        </div>
+    </header>
+
+    <div class="pos-body">
+        <div class="catalog-panel">
+            <div class="catalog-filter">
+                <input type="search" class="field" placeholder="Search products, SKU, tags" />
+                <div class="chips">
+                    <button type="button" class="chip active">All</button>
+                    <button type="button" class="chip">Coffee</button>
+                    <button type="button" class="chip">Bakery</button>
+                    <button type="button" class="chip">Retail</button>
+                </div>
+            </div>
+            <div class="product-grid">
+                @for (var i = 1; i <= 9; i++)
+                {
+                    <button type="button" class="product-card">
+                        <span class="sku">SKU-@i</span>
+                        <strong>Product @i</strong>
+                        <p>$@(i * 3).00</p>
+                    </button>
+                }
+            </div>
+        </div>
+        <div class="ticket-panel">
+            <h3>Current ticket</h3>
+            <ul class="ticket-lines">
+                <li>
+                    <div>
+                        <strong>House Latte</strong>
+                        <small>2 × $4.50</small>
+                    </div>
+                    <span>$9.00</span>
+                </li>
+                <li>
+                    <div>
+                        <strong>Vanilla Muffin</strong>
+                        <small>1 × $3.25</small>
+                    </div>
+                    <span>$3.25</span>
+                </li>
+            </ul>
+            <dl class="totals">
+                <div>
+                    <dt>Subtotal</dt>
+                    <dd>$12.25</dd>
+                </div>
+                <div>
+                    <dt>Tax</dt>
+                    <dd>$0.98</dd>
+                </div>
+                <div class="grand">
+                    <dt>Total</dt>
+                    <dd>$13.23</dd>
+                </div>
+            </dl>
+            <button class="btn primary w-100" type="button">Collect payment</button>
+        </div>
+    </div>
+</section>

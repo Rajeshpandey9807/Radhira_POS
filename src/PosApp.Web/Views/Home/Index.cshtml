@@ -1,0 +1,69 @@
+@model PosApp.Web.Features.Dashboard.DashboardSnapshot
+@{
+    ViewData["Title"] = "POS Control Center";
+    var maxTotal = Model.WeeklyTrend.Any() ? Model.WeeklyTrend.Max(p => p.Total) : 0m;
+}
+
+<section class="hero-panel">
+    <div>
+        <p class="eyebrow">Radhira POS</p>
+        <h1>Everything you need to run a modern pink POS.</h1>
+        <p>Monitor revenue pulse, empower your team, and keep the checkout flow buttery smooth from a single dashboard.</p>
+        <div class="hero-actions">
+            <a asp-controller="Users" asp-action="Create" class="btn primary">Invite teammate</a>
+            <a asp-controller="Home" asp-action="Pos" class="btn ghost">Open selling screen</a>
+        </div>
+    </div>
+    <div class="marquee-card">
+        <p class="label">Today&apos;s vibe</p>
+        <h2>@Model.TodaySales.ToString("C")</h2>
+        <p>Keep the energy high &mdash; weekly total is @Model.WeeklySales.ToString("C").</p>
+    </div>
+</section>
+
+<section class="stat-grid">
+    <article>
+        <span>Team</span>
+        <strong>@Model.ActiveUsers/@Model.TotalUsers</strong>
+        <p>active cashiers</p>
+    </article>
+    <article>
+        <span>Catalog</span>
+        <strong>@Model.ActiveProducts</strong>
+        <p>active SKUs</p>
+    </article>
+    <article>
+        <span>Today&apos;s sales</span>
+        <strong>@Model.TodaySales.ToString("C0")</strong>
+        <p>captured revenue</p>
+    </article>
+    <article>
+        <span>7 day total</span>
+        <strong>@Model.WeeklySales.ToString("C0")</strong>
+        <p>rolling window</p>
+    </article>
+</section>
+
+<section class="trend-card">
+    <header>
+        <div>
+            <p class="eyebrow">Weekly trajectory</p>
+            <h3>Sales trend</h3>
+        </div>
+        <a asp-controller="Home" asp-action="Pos">Jump to checkout &rarr;</a>
+    </header>
+    <div class="trend-bars">
+        @foreach (var point in Model.WeeklyTrend)
+        {
+            var height = maxTotal == 0 ? 0 : Math.Round(point.Total / maxTotal * 100, 0);
+            <div class="bar" title="$@point.Total">
+                <div class="bar-fill" style="height:@height%"></div>
+                <span>@point.Label</span>
+            </div>
+        }
+        @if (!Model.WeeklyTrend.Any())
+        {
+            <p class="empty">No sales yet. Ring up your first order!</p>
+        }
+    </div>
+</section>

@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "dgSpecHash": "njA0PHDp/S5oz4wml9Wrf7gDJcDATwOpqSMCSfpCAfHaozhrjClRfzBmoI5Qf4fULdg9kvz4Yzp0YDRv0N74Wg==",
+  "success": true,
+  "projectFilePath": "/workspace/src/PosApp.Web/PosApp.Web.csproj",
+  "expectedPackageFiles": [
+    "/home/ubuntu/.nuget/packages/dapper/2.1.66/dapper.2.1.66.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/microsoft.data.sqlite/10.0.0/microsoft.data.sqlite.10.0.0.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/microsoft.data.sqlite.core/10.0.0/microsoft.data.sqlite.core.10.0.0.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/sqlitepclraw.bundle_e_sqlite3/2.1.11/sqlitepclraw.bundle_e_sqlite3.2.1.11.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/sqlitepclraw.core/2.1.11/sqlitepclraw.core.2.1.11.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/sqlitepclraw.lib.e_sqlite3/2.1.11/sqlitepclraw.lib.e_sqlite3.2.1.11.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/sqlitepclraw.provider.e_sqlite3/2.1.11/sqlitepclraw.provider.e_sqlite3.2.1.11.nupkg.sha512",
+    "/home/ubuntu/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512"
+  ],
+  "logs": []
+}

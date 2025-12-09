@@ -1,0 +1,30 @@
+@model UserFormViewModel
+
+<div class="form-grid">
+    <div class="field-group">
+        <label asp-for="Username"></label>
+        <input asp-for="Username" placeholder="cashier01" />
+        <span asp-validation-for="Username"></span>
+    </div>
+    <div class="field-group">
+        <label asp-for="DisplayName"></label>
+        <input asp-for="DisplayName" placeholder="Floor Cashier" />
+        <span asp-validation-for="DisplayName"></span>
+    </div>
+    <div class="field-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" placeholder="name@store.com" type="email" />
+        <span asp-validation-for="Email"></span>
+    </div>
+    <div class="field-group">
+        <label asp-for="RoleId">Role</label>
+        <select asp-for="RoleId">
+            <option value="">Choose...</option>
+            @foreach (var role in Model.Roles)
+            {
+                <option value="@role.Id">@role.Name</option>
+            }
+        </select>
+        <span asp-validation-for="RoleId"></span>
+    </div>
+</div>
