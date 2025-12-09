@@ -7,6 +7,7 @@ public sealed record UserAccount(
     string Username,
     string DisplayName,
     string Email,
+    string PhoneNumber,
     Guid RoleId,
     string RoleName,
     bool IsActive,
@@ -19,6 +20,7 @@ public sealed record UserDetails(
     string Username,
     string DisplayName,
     string Email,
+    string PhoneNumber,
     Guid RoleId,
     bool IsActive);
 
@@ -26,7 +28,9 @@ public sealed record UserInput(
     string Username,
     string DisplayName,
     string Email,
-    Guid RoleId);
+    string PhoneNumber,
+    Guid RoleId,
+    string? Password);
 
 public sealed class UserFormViewModel
 {
@@ -46,7 +50,16 @@ public sealed class UserFormViewModel
     public string Email { get; set; } = string.Empty;
 
     [Required]
+    [Phone]
+    [Display(Name = "Phone number")]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    [Required]
     public Guid RoleId { get; set; }
+
+    [DataType(DataType.Password)]
+    [Display(Name = "Password")]
+    public string? Password { get; set; }
 
     public IEnumerable<RoleOption> Roles { get; set; } = Array.Empty<RoleOption>();
 }

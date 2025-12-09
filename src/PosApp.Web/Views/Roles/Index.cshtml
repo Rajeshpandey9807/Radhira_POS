@@ -1,0 +1,58 @@
+@model IReadOnlyList<RoleListItem>
+@{
+    ViewData["Title"] = "Roles";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Access control</p>
+        <h2>Manage roles</h2>
+        <p>Use roles to group permissions for teammates. Keep the list lean.</p>
+    </div>
+    <div class="hero-actions">
+        <a asp-action="Create" class="btn primary">Create role</a>
+        <a asp-controller="Users" asp-action="Index" class="btn ghost">Back to users</a>
+    </div>
+</section>
+
+<table class="modern-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Permissions</th>
+            <th>Assigned</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="4">
+                    <div class="empty">No roles yet. Create one to get started.</div>
+                </td>
+            </tr>
+        }
+        else
+        {
+            foreach (var role in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@role.Name</strong>
+                    </td>
+                    <td>
+                        @(string.IsNullOrWhiteSpace(role.Permissions) ? "—" : role.Permissions)
+                    </td>
+                    <td>@role.AssignedUsers</td>
+                    <td class="actions">
+                        <a asp-action="Edit" asp-route-id="@role.Id">Edit</a>
+                        <form asp-action="Delete" asp-route-id="@role.Id" method="post" onsubmit="return confirm('Delete this role?');">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

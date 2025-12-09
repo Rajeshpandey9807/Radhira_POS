@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using PosApp.Web.Data;
+using PosApp.Web.Security;
 
 namespace PosApp.Web.Features.Users;
 
@@ -19,7 +20,7 @@ public sealed class UserService
     public async Task<IReadOnlyList<UserAccount>> GetUsersAsync()
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT u.Id, u.Username, u.DisplayName, u.Email, u.RoleId, r.Name AS RoleName,
+        const string sql = @"SELECT u.Id, u.Username, u.DisplayName, u.Email, u.PhoneNumber, u.RoleId, r.Name AS RoleName,
                                     u.IsActive, u.CreatedAt AS CreatedAt
                              FROM Users u
                              INNER JOIN Roles r ON u.RoleId = r.Id
@@ -40,20 +41,21 @@ public sealed class UserService
     public async Task<UserDetails?> GetDetailsAsync(Guid id)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT Id, Username, DisplayName, Email, RoleId, IsActive FROM Users WHERE Id = @Id";
+        const string sql = @"SELECT Id, Username, DisplayName, Email, PhoneNumber, RoleId, IsActive FROM Users WHERE Id = @Id";
         return await connection.QuerySingleOrDefaultAsync<UserDetails>(sql, new { Id = id.ToString() });
     }
 
     public async Task CreateAsync(UserInput input, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"INSERT INTO Users (Id, Username, DisplayName, Email, RoleId, PasswordHash, IsActive)
-                             VALUES (@Id, @Username, @DisplayName, @Email, @RoleId, @PasswordHash, 1);";
+        const string sql = @"INSERT INTO Users (Id, Username, DisplayName, Email, PhoneNumber, RoleId, PasswordHash, IsActive)
+                             VALUES (@Id, @Username, @DisplayName, @Email, @PhoneNumber, @RoleId, @PasswordHash, 1);";
 
         var normalizedUsername = input.Username.Trim().ToLowerInvariant();
-
         var displayName = input.DisplayName.Trim();
         var email = input.Email.Trim();
+        var phoneNumber = input.PhoneNumber.Trim();
+        var password = input.Password ?? throw new InvalidOperationException("Password is required when creating a user.");
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
@@ -61,34 +63,45 @@ public sealed class UserService
             Username = normalizedUsername,
             DisplayName = displayName,
             Email = email,
+            PhoneNumber = phoneNumber,
             RoleId = input.RoleId.ToString(),
-            PasswordHash = "changeme"
+            PasswordHash = PasswordUtility.HashPassword(password)
         }, cancellationToken: cancellationToken));
     }
 
     public async Task UpdateAsync(Guid id, UserInput input, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"UPDATE Users
-                             SET Username = @Username,
-                                 DisplayName = @DisplayName,
-                                 Email = @Email,
-                                 RoleId = @RoleId,
-                                 UpdatedAt = CURRENT_TIMESTAMP
-                             WHERE Id = @Id";
+        var sql = @"UPDATE Users
+                    SET Username = @Username,
+                        DisplayName = @DisplayName,
+                        Email = @Email,
+                        PhoneNumber = @PhoneNumber,
+                        RoleId = @RoleId,
+                        UpdatedAt = CURRENT_TIMESTAMP";
 
         var normalizedUsername = input.Username.Trim().ToLowerInvariant();
         var displayName = input.DisplayName.Trim();
         var email = input.Email.Trim();
+        var phoneNumber = input.PhoneNumber.Trim();
 
-        await connection.ExecuteAsync(new CommandDefinition(sql, new
+        var parameters = new DynamicParameters();
+        parameters.Add("Id", id.ToString());
+        parameters.Add("Username", normalizedUsername);
+        parameters.Add("DisplayName", displayName);
+        parameters.Add("Email", email);
+        parameters.Add("PhoneNumber", phoneNumber);
+        parameters.Add("RoleId", input.RoleId.ToString());
+
+        if (!string.IsNullOrWhiteSpace(input.Password))
         {
-            Id = id.ToString(),
-            Username = normalizedUsername,
-            DisplayName = displayName,
-            Email = email,
-            RoleId = input.RoleId.ToString()
-        }, cancellationToken: cancellationToken));
+            sql += ", PasswordHash = @PasswordHash";
+            parameters.Add("PasswordHash", PasswordUtility.HashPassword(input.Password));
+        }
+
+        sql += " WHERE Id = @Id";
+
+        await connection.ExecuteAsync(new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
     }
 
     public async Task ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)

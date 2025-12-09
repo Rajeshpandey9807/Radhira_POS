@@ -1,5 +1,6 @@
 using PosApp.Web.Data;
 using PosApp.Web.Features.Dashboard;
+using PosApp.Web.Features.Roles;
 using PosApp.Web.Features.Users;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IDbConnectionFactory, SqlServerConnectionFactory>();
 builder.Services.AddScoped<DatabaseInitializer>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<DashboardService>();
 
 var app = builder.Build();

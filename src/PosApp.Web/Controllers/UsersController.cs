@@ -32,6 +32,15 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(UserFormViewModel model)
     {
+        if (string.IsNullOrWhiteSpace(model.Password))
+        {
+            ModelState.AddModelError(nameof(model.Password), "Password is required.");
+        }
+        else if (model.Password.Length < 6)
+        {
+            ModelState.AddModelError(nameof(model.Password), "Password must be at least 6 characters.");
+        }
+
         if (!ModelState.IsValid)
         {
             await PopulateRolesAsync(model);
@@ -44,7 +53,9 @@ public class UsersController : Controller
                 model.Username.Trim(),
                 model.DisplayName.Trim(),
                 model.Email.Trim(),
-                model.RoleId));
+                model.PhoneNumber.Trim(),
+                model.RoleId,
+                model.Password));
             TempData["ToastMessage"] = $"User {model.DisplayName} invited";
             return RedirectToAction(nameof(Index));
         }
@@ -70,6 +81,7 @@ public class UsersController : Controller
             Username = details.Username,
             DisplayName = details.DisplayName,
             Email = details.Email,
+            PhoneNumber = details.PhoneNumber,
             RoleId = details.RoleId
         });
 
@@ -90,7 +102,9 @@ public class UsersController : Controller
             model.Username,
             model.DisplayName,
             model.Email,
-            model.RoleId));
+            model.PhoneNumber,
+            model.RoleId,
+            model.Password));
 
         TempData["ToastMessage"] = $"User {model.DisplayName} updated";
         return RedirectToAction(nameof(Index));

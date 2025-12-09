@@ -1,0 +1,24 @@
+@model RoleFormViewModel
+@{
+    ViewData["Title"] = "Create role";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">New role</p>
+        <h2>Define a responsibility</h2>
+        <p>Roles control permissions for team members. Keep names short and meaningful.</p>
+    </div>
+</section>
+
+<form asp-action="Create" method="post" class="card-form">
+    <partial name="_Form" model="Model" />
+    <div class="form-actions">
+        <a class="btn ghost" asp-action="Index">Cancel</a>
+        <button class="btn primary" type="submit">Create role</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

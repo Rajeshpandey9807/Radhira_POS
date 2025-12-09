@@ -1,0 +1,25 @@
+@model RoleFormViewModel
+@{
+    ViewData["Title"] = "Edit role";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Update role</p>
+        <h2>@Model.Name</h2>
+        <p>Edit the name or permission set. Changes are immediate.</p>
+    </div>
+</section>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="card-form">
+    <input type="hidden" asp-for="Id" />
+    <partial name="_Form" model="Model" />
+    <div class="form-actions">
+        <a class="btn ghost" asp-action="Index">Cancel</a>
+        <button class="btn primary" type="submit">Save changes</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
