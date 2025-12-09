@@ -132,6 +132,10 @@ a:hover {
   font-size: 0.9rem;
 }
 
+.side-nav .sidebar-toggle {
+  margin-top: 4px;
+}
+
 .nav-menu {
   display: flex;
   flex-direction: column;
@@ -179,13 +183,6 @@ a:hover {
   font-weight: 600;
 }
 
-.top-bar-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-end;
-}
-
 .sidebar-toggle {
   display: inline-flex;
   align-items: center;
@@ -198,6 +195,8 @@ a:hover {
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  width: 100%;
+  justify-content: center;
 }
 
 .sidebar-toggle:hover,
@@ -244,6 +243,15 @@ a:hover {
 }
 
 body.sidebar-collapsed .side-nav {
+  width: auto;
+  padding: 20px 16px;
+  gap: 12px;
+}
+
+body.sidebar-collapsed .side-nav .brand,
+body.sidebar-collapsed .side-nav .side-tagline,
+body.sidebar-collapsed .side-nav .nav-menu,
+body.sidebar-collapsed .side-nav .user-chip {
   display: none;
 }
 
@@ -704,11 +712,6 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
 
   .main-column {
     padding: 24px;
-  }
-
-  .top-bar-actions {
-    width: 100%;
-    align-items: flex-start;
   }
 
   .sidebar-toggle {

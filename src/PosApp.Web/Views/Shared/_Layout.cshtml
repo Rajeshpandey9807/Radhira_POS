@@ -16,6 +16,13 @@
         <aside class="side-nav">
             <a class="brand" asp-controller="Home" asp-action="Index">Radhira POS</a>
             <p class="side-tagline">Smart retail, bold pink.</p>
+            <button type="button"
+                    class="sidebar-toggle"
+                    data-sidebar-toggle
+                    aria-pressed="false">
+                <span class="sidebar-toggle-icon" aria-hidden="true"></span>
+                <span data-sidebar-toggle-label>Hide menu</span>
+            </button>
             <nav class="nav-menu">
                 <a asp-controller="Home" asp-action="Index">Dashboard</a>
                 <a href="#">Customer</a>
@@ -40,19 +47,10 @@
                     <p class="eyebrow">Overview</p>
                     <h1>@pageTitle</h1>
                 </div>
-                <div class="top-bar-actions">
-                    <div class="breadcrumbs">
-                        <span>Home</span>
-                        <span>/</span>
-                        <span>@pageTitle</span>
-                    </div>
-                    <button type="button"
-                            class="sidebar-toggle"
-                            data-sidebar-toggle
-                            aria-pressed="false">
-                        <span class="sidebar-toggle-icon" aria-hidden="true"></span>
-                        <span data-sidebar-toggle-label>Hide menu</span>
-                    </button>
+                <div class="breadcrumbs">
+                    <span>Home</span>
+                    <span>/</span>
+                    <span>@pageTitle</span>
                 </div>
             </header>
 
