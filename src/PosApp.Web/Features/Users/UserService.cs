@@ -20,7 +20,7 @@ public sealed class UserService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT u.Id, u.Username, u.DisplayName, u.Email, u.RoleId, r.Name AS RoleName,
-                                    u.IsActive, datetime(u.CreatedAt) AS CreatedAt
+                                    u.IsActive, u.CreatedAt AS CreatedAt
                              FROM Users u
                              INNER JOIN Roles r ON u.RoleId = r.Id
                              ORDER BY u.CreatedAt DESC";

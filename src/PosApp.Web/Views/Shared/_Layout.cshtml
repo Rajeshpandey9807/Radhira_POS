@@ -9,27 +9,59 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
+@{
+    var pageTitle = (ViewData["Title"] as string) ?? "Dashboard";
+}
     <div class="app-shell">
-        <nav class="top-nav">
+        <aside class="side-nav">
             <a class="brand" asp-controller="Home" asp-action="Index">Radhira POS</a>
-            <div class="nav-links">
+            <p class="side-tagline">Smart retail, bold pink.</p>
+            <button type="button"
+                    class="sidebar-toggle"
+                    data-sidebar-toggle
+                    aria-pressed="false">
+                <span class="sidebar-toggle-icon" aria-hidden="true"></span>
+                <span data-sidebar-toggle-label>Hide menu</span>
+            </button>
+            <nav class="nav-menu">
                 <a asp-controller="Home" asp-action="Index">Dashboard</a>
-                <a asp-controller="Home" asp-action="Pos">POS</a>
-                <a asp-controller="Users" asp-action="Index">Users</a>
-            </div>
-            <div class="user-chip">
-                <span>Admin</span>
+                <a href="#">Customer</a>
+                <a href="#">Vendors</a>
+                <a href="#">Item</a>
+                <a href="#">Sales</a>
+                <a href="#">Purchase</a>
+                <a href="#">Report</a>
+            </nav>
+            <div class="user-chip stack">
+                <div>
+                    <span class="chip-label">Signed in</span>
+                    <strong>Admin</strong>
+                </div>
                 <span class="dot"></span>
             </div>
-        </nav>
+        </aside>
 
-        <main role="main">
-            @RenderBody()
-        </main>
+        <div class="main-column">
+            <header class="top-bar">
+                <div>
+                    <p class="eyebrow">Overview</p>
+                    <h1>@pageTitle</h1>
+                </div>
+                <div class="breadcrumbs">
+                    <span>Home</span>
+                    <span>/</span>
+                    <span>@pageTitle</span>
+                </div>
+            </header>
 
-        <footer>
-            <p>&copy; @DateTime.UtcNow.Year Radhira POS · Smart retail, bold pink.</p>
-        </footer>
+            <main role="main">
+                @RenderBody()
+            </main>
+
+            <footer>
+                <p>&copy; @DateTime.UtcNow.Year Radhira POS · Smart retail, bold pink.</p>
+            </footer>
+        </div>
     </div>
 
     @if (TempData["ToastMessage"] is string toast)

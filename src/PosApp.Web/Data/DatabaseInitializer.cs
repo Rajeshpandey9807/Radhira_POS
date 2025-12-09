@@ -1,3 +1,4 @@
+using System;
 using System.Data;
 using Dapper;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,15 @@ public sealed class DatabaseInitializer
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
+
+        var providerName = connection.GetType().Name;
+        var isSqlite = providerName.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
+
+        if (!isSqlite)
+        {
+            _logger.LogInformation("Skipping automatic SQLite schema setup for provider {ProviderName}. Ensure the SQL Server schema exists.", providerName);
+            return;
+        }
 
         var sqlCommands = new[]
         {
