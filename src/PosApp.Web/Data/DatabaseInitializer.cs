@@ -1,7 +1,9 @@
 using System;
 using System.Data;
+using System.Linq;
 using Dapper;
 using Microsoft.Extensions.Logging;
+using PosApp.Web.Security;
 
 namespace PosApp.Web.Data;
 
@@ -32,7 +34,7 @@ public sealed class DatabaseInitializer
         var sqlCommands = new[]
         {
             "CREATE TABLE IF NOT EXISTS Roles (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Permissions TEXT NULL);",
-            "CREATE TABLE IF NOT EXISTS Users (Id TEXT PRIMARY KEY, Username TEXT NOT NULL UNIQUE, DisplayName TEXT NOT NULL, Email TEXT NOT NULL, RoleId TEXT NOT NULL, PasswordHash TEXT NOT NULL, IsActive INTEGER NOT NULL DEFAULT 1, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(RoleId) REFERENCES Roles(Id));",
+            "CREATE TABLE IF NOT EXISTS Users (Id TEXT PRIMARY KEY, Username TEXT NOT NULL UNIQUE, DisplayName TEXT NOT NULL, Email TEXT NOT NULL, PhoneNumber TEXT NOT NULL, RoleId TEXT NOT NULL, PasswordHash TEXT NOT NULL, IsActive INTEGER NOT NULL DEFAULT 1, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(RoleId) REFERENCES Roles(Id));",
             "CREATE TABLE IF NOT EXISTS Categories (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Color TEXT NULL);",
             "CREATE TABLE IF NOT EXISTS Products (Id TEXT PRIMARY KEY, Sku TEXT NOT NULL UNIQUE, Name TEXT NOT NULL, CategoryId TEXT NULL, UnitPrice REAL NOT NULL, ReorderPoint INTEGER NOT NULL DEFAULT 0, IsActive INTEGER NOT NULL DEFAULT 1, FOREIGN KEY(CategoryId) REFERENCES Categories(Id));",
             "CREATE TABLE IF NOT EXISTS Customers (Id TEXT PRIMARY KEY, DisplayName TEXT NOT NULL, Email TEXT NULL, Phone TEXT NULL, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);",
@@ -47,7 +49,20 @@ public sealed class DatabaseInitializer
             await connection.ExecuteAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
         }
 
+        await EnsureLegacyUserColumnsAsync(connection, cancellationToken);
         await SeedDefaultsAsync(connection, cancellationToken);
+    }
+
+    private static async Task EnsureLegacyUserColumnsAsync(IDbConnection connection, CancellationToken cancellationToken)
+    {
+        const string columnQuery = "SELECT name FROM pragma_table_info('Users');";
+        var columns = (await connection.QueryAsync<string>(new CommandDefinition(columnQuery, cancellationToken: cancellationToken))).ToList();
+
+        if (!columns.Contains("PhoneNumber", StringComparer.OrdinalIgnoreCase))
+        {
+            const string addPhoneColumnSql = "ALTER TABLE Users ADD COLUMN PhoneNumber TEXT NOT NULL DEFAULT '';";
+            await connection.ExecuteAsync(new CommandDefinition(addPhoneColumnSql, cancellationToken: cancellationToken));
+        }
     }
 
     private async Task SeedDefaultsAsync(IDbConnection connection, CancellationToken cancellationToken)
@@ -92,9 +107,11 @@ public sealed class DatabaseInitializer
             }, cancellationToken: cancellationToken));
         }
 
-        const string adminUserSql = @"INSERT INTO Users (Id, Username, DisplayName, Email, RoleId, PasswordHash, IsActive)
-            VALUES (@Id, @Username, @DisplayName, @Email, @RoleId, @PasswordHash, 1)
+        const string adminUserSql = @"INSERT INTO Users (Id, Username, DisplayName, Email, PhoneNumber, RoleId, PasswordHash, IsActive)
+            VALUES (@Id, @Username, @DisplayName, @Email, @PhoneNumber, @RoleId, @PasswordHash, 1)
             ON CONFLICT(Username) DO NOTHING;";
+
+        var defaultAdminPassword = PasswordUtility.HashPassword("changeme");
 
         var adminInserted = await connection.ExecuteAsync(new CommandDefinition(adminUserSql, new
         {
@@ -102,8 +119,9 @@ public sealed class DatabaseInitializer
             Username = "admin",
             DisplayName = "Super Admin",
             Email = "admin@example.com",
+            PhoneNumber = "+1 555 0100",
             RoleId = adminRoleId.ToString(),
-            PasswordHash = "changeme"
+            PasswordHash = defaultAdminPassword
         }, cancellationToken: cancellationToken));
 
         if (adminInserted > 0)
