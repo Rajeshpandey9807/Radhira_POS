@@ -142,6 +142,24 @@ a:hover {
   gap: 6px;
 }
 
+.nav-menu > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-menu [data-nav-settings] {
+  display: none;
+}
+
+body.settings-menu .nav-menu [data-nav-default] {
+  display: none;
+}
+
+body.settings-menu .nav-menu [data-nav-settings] {
+  display: flex;
+}
+
 .nav-menu a {
   text-decoration: none;
   color: rgba(255, 255, 255, 0.75);
@@ -156,6 +174,11 @@ a:hover {
   background: rgba(245, 0, 135, 0.15);
   color: #fff;
   padding-left: 18px;
+}
+
+.nav-mode-toggle {
+  width: 100%;
+  justify-content: center;
 }
 
 .main-column {
@@ -275,6 +298,10 @@ body.sidebar-collapsed .side-nav .brand,
 body.sidebar-collapsed .side-nav .side-tagline,
 body.sidebar-collapsed .side-nav .nav-menu,
 body.sidebar-collapsed .side-nav .user-chip {
+  display: none;
+}
+
+body.sidebar-collapsed .side-nav .nav-mode-toggle {
   display: none;
 }
 

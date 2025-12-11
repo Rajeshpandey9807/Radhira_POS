@@ -53,6 +53,52 @@
 })();
 
 (() => {
+  const toggle = document.querySelector('[data-settings-toggle]');
+  if (!toggle) {
+    return;
+  }
+
+  const body = document.body;
+  const label = toggle.querySelector('[data-settings-toggle-label]');
+  const storageKey = 'radhira-pos:nav-mode';
+
+  const readPreference = () => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      return stored === 'settings' ? 'settings' : 'default';
+    } catch {
+      return 'default';
+    }
+  };
+
+  const persistPreference = (mode) => {
+    try {
+      localStorage.setItem(storageKey, mode);
+    } catch {
+      // ignore
+    }
+  };
+
+  const applyMode = (mode) => {
+    const showSettings = mode === 'settings';
+    body.classList.toggle('settings-menu', showSettings);
+    toggle.setAttribute('aria-pressed', showSettings ? 'true' : 'false');
+    if (label) {
+      label.textContent = showSettings ? 'Back to menu' : 'Settings';
+    }
+  };
+
+  let mode = readPreference();
+  applyMode(mode);
+
+  toggle.addEventListener('click', () => {
+    mode = mode === 'settings' ? 'default' : 'settings';
+    applyMode(mode);
+    persistPreference(mode);
+  });
+})();
+
+(() => {
   const toggle = document.querySelector('[data-theme-toggle]');
   if (!toggle) {
     return;
