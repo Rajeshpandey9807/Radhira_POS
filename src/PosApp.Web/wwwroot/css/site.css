@@ -524,6 +524,32 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   margin-top: 24px;
 }
 
+.toggle-switch {
+  display: inline-flex;
+  align-items: center;
+}
+
+.toggle-switch__button {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 4px 16px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.toggle-switch__button.is-active {
+  background: rgba(245, 0, 135, 0.3);
+  color: #fff;
+  border-color: rgba(245, 0, 135, 0.5);
+}
+
+.toggle-switch__button:hover {
+  transform: translateY(-1px);
+}
+
 .modern-table {
   width: 100%;
   border-collapse: collapse;
@@ -1015,6 +1041,17 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
 
 :root[data-theme="light"] .nav-settings-group__label {
   color: rgba(31, 33, 51, 0.6);
+}
+
+:root[data-theme="light"] .toggle-switch__button {
+  border-color: rgba(31, 33, 51, 0.3);
+  color: rgba(31, 33, 51, 0.8);
+}
+
+:root[data-theme="light"] .toggle-switch__button.is-active {
+  background: rgba(245, 0, 135, 0.1);
+  color: #a40054;
+  border-color: rgba(245, 0, 135, 0.3);
 }
 
 @media (max-width: 960px) {

@@ -41,17 +41,20 @@
                         <strong>@type.BusinessTypeName</strong>
                     </td>
                     <td>
-                        <span class="status-pill @(type.IsActive ? "online" : "offline")">@(type.IsActive ? "Active" : "Inactive")</span>
-                    </td>
-                    <td class="actions">
-                        <a asp-action="Edit" asp-route-id="@type.BusinessTypeId">Edit</a>
                         <form asp-action="Toggle"
                               asp-route-id="@type.BusinessTypeId"
                               asp-route-activate="@(type.IsActive ? false : true)"
                               method="post"
-                              onsubmit="return confirm('@(type.IsActive ? "Deactivate this business type?" : "Activate this business type?")');">
-                            <button type="submit">@(type.IsActive ? "Deactivate" : "Activate")</button>
+                              class="toggle-switch">
+                            <button type="submit"
+                                    class="toggle-switch__button @(type.IsActive ? "is-active" : string.Empty)"
+                                    aria-pressed="@(type.IsActive ? "true" : "false")">
+                                <span>@(type.IsActive ? "Active" : "Inactive")</span>
+                            </button>
                         </form>
+                    </td>
+                    <td class="actions">
+                        <a asp-action="Edit" asp-route-id="@type.BusinessTypeId">Edit</a>
                     </td>
                 </tr>
             }
