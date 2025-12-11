@@ -37,7 +37,7 @@ public sealed class BusinessTypeService
         return await connection.QuerySingleOrDefaultAsync<BusinessTypeDetails>(sql, new { Id = id });
     }
 
-    public async Task CreateAsync(BusinessTypeInput input, string createdBy, CancellationToken cancellationToken = default)
+    public async Task CreateAsync(BusinessTypeInput input, int createdBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"INSERT INTO BusinessTypes (BusinessTypeName, IsActive, CreatedBy, CreatedOn)
@@ -50,7 +50,7 @@ public sealed class BusinessTypeService
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task UpdateAsync(int id, BusinessTypeInput input, string updatedBy, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(int id, BusinessTypeInput input, int updatedBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE BusinessTypes
@@ -67,7 +67,7 @@ public sealed class BusinessTypeService
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task<bool> DeactivateAsync(int id, string updatedBy, CancellationToken cancellationToken = default)
+    public async Task<bool> DeactivateAsync(int id, int updatedBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE BusinessTypes

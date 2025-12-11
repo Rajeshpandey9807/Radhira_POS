@@ -7,9 +7,9 @@ public sealed class BusinessTypeListItem
     public int BusinessTypeId { get; set; }
     public string BusinessTypeName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
-    public string CreatedBy { get; set; } = string.Empty;
+    public int CreatedBy { get; set; }
     public DateTime CreatedOn { get; set; }
-    public string? UpdatedBy { get; set; }
+    public int? UpdatedBy { get; set; }
     public DateTime? UpdatedOn { get; set; }
 }
 

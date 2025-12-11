@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -39,7 +40,7 @@ public class BusinessTypesController : Controller
         try
         {
             await _businessTypeService.CreateAsync(new BusinessTypeInput(
-                model.BusinessTypeName), GetActorName());
+                model.BusinessTypeName), GetActorId());
 
             TempData["ToastMessage"] = "Business type added";
             return RedirectToAction(nameof(Index));
@@ -80,7 +81,7 @@ public class BusinessTypesController : Controller
         try
         {
             await _businessTypeService.UpdateAsync(id, new BusinessTypeInput(
-                model.BusinessTypeName), GetActorName());
+                model.BusinessTypeName), GetActorId());
 
             TempData["ToastMessage"] = "Business type updated";
             return RedirectToAction(nameof(Index));
@@ -96,7 +97,7 @@ public class BusinessTypesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _businessTypeService.DeactivateAsync(id, GetActorName());
+        var deleted = await _businessTypeService.DeactivateAsync(id, GetActorId());
         if (!deleted)
         {
             return NotFound();
@@ -106,14 +107,18 @@ public class BusinessTypesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private string GetActorName()
+    private int GetActorId()
     {
         if (User?.Identity?.IsAuthenticated == true)
         {
-            return string.IsNullOrWhiteSpace(User.Identity?.Name) ? "System" : User.Identity!.Name!;
+            var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(idValue, out var actorId))
+            {
+                return actorId;
+            }
         }
 
-        return "System";
+        return 0;
     }
 
     private static bool IsUniqueConstraintViolation(Exception exception)
