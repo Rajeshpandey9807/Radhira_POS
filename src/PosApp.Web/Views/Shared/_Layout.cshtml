@@ -7,6 +7,21 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        (function () {
+            var storageKey = "radhira-pos:theme";
+            try {
+                var stored = localStorage.getItem(storageKey);
+                var prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+                var theme = stored === "light" || stored === "dark"
+                    ? stored
+                    : (prefersLight ? "light" : "dark");
+                document.documentElement.setAttribute("data-theme", theme);
+            } catch (error) {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
 </head>
 <body>
 @{
@@ -17,7 +32,7 @@
             <a class="brand" asp-controller="Home" asp-action="Index">Radhira POS</a>
             <p class="side-tagline">Smart retail, bold pink.</p>
             <button type="button"
-                    class="sidebar-toggle"
+                    class="sidebar-toggle pill-button"
                     data-sidebar-toggle
                     aria-pressed="false">
                 <span class="sidebar-toggle-icon" aria-hidden="true"></span>
@@ -50,10 +65,18 @@
                     <p class="eyebrow">Overview</p>
                     <h1>@pageTitle</h1>
                 </div>
-                <div class="breadcrumbs">
-                    <span>Home</span>
-                    <span>/</span>
-                    <span>@pageTitle</span>
+                <div class="top-actions">
+                    <div class="breadcrumbs">
+                        <span>Home</span>
+                        <span>/</span>
+                        <span>@pageTitle</span>
+                    </div>
+                    <button type="button"
+                            class="theme-switch pill-button"
+                            data-theme-toggle
+                            aria-pressed="false">
+                        <span data-theme-toggle-label>Light mode</span>
+                    </button>
                 </div>
             </header>
 
