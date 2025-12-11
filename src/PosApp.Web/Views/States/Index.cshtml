@@ -1,16 +1,16 @@
-@model IReadOnlyList<RegistrationTypeListItem>
+@model IReadOnlyList<StateListItem>
 @{
-    ViewData["Title"] = "Registration types";
+    ViewData["Title"] = "States";
 }
 
 <section class="users-header">
     <div>
         <p class="eyebrow">Business setup</p>
-        <h2>Registration types</h2>
-        <p>Capture statutory registration types (LLC, Partnership, etc.) for use across onboarding flows.</p>
+        <h2>States</h2>
+        <p>Maintain every state where you operate to keep compliance tidy.</p>
     </div>
     <div class="hero-actions">
-        <a asp-action="Create" class="btn primary">Add registration type</a>
+        <a asp-action="Create" class="btn primary">Add state</a>
         <a asp-controller="Home" asp-action="Index" class="btn ghost">Back to dashboard</a>
     </div>
 </section>
@@ -18,7 +18,7 @@
 <table class="modern-table">
     <thead>
         <tr>
-            <th>Registration type</th>
+            <th>State</th>
             <th>Status</th>
             <th></th>
         </tr>
@@ -28,38 +28,38 @@
         {
             <tr>
                 <td colspan="3">
-                    <div class="empty">No registration types yet. Add the first one.</div>
+                    <div class="empty">No states yet. Add the first one.</div>
                 </td>
             </tr>
         }
         else
         {
-            foreach (var type in Model)
+            foreach (var state in Model)
             {
                 <tr>
                     <td>
-                        <strong>@type.RegistrationTypeName</strong>
+                        <strong>@state.StateName</strong>
                     </td>
                     <td>
                         <form asp-action="Toggle"
-                              asp-route-id="@type.RegistrationTypeId"
-                              asp-route-activate="@(type.IsActive ? false : true)"
+                              asp-route-id="@state.StateId"
+                              asp-route-activate="@(state.IsActive ? false : true)"
                               method="post"
                               class="toggle-switch">
                             <button type="submit"
-                                    class="toggle-switch__button @(type.IsActive ? "is-active" : string.Empty)"
-                                    aria-pressed="@(type.IsActive ? "true" : "false")">
+                                    class="toggle-switch__button @(state.IsActive ? "is-active" : string.Empty)"
+                                    aria-pressed="@(state.IsActive ? "true" : "false")">
                                 <span class="toggle-switch__track">
                                     <span class="toggle-switch__thumb"></span>
                                 </span>
                                 <span class="toggle-switch__label">@(
-                                        type.IsActive ? "Active" : "Inactive"
+                                        state.IsActive ? "Active" : "Inactive"
                                     )</span>
                             </button>
                         </form>
                     </td>
                     <td class="actions">
-                        <a asp-action="Edit" asp-route-id="@type.RegistrationTypeId">Edit</a>
+                        <a asp-action="Edit" asp-route-id="@state.StateId">Edit</a>
                     </td>
                 </tr>
             }

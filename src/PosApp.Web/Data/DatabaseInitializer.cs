@@ -43,8 +43,9 @@ public sealed class DatabaseInitializer
             "CREATE TABLE IF NOT EXISTS Payments (Id TEXT PRIMARY KEY, SaleId TEXT NOT NULL, Amount REAL NOT NULL, Method TEXT NOT NULL, Reference TEXT NULL, PaidAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(SaleId) REFERENCES Sales(Id));",
             "CREATE TABLE IF NOT EXISTS StockMovements (Id TEXT PRIMARY KEY, ProductId TEXT NOT NULL, MovementType TEXT NOT NULL, Quantity INTEGER NOT NULL, Reference TEXT NULL, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(ProductId) REFERENCES Products(Id));",
             "CREATE TABLE IF NOT EXISTS BusinessTypes (BusinessTypeId INTEGER PRIMARY KEY AUTOINCREMENT, BusinessTypeName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);",
-            "CREATE TABLE IF NOT EXISTS RegistrationTypes (Id TEXT PRIMARY KEY, RegistrationTypeName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);",
-            "CREATE TABLE IF NOT EXISTS IndustryTypes (IndustryTypeId INTEGER PRIMARY KEY AUTOINCREMENT, IndustryTypeName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);"
+            "CREATE TABLE IF NOT EXISTS RegistrationTypes (RegistrationTypeId INTEGER PRIMARY KEY AUTOINCREMENT, RegistrationTypeName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);",
+            "CREATE TABLE IF NOT EXISTS IndustryTypes (IndustryTypeId INTEGER PRIMARY KEY AUTOINCREMENT, IndustryTypeName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);",
+            "CREATE TABLE IF NOT EXISTS States (StateId INTEGER PRIMARY KEY AUTOINCREMENT, StateName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);"
         };
 
         foreach (var sql in sqlCommands)
@@ -53,6 +54,7 @@ public sealed class DatabaseInitializer
         }
 
         await EnsureLegacyUserColumnsAsync(connection, cancellationToken);
+        await EnsureRegistrationTypesSchemaAsync(connection, cancellationToken);
         await SeedDefaultsAsync(connection, cancellationToken);
     }
 
@@ -65,6 +67,49 @@ public sealed class DatabaseInitializer
         {
             const string addPhoneColumnSql = "ALTER TABLE Users ADD COLUMN PhoneNumber TEXT NOT NULL DEFAULT '';";
             await connection.ExecuteAsync(new CommandDefinition(addPhoneColumnSql, cancellationToken: cancellationToken));
+        }
+    }
+
+    private static async Task EnsureRegistrationTypesSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
+    {
+        const string columnQuery = "SELECT name FROM pragma_table_info('RegistrationTypes');";
+        var columns = (await connection.QueryAsync<string>(new CommandDefinition(columnQuery, cancellationToken: cancellationToken))).ToList();
+
+        if (columns.Count == 0)
+        {
+            return;
+        }
+
+        var hasNewSchema = columns.Contains("RegistrationTypeId", StringComparer.OrdinalIgnoreCase);
+        if (hasNewSchema)
+        {
+            return;
+        }
+
+        const string renameSql = "ALTER TABLE RegistrationTypes RENAME TO RegistrationTypes_Legacy;";
+        const string createSql = @"CREATE TABLE RegistrationTypes (
+                RegistrationTypeId INTEGER PRIMARY KEY AUTOINCREMENT,
+                RegistrationTypeName TEXT NOT NULL UNIQUE,
+                IsActive INTEGER NOT NULL DEFAULT 1,
+                CreatedBy INTEGER NOT NULL,
+                CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UpdatedBy INTEGER NULL,
+                UpdatedOn TEXT NULL
+            );";
+        const string migrateSql = @"INSERT INTO RegistrationTypes (RegistrationTypeName, IsActive, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn)
+            SELECT RegistrationTypeName,
+                   IsActive,
+                   0 AS CreatedBy,
+                   CURRENT_TIMESTAMP AS CreatedOn,
+                   NULL AS UpdatedBy,
+                   NULL AS UpdatedOn
+            FROM RegistrationTypes_Legacy;";
+        const string dropSql = "DROP TABLE RegistrationTypes_Legacy;";
+
+        var statements = new[] { renameSql, createSql, migrateSql, dropSql };
+        foreach (var statement in statements)
+        {
+            await connection.ExecuteAsync(new CommandDefinition(statement, cancellationToken: cancellationToken));
         }
     }
 

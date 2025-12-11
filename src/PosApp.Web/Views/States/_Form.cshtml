@@ -1,0 +1,9 @@
+@model StateFormViewModel
+
+<div class="form-grid">
+    <div class="field-group">
+        <label asp-for="StateName"></label>
+        <input asp-for="StateName" placeholder="California" />
+        <span asp-validation-for="StateName"></span>
+    </div>
+</div>

@@ -4,33 +4,33 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using PosApp.Web.Features.RegistrationTypes;
+using PosApp.Web.Features.States;
 
 namespace PosApp.Web.Controllers;
 
-public class RegistrationTypesController : Controller
+public class StatesController : Controller
 {
-    private readonly RegistrationTypeService _registrationTypeService;
+    private readonly StateService _stateService;
 
-    public RegistrationTypesController(RegistrationTypeService registrationTypeService)
+    public StatesController(StateService stateService)
     {
-        _registrationTypeService = registrationTypeService;
+        _stateService = stateService;
     }
 
     public async Task<IActionResult> Index()
     {
-        var items = await _registrationTypeService.GetAsync();
-        return View(items);
+        var states = await _stateService.GetAsync();
+        return View(states);
     }
 
     public IActionResult Create()
     {
-        return View(new RegistrationTypeFormViewModel());
+        return View(new StateFormViewModel());
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(RegistrationTypeFormViewModel model)
+    public async Task<IActionResult> Create(StateFormViewModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -39,30 +39,29 @@ public class RegistrationTypesController : Controller
 
         try
         {
-            await _registrationTypeService.CreateAsync(new RegistrationTypeInput(model.RegistrationTypeName), GetActorId());
-
-            TempData["ToastMessage"] = "Registration type added";
+            await _stateService.CreateAsync(new StateInput(model.StateName), GetActorId());
+            TempData["ToastMessage"] = "State added";
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex) when (IsUniqueConstraintViolation(ex))
         {
-            ModelState.AddModelError(nameof(model.RegistrationTypeName), "Registration type already exists.");
+            ModelState.AddModelError(nameof(model.StateName), "State already exists.");
             return View(model);
         }
     }
 
     public async Task<IActionResult> Edit(int id)
     {
-        var details = await _registrationTypeService.GetByIdAsync(id);
+        var details = await _stateService.GetByIdAsync(id);
         if (details is null)
         {
             return NotFound();
         }
 
-        var model = new RegistrationTypeFormViewModel
+        var model = new StateFormViewModel
         {
-            RegistrationTypeId = details.RegistrationTypeId,
-            RegistrationTypeName = details.RegistrationTypeName
+            StateId = details.StateId,
+            StateName = details.StateName
         };
 
         return View(model);
@@ -70,7 +69,7 @@ public class RegistrationTypesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, RegistrationTypeFormViewModel model)
+    public async Task<IActionResult> Edit(int id, StateFormViewModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -79,14 +78,13 @@ public class RegistrationTypesController : Controller
 
         try
         {
-            await _registrationTypeService.UpdateAsync(id, new RegistrationTypeInput(model.RegistrationTypeName), GetActorId());
-
-            TempData["ToastMessage"] = "Registration type updated";
+            await _stateService.UpdateAsync(id, new StateInput(model.StateName), GetActorId());
+            TempData["ToastMessage"] = "State updated";
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex) when (IsUniqueConstraintViolation(ex))
         {
-            ModelState.AddModelError(nameof(model.RegistrationTypeName), "Registration type already exists.");
+            ModelState.AddModelError(nameof(model.StateName), "State already exists.");
             return View(model);
         }
     }
@@ -95,13 +93,13 @@ public class RegistrationTypesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Toggle(int id, bool activate)
     {
-        var success = await _registrationTypeService.SetStatusAsync(id, activate, GetActorId());
+        var success = await _stateService.SetStatusAsync(id, activate, GetActorId());
         if (!success)
         {
             return NotFound();
         }
 
-        TempData["ToastMessage"] = activate ? "Registration type activated" : "Registration type deactivated";
+        TempData["ToastMessage"] = activate ? "State activated" : "State deactivated";
         return RedirectToAction(nameof(Index));
     }
 

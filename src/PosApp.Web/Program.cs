@@ -5,6 +5,7 @@ using PosApp.Web.Features.IndustryTypes;
 using PosApp.Web.Features.Roles;
 using PosApp.Web.Features.RegistrationTypes;
 using PosApp.Web.Features.Users;
+using PosApp.Web.Features.States;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,7 @@ builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<BusinessTypeService>();
 builder.Services.AddScoped<IndustryTypeService>();
 builder.Services.AddScoped<RegistrationTypeService>();
+builder.Services.AddScoped<StateService>();
 builder.Services.AddScoped<DashboardService>();
 
 var app = builder.Build();

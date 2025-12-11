@@ -19,7 +19,7 @@ public sealed class RegistrationTypeService
     public async Task<IReadOnlyList<RegistrationTypeListItem>> GetAsync()
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT Id, RegistrationTypeName, IsActive
+        const string sql = @"SELECT RegistrationTypeId, RegistrationTypeName, IsActive, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
                              FROM RegistrationTypes
                              ORDER BY RegistrationTypeName";
 
@@ -27,52 +27,62 @@ public sealed class RegistrationTypeService
         return result.ToList();
     }
 
-    public async Task<RegistrationTypeDetails?> GetByIdAsync(Guid id)
+    public async Task<RegistrationTypeDetails?> GetByIdAsync(int id)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT Id, RegistrationTypeName, IsActive
+        const string sql = @"SELECT RegistrationTypeId, RegistrationTypeName, IsActive
                              FROM RegistrationTypes
-                             WHERE Id = @Id";
+                             WHERE RegistrationTypeId = @Id";
 
-        return await connection.QuerySingleOrDefaultAsync<RegistrationTypeDetails>(sql, new { Id = id.ToString() });
+        return await connection.QuerySingleOrDefaultAsync<RegistrationTypeDetails>(sql, new { Id = id });
     }
 
-    public async Task CreateAsync(RegistrationTypeInput input, CancellationToken cancellationToken = default)
+    public async Task CreateAsync(RegistrationTypeInput input, int createdBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"INSERT INTO RegistrationTypes (Id, RegistrationTypeName, IsActive)
-                             VALUES (@Id, @RegistrationTypeName, @IsActive)";
+        const string sql = @"INSERT INTO RegistrationTypes (RegistrationTypeName, IsActive, CreatedBy, CreatedOn)
+                             VALUES (@RegistrationTypeName, 1, @CreatedBy, CURRENT_TIMESTAMP)";
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
-            Id = Guid.NewGuid().ToString(),
             RegistrationTypeName = input.RegistrationTypeName.Trim(),
-            IsActive = input.IsActive ? 1 : 0
+            CreatedBy = createdBy
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task UpdateAsync(Guid id, RegistrationTypeInput input, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(int id, RegistrationTypeInput input, int updatedBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE RegistrationTypes
                              SET RegistrationTypeName = @RegistrationTypeName,
-                                 IsActive = @IsActive,
-                                 UpdatedAt = CURRENT_TIMESTAMP
-                             WHERE Id = @Id";
+                                 UpdatedBy = @UpdatedBy,
+                                 UpdatedOn = CURRENT_TIMESTAMP
+                             WHERE RegistrationTypeId = @Id";
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
-            Id = id.ToString(),
+            Id = id,
             RegistrationTypeName = input.RegistrationTypeName.Trim(),
-            IsActive = input.IsActive ? 1 : 0
+            UpdatedBy = updatedBy
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> SetStatusAsync(int id, bool isActive, int updatedBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = "DELETE FROM RegistrationTypes WHERE Id = @Id";
-        var affected = await connection.ExecuteAsync(new CommandDefinition(sql, new { Id = id.ToString() }, cancellationToken: cancellationToken));
+        const string sql = @"UPDATE RegistrationTypes
+                             SET IsActive = @IsActive,
+                                 UpdatedBy = @UpdatedBy,
+                                 UpdatedOn = CURRENT_TIMESTAMP
+                             WHERE RegistrationTypeId = @Id";
+
+        var affected = await connection.ExecuteAsync(new CommandDefinition(sql, new
+        {
+            Id = id,
+            IsActive = isActive ? 1 : 0,
+            UpdatedBy = updatedBy
+        }, cancellationToken: cancellationToken));
+
         return affected > 0;
     }
 }
