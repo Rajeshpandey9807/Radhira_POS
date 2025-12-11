@@ -1,13 +1,13 @@
 @model UserFormViewModel
 @{
-    ViewData["Title"] = "Invite user";
+    ViewData["Title"] = "Add user";
 }
 
 <section class="users-header">
     <div>
-        <p class="eyebrow">Invite teammate</p>
-        <h2>Keep the shift running</h2>
-        <p>Set the role and we will scaffold permissions automatically.</p>
+        <p class="eyebrow">Add teammate</p>
+        <h2>Capture the essentials</h2>
+        <p>Store contact info and credentials in one pass.</p>
     </div>
 </section>
 
@@ -15,7 +15,7 @@
     <partial name="_Form" model="Model" />
     <div class="form-actions">
         <a class="btn ghost" asp-action="Index">Cancel</a>
-        <button class="btn primary" type="submit">Invite user</button>
+        <button class="btn primary" type="submit">Save user</button>
     </div>
 </form>
 

@@ -4,31 +4,28 @@ namespace PosApp.Web.Features.Users;
 
 public sealed record UserAccount(
     Guid Id,
-    string Username,
-    string DisplayName,
+    string FullName,
     string Email,
-    string PhoneNumber,
+    string MobileNumber,
     Guid RoleId,
     string RoleName,
     bool IsActive,
-    DateTime CreatedAt);
+    DateTime CreatedOn);
 
 public sealed record RoleOption(Guid Id, string Name);
 
 public sealed record UserDetails(
     Guid Id,
-    string Username,
-    string DisplayName,
+    string FullName,
     string Email,
-    string PhoneNumber,
+    string MobileNumber,
     Guid RoleId,
     bool IsActive);
 
 public sealed record UserInput(
-    string Username,
-    string DisplayName,
+    string FullName,
     string Email,
-    string PhoneNumber,
+    string MobileNumber,
     Guid RoleId,
     string? Password);
 
@@ -37,13 +34,9 @@ public sealed class UserFormViewModel
     public Guid? Id { get; set; }
 
     [Required]
-    [MinLength(3)]
-    [MaxLength(32)]
-    public string Username { get; set; } = string.Empty;
-
-    [Required]
     [MaxLength(80)]
-    public string DisplayName { get; set; } = string.Empty;
+    [Display(Name = "Full name")]
+    public string FullName { get; set; } = string.Empty;
 
     [Required]
     [EmailAddress]
@@ -51,8 +44,8 @@ public sealed class UserFormViewModel
 
     [Required]
     [Phone]
-    [Display(Name = "Phone number")]
-    public string PhoneNumber { get; set; } = string.Empty;
+    [Display(Name = "Mobile number")]
+    public string MobileNumber { get; set; } = string.Empty;
 
     [Required]
     public Guid RoleId { get; set; }
