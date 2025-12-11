@@ -27,31 +27,30 @@ public sealed class BusinessTypeService
         return result.ToList();
     }
 
-    public async Task<BusinessTypeDetails?> GetByIdAsync(Guid id)
+    public async Task<BusinessTypeDetails?> GetByIdAsync(int id)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT BusinessTypeId, BusinessTypeName, IsActive
                              FROM BusinessTypes
                              WHERE BusinessTypeId = @Id";
 
-        return await connection.QuerySingleOrDefaultAsync<BusinessTypeDetails>(sql, new { Id = id.ToString() });
+        return await connection.QuerySingleOrDefaultAsync<BusinessTypeDetails>(sql, new { Id = id });
     }
 
     public async Task CreateAsync(BusinessTypeInput input, string createdBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"INSERT INTO BusinessTypes (BusinessTypeId, BusinessTypeName, IsActive, CreatedBy, CreatedOn)
-                             VALUES (@Id, @BusinessTypeName, 1, @CreatedBy, CURRENT_TIMESTAMP)";
+        const string sql = @"INSERT INTO BusinessTypes (BusinessTypeName, IsActive, CreatedBy, CreatedOn)
+                             VALUES (@BusinessTypeName, 1, @CreatedBy, CURRENT_TIMESTAMP)";
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
-            Id = Guid.NewGuid().ToString(),
             BusinessTypeName = input.BusinessTypeName.Trim(),
             CreatedBy = createdBy
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task UpdateAsync(Guid id, BusinessTypeInput input, string updatedBy, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(int id, BusinessTypeInput input, string updatedBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE BusinessTypes
@@ -62,13 +61,13 @@ public sealed class BusinessTypeService
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
-            Id = id.ToString(),
+            Id = id,
             BusinessTypeName = input.BusinessTypeName.Trim(),
             UpdatedBy = updatedBy
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task<bool> DeactivateAsync(Guid id, string updatedBy, CancellationToken cancellationToken = default)
+    public async Task<bool> DeactivateAsync(int id, string updatedBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE BusinessTypes
@@ -78,7 +77,7 @@ public sealed class BusinessTypeService
                              WHERE BusinessTypeId = @Id";
         var affected = await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
-            Id = id.ToString(),
+            Id = id,
             UpdatedBy = updatedBy
         }, cancellationToken: cancellationToken));
         return affected > 0;

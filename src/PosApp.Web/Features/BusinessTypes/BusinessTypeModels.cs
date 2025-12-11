@@ -2,26 +2,29 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PosApp.Web.Features.BusinessTypes;
 
-public sealed record BusinessTypeListItem(
-    Guid BusinessTypeId,
-    string BusinessTypeName,
-    bool IsActive,
-    string CreatedBy,
-    DateTime CreatedOn,
-    string? UpdatedBy,
-    DateTime? UpdatedOn);
+public sealed class BusinessTypeListItem
+{
+    public int BusinessTypeId { get; set; }
+    public string BusinessTypeName { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public string CreatedBy { get; set; } = string.Empty;
+    public DateTime CreatedOn { get; set; }
+    public string? UpdatedBy { get; set; }
+    public DateTime? UpdatedOn { get; set; }
+}
 
-public sealed record BusinessTypeDetails(
-    Guid BusinessTypeId,
-    string BusinessTypeName,
-    bool IsActive);
+public sealed class BusinessTypeDetails
+{
+    public int BusinessTypeId { get; set; }
+    public string BusinessTypeName { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+}
 
-public sealed record BusinessTypeInput(
-    string BusinessTypeName);
+public sealed record BusinessTypeInput(string BusinessTypeName);
 
 public sealed class BusinessTypeFormViewModel
 {
-    public Guid? BusinessTypeId { get; set; }
+    public int? BusinessTypeId { get; set; }
 
     [Required]
     [MaxLength(120)]

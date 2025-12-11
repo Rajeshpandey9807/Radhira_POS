@@ -51,7 +51,7 @@ public class BusinessTypesController : Controller
         }
     }
 
-    public async Task<IActionResult> Edit(Guid id)
+    public async Task<IActionResult> Edit(int id)
     {
         var details = await _businessTypeService.GetByIdAsync(id);
         if (details is null)
@@ -70,7 +70,7 @@ public class BusinessTypesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, BusinessTypeFormViewModel model)
+    public async Task<IActionResult> Edit(int id, BusinessTypeFormViewModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -94,7 +94,7 @@ public class BusinessTypesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(int id)
     {
         var deleted = await _businessTypeService.DeactivateAsync(id, GetActorName());
         if (!deleted)
