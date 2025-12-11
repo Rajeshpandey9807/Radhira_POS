@@ -7,6 +7,21 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        (function () {
+            var storageKey = "radhira-pos:theme";
+            try {
+                var stored = localStorage.getItem(storageKey);
+                var prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+                var theme = stored === "light" || stored === "dark"
+                    ? stored
+                    : (prefersLight ? "light" : "dark");
+                document.documentElement.setAttribute("data-theme", theme);
+            } catch (error) {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
 </head>
 <body>
 @{
@@ -17,23 +32,33 @@
             <a class="brand" asp-controller="Home" asp-action="Index">Radhira POS</a>
             <p class="side-tagline">Smart retail, bold pink.</p>
             <button type="button"
-                    class="sidebar-toggle"
+                    class="sidebar-toggle pill-button"
                     data-sidebar-toggle
                     aria-pressed="false">
                 <span class="sidebar-toggle-icon" aria-hidden="true"></span>
                 <span data-sidebar-toggle-label>Hide menu</span>
             </button>
             <nav class="nav-menu">
-                <a asp-controller="Home" asp-action="Index">Dashboard</a>
-                <a asp-controller="Users" asp-action="Index">Team</a>
-                <a asp-controller="Users" asp-action="Create">Create user</a>
-                <a asp-controller="Roles" asp-action="Index">Roles</a>
-                <a href="#">Customer</a>
-                <a href="#">Vendors</a>
-                <a href="#">Item</a>
-                <a href="#">Sales</a>
-                <a href="#">Purchase</a>
-                <a href="#">Report</a>
+                <div data-nav-default>
+                    <a asp-controller="Home" asp-action="Index">Dashboard</a>
+                    <a asp-controller="Users" asp-action="Index">Team</a>
+                    <a asp-controller="Users" asp-action="Create">Create user</a>
+                    <a asp-controller="Roles" asp-action="Index">Roles</a>
+                    <a href="#">Customer</a>
+                    <a href="#">Vendors</a>
+                    <a href="#">Item</a>
+                    <a href="#">Sales</a>
+                    <a href="#">Purchase</a>
+                    <a href="#">Report</a>
+                </div>
+                <div data-nav-settings>
+                    <a asp-controller="Users" asp-action="Index">Manage users</a>
+                    <a asp-controller="Roles" asp-action="Index">Roles</a>
+                    <a href="#">Permission settings</a>
+                    <a href="#">Print settings</a>
+                    <a href="#">Invoice settings</a>
+                    <a href="#">Business accounts</a>
+                </div>
             </nav>
             <div class="user-chip stack">
                 <div>
@@ -50,10 +75,18 @@
                     <p class="eyebrow">Overview</p>
                     <h1>@pageTitle</h1>
                 </div>
-                <div class="breadcrumbs">
-                    <span>Home</span>
-                    <span>/</span>
-                    <span>@pageTitle</span>
+                <div class="top-actions">
+                    <div class="breadcrumbs">
+                        <span>Home</span>
+                        <span>/</span>
+                        <span>@pageTitle</span>
+                    </div>
+                    <button type="button"
+                            class="theme-switch pill-button"
+                            data-theme-toggle
+                            aria-pressed="false">
+                        <span data-theme-toggle-label>Light mode</span>
+                    </button>
                 </div>
             </header>
 
@@ -71,6 +104,15 @@
     {
         <div class="toast">@toast</div>
     }
+
+    <button type="button"
+            class="floating-settings"
+            data-settings-toggle
+            aria-pressed="false"
+            aria-label="Settings">
+        <span class="floating-settings__glyph" aria-hidden="true">&#9881;</span>
+        <span class="sr-only" data-settings-toggle-label>Settings</span>
+    </button>
 
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
