@@ -52,12 +52,22 @@
                     <a href="#">Report</a>
                 </div>
                 <div data-nav-settings>
-                    <a asp-controller="Users" asp-action="Index">Manage users</a>
-                    <a asp-controller="Roles" asp-action="Index">Roles</a>
-                    <a href="#">Permission settings</a>
-                    <a href="#">Print settings</a>
-                    <a href="#">Invoice settings</a>
-                    <a href="#">Business accounts</a>
+                    <div class="nav-settings-group">
+                        <p class="nav-settings-group__label">Administration</p>
+                        <a asp-controller="Users" asp-action="Index">Manage users</a>
+                        <a asp-controller="Roles" asp-action="Index">Roles</a>
+                        <a href="#">Permission settings</a>
+                        <a href="#">Print settings</a>
+                        <a href="#">Invoice settings</a>
+                        <a href="#">Business accounts</a>
+                    </div>
+                    <div class="nav-settings-group">
+                        <p class="nav-settings-group__label">Business setup</p>
+                        <a asp-controller="BusinessTypes" asp-action="Index">Business types</a>
+                        <a asp-controller="IndustryTypes" asp-action="Index">Industry types</a>
+                        <a asp-controller="RegistrationTypes" asp-action="Index">Registration types</a>
+                        <a href="#">States</a>
+                    </div>
                 </div>
             </nav>
             <div class="user-chip stack">

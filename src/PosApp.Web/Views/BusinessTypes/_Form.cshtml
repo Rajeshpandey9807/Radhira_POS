@@ -1,0 +1,9 @@
+@model BusinessTypeFormViewModel
+
+<div class="form-grid">
+    <div class="field-group">
+        <label asp-for="BusinessTypeName"></label>
+        <input asp-for="BusinessTypeName" placeholder="Retail" />
+        <span asp-validation-for="BusinessTypeName"></span>
+    </div>
+</div>

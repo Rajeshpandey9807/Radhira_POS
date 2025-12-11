@@ -1,0 +1,143 @@
+using System;
+using System.Reflection;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using PosApp.Web.Features.BusinessTypes;
+
+namespace PosApp.Web.Controllers;
+
+public class BusinessTypesController : Controller
+{
+    private readonly BusinessTypeService _businessTypeService;
+
+    public BusinessTypesController(BusinessTypeService businessTypeService)
+    {
+        _businessTypeService = businessTypeService;
+    }
+
+    public async Task<IActionResult> Index()
+    {
+        var items = await _businessTypeService.GetAsync();
+        return View(items);
+    }
+
+    public IActionResult Create()
+    {
+        return View(new BusinessTypeFormViewModel());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(BusinessTypeFormViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        try
+        {
+            await _businessTypeService.CreateAsync(new BusinessTypeInput(
+                model.BusinessTypeName), GetActorId());
+
+            TempData["ToastMessage"] = "Business type added";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex) when (IsUniqueConstraintViolation(ex))
+        {
+            ModelState.AddModelError(nameof(model.BusinessTypeName), "Business type already exists.");
+            return View(model);
+        }
+    }
+
+    public async Task<IActionResult> Edit(int id)
+    {
+        var details = await _businessTypeService.GetByIdAsync(id);
+        if (details is null)
+        {
+            return NotFound();
+        }
+
+        var model = new BusinessTypeFormViewModel
+        {
+            BusinessTypeId = details.BusinessTypeId,
+            BusinessTypeName = details.BusinessTypeName
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, BusinessTypeFormViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        try
+        {
+            await _businessTypeService.UpdateAsync(id, new BusinessTypeInput(
+                model.BusinessTypeName), GetActorId());
+
+            TempData["ToastMessage"] = "Business type updated";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex) when (IsUniqueConstraintViolation(ex))
+        {
+            ModelState.AddModelError(nameof(model.BusinessTypeName), "Business type already exists.");
+            return View(model);
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Toggle(int id, bool activate)
+    {
+        var updated = await _businessTypeService.SetStatusAsync(id, activate, GetActorId());
+        if (!updated)
+        {
+            return NotFound();
+        }
+
+        TempData["ToastMessage"] = activate ? "Business type activated" : "Business type deactivated";
+        return RedirectToAction(nameof(Index));
+    }
+
+    private int GetActorId()
+    {
+        if (User?.Identity?.IsAuthenticated == true)
+        {
+            var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(idValue, out var actorId))
+            {
+                return actorId;
+            }
+        }
+
+        return 0;
+    }
+
+    private static bool IsUniqueConstraintViolation(Exception exception)
+    {
+        if (exception is SqlException sqlException && (sqlException.Number == 2601 || sqlException.Number == 2627))
+        {
+            return true;
+        }
+
+        var exceptionTypeName = exception.GetType().FullName ?? string.Empty;
+        if (exceptionTypeName.Contains("SqliteException", StringComparison.OrdinalIgnoreCase))
+        {
+            var property = exception.GetType().GetProperty("SqliteErrorCode", BindingFlags.Public | BindingFlags.Instance);
+            if (property?.GetValue(exception) is int sqliteError && sqliteError == 19)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

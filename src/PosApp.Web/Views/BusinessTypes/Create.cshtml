@@ -1,0 +1,24 @@
+@model BusinessTypeFormViewModel
+@{
+    ViewData["Title"] = "Add business type";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Business setup</p>
+        <h2>Create business type</h2>
+        <p>Name the type clearly so operators can recognize it instantly.</p>
+    </div>
+</section>
+
+<form asp-action="Create" method="post" class="card-form">
+    <partial name="_Form" model="Model" />
+    <div class="form-actions">
+        <a class="btn ghost" asp-action="Index">Cancel</a>
+        <button class="btn primary" type="submit">Save type</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

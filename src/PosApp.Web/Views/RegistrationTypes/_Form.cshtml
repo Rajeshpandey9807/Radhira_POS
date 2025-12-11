@@ -1,0 +1,15 @@
+@model RegistrationTypeFormViewModel
+
+<div class="form-grid">
+    <div class="field-group">
+        <label asp-for="RegistrationTypeName"></label>
+        <input asp-for="RegistrationTypeName" placeholder="Limited company" />
+        <span asp-validation-for="RegistrationTypeName"></span>
+    </div>
+    <div class="field-group checkbox">
+        <label>
+            <input asp-for="IsActive" type="checkbox" />
+            <span>Active</span>
+        </label>
+    </div>
+</div>

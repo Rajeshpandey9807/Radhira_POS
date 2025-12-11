@@ -1,0 +1,68 @@
+@model IReadOnlyList<BusinessTypeListItem>
+@{
+    ViewData["Title"] = "Business types";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Business setup</p>
+        <h2>Industry / business types</h2>
+        <p>Keep a curated list of business industries that power onboarding and downstream workflows.</p>
+    </div>
+    <div class="hero-actions">
+        <a asp-action="Create" class="btn primary">Add business type</a>
+        <a asp-controller="Home" asp-action="Index" class="btn ghost">Back to dashboard</a>
+    </div>
+</section>
+
+<table class="modern-table">
+    <thead>
+        <tr>
+            <th>Business type name</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="3">
+                    <div class="empty">No business types yet. Create your first entry.</div>
+                </td>
+            </tr>
+        }
+        else
+        {
+            foreach (var type in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@type.BusinessTypeName</strong>
+                    </td>
+                    <td>
+                        <form asp-action="Toggle"
+                              asp-route-id="@type.BusinessTypeId"
+                              asp-route-activate="@(type.IsActive ? false : true)"
+                              method="post"
+                              class="toggle-switch">
+                            <button type="submit"
+                                    class="toggle-switch__button @(type.IsActive ? "is-active" : string.Empty)"
+                                    aria-pressed="@(type.IsActive ? "true" : "false")">
+                                <span class="toggle-switch__track">
+                                    <span class="toggle-switch__thumb"></span>
+                                </span>
+                                <span class="toggle-switch__label">@(
+                                        type.IsActive ? "Active" : "Inactive"
+                                    )</span>
+                            </button>
+                        </form>
+                    </td>
+                    <td class="actions">
+                        <a asp-action="Edit" asp-route-id="@type.BusinessTypeId">Edit</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
