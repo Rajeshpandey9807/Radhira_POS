@@ -160,6 +160,27 @@ a:hover {
   gap: 6px;
 }
 
+.nav-settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+}
+
+.nav-settings-group + .nav-settings-group {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 10px;
+  padding-top: 16px;
+}
+
+.nav-settings-group__label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0 0 2px 2px;
+}
+
 .nav-menu [data-nav-settings] {
   display: none;
 }
@@ -971,6 +992,10 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
 
 :root[data-theme="light"] .toast {
   box-shadow: 0 20px 35px rgba(136, 14, 79, 0.25);
+}
+
+:root[data-theme="light"] .nav-settings-group__label {
+  color: rgba(31, 33, 51, 0.6);
 }
 
 @media (max-width: 960px) {
