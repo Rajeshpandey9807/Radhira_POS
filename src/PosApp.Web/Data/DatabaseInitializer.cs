@@ -34,7 +34,6 @@ public sealed class DatabaseInitializer
         var sqlCommands = new[]
         {
             "CREATE TABLE IF NOT EXISTS Roles (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Permissions TEXT NULL);",
-            "CREATE TABLE IF NOT EXISTS Users (Id TEXT PRIMARY KEY, Username TEXT NOT NULL UNIQUE, DisplayName TEXT NOT NULL, Email TEXT NOT NULL, PhoneNumber TEXT NOT NULL, RoleId TEXT NOT NULL, PasswordHash TEXT NOT NULL, IsActive INTEGER NOT NULL DEFAULT 1, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(RoleId) REFERENCES Roles(Id));",
             "CREATE TABLE IF NOT EXISTS Categories (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Color TEXT NULL);",
             "CREATE TABLE IF NOT EXISTS Products (Id TEXT PRIMARY KEY, Sku TEXT NOT NULL UNIQUE, Name TEXT NOT NULL, CategoryId TEXT NULL, UnitPrice REAL NOT NULL, ReorderPoint INTEGER NOT NULL DEFAULT 0, IsActive INTEGER NOT NULL DEFAULT 1, FOREIGN KEY(CategoryId) REFERENCES Categories(Id));",
             "CREATE TABLE IF NOT EXISTS Customers (Id TEXT PRIMARY KEY, DisplayName TEXT NOT NULL, Email TEXT NULL, Phone TEXT NULL, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);",
@@ -53,21 +52,127 @@ public sealed class DatabaseInitializer
             await connection.ExecuteAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
         }
 
-        await EnsureLegacyUserColumnsAsync(connection, cancellationToken);
+        var legacyTableName = await EnsureUsersSchemaAsync(connection, cancellationToken);
+        await EnsureUserAuthSchemaAsync(connection, cancellationToken);
+        await EnsureUserRolesSchemaAsync(connection, cancellationToken);
+
+        if (legacyTableName is not null)
+        {
+            await MigrateLegacyUserAuthAsync(connection, legacyTableName, cancellationToken);
+            await MigrateLegacyUserRolesAsync(connection, legacyTableName, cancellationToken);
+            await DropLegacyUsersTableAsync(connection, legacyTableName, cancellationToken);
+        }
+
         await EnsureRegistrationTypesSchemaAsync(connection, cancellationToken);
         await SeedDefaultsAsync(connection, cancellationToken);
     }
 
-    private static async Task EnsureLegacyUserColumnsAsync(IDbConnection connection, CancellationToken cancellationToken)
+    private static async Task<string?> EnsureUsersSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
     {
+        const string createSql = @"CREATE TABLE IF NOT EXISTS Users (
+                UserId TEXT PRIMARY KEY,
+                FullName TEXT NOT NULL,
+                Email TEXT NOT NULL UNIQUE,
+                MobileNumber TEXT NOT NULL,
+                IsActive INTEGER NOT NULL DEFAULT 1,
+                CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UpdatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );";
+
         const string columnQuery = "SELECT name FROM pragma_table_info('Users');";
         var columns = (await connection.QueryAsync<string>(new CommandDefinition(columnQuery, cancellationToken: cancellationToken))).ToList();
 
-        if (!columns.Contains("PhoneNumber", StringComparer.OrdinalIgnoreCase))
+        if (columns.Count == 0)
         {
-            const string addPhoneColumnSql = "ALTER TABLE Users ADD COLUMN PhoneNumber TEXT NOT NULL DEFAULT '';";
-            await connection.ExecuteAsync(new CommandDefinition(addPhoneColumnSql, cancellationToken: cancellationToken));
+            await connection.ExecuteAsync(new CommandDefinition(createSql, cancellationToken: cancellationToken));
+            return null;
         }
+
+        var hasNewSchema = columns.Contains("UserId", StringComparer.OrdinalIgnoreCase);
+        if (hasNewSchema)
+        {
+            return null;
+        }
+
+        const string renameSql = "ALTER TABLE Users RENAME TO Users_Legacy;";
+        await connection.ExecuteAsync(new CommandDefinition(renameSql, cancellationToken: cancellationToken));
+        await connection.ExecuteAsync(new CommandDefinition(createSql, cancellationToken: cancellationToken));
+
+        const string migrateSql = @"INSERT INTO Users (UserId, FullName, Email, MobileNumber, IsActive, CreatedOn, UpdatedOn)
+                                    SELECT Id,
+                                           DisplayName,
+                                           Email,
+                                           PhoneNumber,
+                                           IsActive,
+                                           COALESCE(CreatedAt, CURRENT_TIMESTAMP),
+                                           COALESCE(UpdatedAt, CURRENT_TIMESTAMP)
+                                    FROM Users_Legacy;";
+        await connection.ExecuteAsync(new CommandDefinition(migrateSql, cancellationToken: cancellationToken));
+
+        return "Users_Legacy";
+    }
+
+    private static async Task EnsureUserAuthSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
+    {
+        const string sql = @"CREATE TABLE IF NOT EXISTS UserAuth (
+                AuthId TEXT PRIMARY KEY,
+                UserId TEXT NOT NULL UNIQUE,
+                PasswordHash TEXT NOT NULL,
+                PasswordSalt TEXT NOT NULL,
+                LastLoginAt TEXT NULL,
+                EmailVerified INTEGER NOT NULL DEFAULT 0,
+                MobileVerified INTEGER NOT NULL DEFAULT 0,
+                CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UpdatedOn TEXT NULL,
+                FOREIGN KEY(UserId) REFERENCES Users(UserId)
+            );";
+
+        await connection.ExecuteAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
+    }
+
+    private static async Task EnsureUserRolesSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
+    {
+        const string sql = @"CREATE TABLE IF NOT EXISTS UserRoles (
+                UserId TEXT PRIMARY KEY,
+                RoleId TEXT NOT NULL,
+                FOREIGN KEY(UserId) REFERENCES Users(UserId),
+                FOREIGN KEY(RoleId) REFERENCES Roles(Id)
+            );";
+
+        await connection.ExecuteAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
+    }
+
+    private static async Task MigrateLegacyUserAuthAsync(IDbConnection connection, string legacyTableName, CancellationToken cancellationToken)
+    {
+        var sql = $@"INSERT INTO UserAuth (AuthId, UserId, PasswordHash, PasswordSalt, EmailVerified, MobileVerified)
+                     SELECT lower(hex(randomblob(16))) AS AuthId,
+                            legacy.Id,
+                            COALESCE(legacy.PasswordHash, ''),
+                            '',
+                            0,
+                            0
+                     FROM {legacyTableName} legacy
+                     WHERE NOT EXISTS (SELECT 1 FROM UserAuth ua WHERE ua.UserId = legacy.Id);";
+
+        await connection.ExecuteAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
+    }
+
+    private static async Task MigrateLegacyUserRolesAsync(IDbConnection connection, string legacyTableName, CancellationToken cancellationToken)
+    {
+        var sql = $@"INSERT INTO UserRoles (UserId, RoleId)
+                     SELECT legacy.Id,
+                            legacy.RoleId
+                     FROM {legacyTableName} legacy
+                     WHERE legacy.RoleId IS NOT NULL
+                       AND NOT EXISTS (SELECT 1 FROM UserRoles ur WHERE ur.UserId = legacy.Id);";
+
+        await connection.ExecuteAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
+    }
+
+    private static async Task DropLegacyUsersTableAsync(IDbConnection connection, string legacyTableName, CancellationToken cancellationToken)
+    {
+        var dropSql = $"DROP TABLE IF EXISTS {legacyTableName};";
+        await connection.ExecuteAsync(new CommandDefinition(dropSql, cancellationToken: cancellationToken));
     }
 
     private static async Task EnsureRegistrationTypesSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
@@ -155,21 +260,42 @@ public sealed class DatabaseInitializer
             }, cancellationToken: cancellationToken));
         }
 
-        const string adminUserSql = @"INSERT INTO Users (Id, Username, DisplayName, Email, PhoneNumber, RoleId, PasswordHash, IsActive)
-            VALUES (@Id, @Username, @DisplayName, @Email, @PhoneNumber, @RoleId, @PasswordHash, 1)
-            ON CONFLICT(Username) DO NOTHING;";
+        var credentials = PasswordUtility.CreateHash("changeme");
 
-        var defaultAdminPassword = PasswordUtility.HashPassword("changeme");
+        const string adminUserSql = @"INSERT INTO Users (UserId, FullName, Email, MobileNumber, IsActive)
+            VALUES (@UserId, @FullName, @Email, @MobileNumber, 1)
+            ON CONFLICT(Email) DO NOTHING;";
+
+        var adminUserId = Guid.Parse("0f340000-3df4-4ef7-8d3f-748f6ec9d00f").ToString();
 
         var adminInserted = await connection.ExecuteAsync(new CommandDefinition(adminUserSql, new
         {
-            Id = Guid.Parse("0f340000-3df4-4ef7-8d3f-748f6ec9d00f").ToString(),
-            Username = "admin",
-            DisplayName = "Super Admin",
+            UserId = adminUserId,
+            FullName = "Super Admin",
             Email = "admin@example.com",
-            PhoneNumber = "+1 555 0100",
-            RoleId = adminRoleId.ToString(),
-            PasswordHash = defaultAdminPassword
+            MobileNumber = "+1 555 0100"
+        }, cancellationToken: cancellationToken));
+
+        const string adminAuthSql = @"INSERT INTO UserAuth (AuthId, UserId, PasswordHash, PasswordSalt, EmailVerified, MobileVerified)
+            VALUES (@AuthId, @UserId, @PasswordHash, @PasswordSalt, 0, 0)
+            ON CONFLICT(UserId) DO NOTHING;";
+
+        await connection.ExecuteAsync(new CommandDefinition(adminAuthSql, new
+        {
+            AuthId = Guid.NewGuid().ToString(),
+            UserId = adminUserId,
+            PasswordHash = credentials.Hash,
+            PasswordSalt = credentials.Salt
+        }, cancellationToken: cancellationToken));
+
+        const string adminRoleSql = @"INSERT INTO UserRoles (UserId, RoleId)
+            VALUES (@UserId, @RoleId)
+            ON CONFLICT(UserId) DO NOTHING;";
+
+        await connection.ExecuteAsync(new CommandDefinition(adminRoleSql, new
+        {
+            UserId = adminUserId,
+            RoleId = adminRoleId.ToString()
         }, cancellationToken: cancellationToken));
 
         if (adminInserted > 0)
