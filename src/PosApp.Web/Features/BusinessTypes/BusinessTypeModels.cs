@@ -18,7 +18,7 @@ public sealed record BusinessTypeInput(
 
 public sealed class BusinessTypeFormViewModel
 {
-    public Guid? Id { get; set; }
+    public Guid? BusinessTypeId { get; set; }
 
     [Required]
     [MaxLength(120)]

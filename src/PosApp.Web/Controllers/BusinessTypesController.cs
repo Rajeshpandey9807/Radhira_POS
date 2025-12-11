@@ -62,7 +62,7 @@ public class BusinessTypesController : Controller
 
         var model = new BusinessTypeFormViewModel
         {
-            Id = details.Id,
+            BusinessTypeId = details.Id,
             IndustryTypeName = details.IndustryTypeName,
             IsActive = details.IsActive
         };
