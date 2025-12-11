@@ -92,7 +92,7 @@ public sealed class UserService
                 RoleId = input.RoleId.ToString(),
                 CreatedOn = now,
                 UpdatedOn = now
-            }, transaction, cancellationToken));
+            }, transaction, null, cancellationToken: cancellationToken));
 
             await connection.ExecuteAsync(new CommandDefinition(insertAuthSql, new
             {
@@ -100,7 +100,7 @@ public sealed class UserService
                 UserId = userId.ToString(),
                 PasswordHash = passwordResult.Hash,
                 PasswordSalt = passwordResult.Salt
-            }, transaction, cancellationToken));
+            }, transaction, null, cancellationToken: cancellationToken));
 
             transaction.Commit();
         }
@@ -139,7 +139,7 @@ public sealed class UserService
                 MobileNumber = mobileNumber,
                 RoleId = input.RoleId.ToString(),
                 UpdatedOn = now
-            }, transaction, cancellationToken));
+            }, transaction, null, cancellationToken: cancellationToken));
 
             if (!string.IsNullOrWhiteSpace(input.Password))
             {
@@ -155,7 +155,7 @@ public sealed class UserService
                     UserId = id.ToString(),
                     PasswordHash = passwordResult.Hash,
                     PasswordSalt = passwordResult.Salt
-                }, transaction, cancellationToken));
+                }, transaction, null, cancellationToken: cancellationToken));
 
                 if (affected == 0)
                 {
@@ -168,7 +168,7 @@ public sealed class UserService
                         UserId = id.ToString(),
                         PasswordHash = passwordResult.Hash,
                         PasswordSalt = passwordResult.Salt
-                    }, transaction, cancellationToken));
+                    }, transaction, null, cancellationToken: cancellationToken));
                 }
             }
 
