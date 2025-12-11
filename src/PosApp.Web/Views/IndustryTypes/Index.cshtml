@@ -49,7 +49,12 @@
                             <button type="submit"
                                     class="toggle-switch__button @(type.IsActive ? "is-active" : string.Empty)"
                                     aria-pressed="@(type.IsActive ? "true" : "false")">
-                                <span>@(type.IsActive ? "Active" : "Inactive")</span>
+                                <span class="toggle-switch__track">
+                                    <span class="toggle-switch__thumb"></span>
+                                </span>
+                                <span class="toggle-switch__label">@(
+                                        type.IsActive ? "Active" : "Inactive"
+                                    )</span>
                             </button>
                         </form>
                     </td>
