@@ -1,15 +1,23 @@
 @model RoleFormViewModel
 
+@{
+    var hidePermissions = ViewData["HidePermissions"] as bool? ?? false;
+}
+
 <div class="form-grid">
     <div class="field-group">
         <label asp-for="Name"></label>
         <input asp-for="Name" placeholder="Administrator" />
         <span asp-validation-for="Name"></span>
     </div>
-    <div class="field-group">
-        <label asp-for="Permissions"></label>
-        <textarea asp-for="Permissions" rows="3" placeholder="users:full,inventory:full"></textarea>
-        <span asp-validation-for="Permissions"></span>
-        <small>Use comma-separated permission keys.</small>
-    </div>
+
+    @if (!hidePermissions)
+    {
+        <div class="field-group">
+            <label asp-for="Permissions"></label>
+            <textarea asp-for="Permissions" rows="3" placeholder="users:full,inventory:full"></textarea>
+            <span asp-validation-for="Permissions"></span>
+            <small>Use comma-separated permission keys.</small>
+        </div>
+    }
 </div>
