@@ -1,0 +1,56 @@
+@model IReadOnlyList<BusinessTypeListItem>
+@{
+    ViewData["Title"] = "Business types";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Business setup</p>
+        <h2>Industry / business types</h2>
+        <p>Keep a curated list of business industries that power onboarding and downstream workflows.</p>
+    </div>
+    <div class="hero-actions">
+        <a asp-action="Create" class="btn primary">Add business type</a>
+        <a asp-controller="Home" asp-action="Index" class="btn ghost">Back to dashboard</a>
+    </div>
+</section>
+
+<table class="modern-table">
+    <thead>
+        <tr>
+            <th>Industry type name</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="3">
+                    <div class="empty">No business types yet. Create your first entry.</div>
+                </td>
+            </tr>
+        }
+        else
+        {
+            foreach (var type in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@type.IndustryTypeName</strong>
+                    </td>
+                    <td>
+                        <span class="status-pill @(type.IsActive ? "online" : "offline")">@(type.IsActive ? "Active" : "Inactive")</span>
+                    </td>
+                    <td class="actions">
+                        <a asp-action="Edit" asp-route-id="@type.Id">Edit</a>
+                        <form asp-action="Delete" asp-route-id="@type.Id" method="post" onsubmit="return confirm('Delete this business type?');">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

@@ -1,0 +1,25 @@
+@model BusinessTypeFormViewModel
+@{
+    ViewData["Title"] = "Edit business type";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Business setup</p>
+        <h2>Edit business type</h2>
+        <p>Adjust the label or availability without impacting historical records.</p>
+    </div>
+</section>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="card-form">
+    <input type="hidden" asp-for="Id" />
+    <partial name="_Form" model="Model" />
+    <div class="form-actions">
+        <a class="btn ghost" asp-action="Index">Cancel</a>
+        <button class="btn primary" type="submit">Update type</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -483,6 +483,25 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   font-weight: 600;
 }
 
+.field-group.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.field-group.checkbox label {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.field-group.checkbox input[type="checkbox"] {
+  width: auto;
+  height: auto;
+}
+
 .field-group input,
 .field-group select {
   width: 100%;

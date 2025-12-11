@@ -1,0 +1,56 @@
+@model IReadOnlyList<RegistrationTypeListItem>
+@{
+    ViewData["Title"] = "Registration types";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Business setup</p>
+        <h2>Registration types</h2>
+        <p>Capture statutory registration types (LLC, Partnership, etc.) for use across onboarding flows.</p>
+    </div>
+    <div class="hero-actions">
+        <a asp-action="Create" class="btn primary">Add registration type</a>
+        <a asp-controller="Home" asp-action="Index" class="btn ghost">Back to dashboard</a>
+    </div>
+</section>
+
+<table class="modern-table">
+    <thead>
+        <tr>
+            <th>Registration type</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="3">
+                    <div class="empty">No registration types yet. Add the first one.</div>
+                </td>
+            </tr>
+        }
+        else
+        {
+            foreach (var type in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@type.RegistrationTypeName</strong>
+                    </td>
+                    <td>
+                        <span class="status-pill @(type.IsActive ? "online" : "offline")">@(type.IsActive ? "Active" : "Inactive")</span>
+                    </td>
+                    <td class="actions">
+                        <a asp-action="Edit" asp-route-id="@type.Id">Edit</a>
+                        <form asp-action="Delete" asp-route-id="@type.Id" method="post" onsubmit="return confirm('Delete this registration type?');">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
