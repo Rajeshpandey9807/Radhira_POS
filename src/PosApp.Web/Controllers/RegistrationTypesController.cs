@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -38,9 +39,7 @@ public class RegistrationTypesController : Controller
 
         try
         {
-            await _registrationTypeService.CreateAsync(new RegistrationTypeInput(
-                model.RegistrationTypeName,
-                model.IsActive));
+            await _registrationTypeService.CreateAsync(new RegistrationTypeInput(model.RegistrationTypeName), GetActorId());
 
             TempData["ToastMessage"] = "Registration type added";
             return RedirectToAction(nameof(Index));
@@ -52,7 +51,7 @@ public class RegistrationTypesController : Controller
         }
     }
 
-    public async Task<IActionResult> Edit(Guid id)
+    public async Task<IActionResult> Edit(int id)
     {
         var details = await _registrationTypeService.GetByIdAsync(id);
         if (details is null)
@@ -62,9 +61,8 @@ public class RegistrationTypesController : Controller
 
         var model = new RegistrationTypeFormViewModel
         {
-            Id = details.Id,
-            RegistrationTypeName = details.RegistrationTypeName,
-            IsActive = details.IsActive
+            RegistrationTypeId = details.RegistrationTypeId,
+            RegistrationTypeName = details.RegistrationTypeName
         };
 
         return View(model);
@@ -72,7 +70,7 @@ public class RegistrationTypesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, RegistrationTypeFormViewModel model)
+    public async Task<IActionResult> Edit(int id, RegistrationTypeFormViewModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -81,9 +79,7 @@ public class RegistrationTypesController : Controller
 
         try
         {
-            await _registrationTypeService.UpdateAsync(id, new RegistrationTypeInput(
-                model.RegistrationTypeName,
-                model.IsActive));
+            await _registrationTypeService.UpdateAsync(id, new RegistrationTypeInput(model.RegistrationTypeName), GetActorId());
 
             TempData["ToastMessage"] = "Registration type updated";
             return RedirectToAction(nameof(Index));
@@ -97,15 +93,15 @@ public class RegistrationTypesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Toggle(int id, bool activate)
     {
-        var deleted = await _registrationTypeService.DeleteAsync(id);
-        if (!deleted)
+        var success = await _registrationTypeService.SetStatusAsync(id, activate, GetActorId());
+        if (!success)
         {
             return NotFound();
         }
 
-        TempData["ToastMessage"] = "Registration type deleted";
+        TempData["ToastMessage"] = activate ? "Registration type activated" : "Registration type deactivated";
         return RedirectToAction(nameof(Index));
     }
 
@@ -127,5 +123,19 @@ public class RegistrationTypesController : Controller
         }
 
         return false;
+    }
+
+    private int GetActorId()
+    {
+        if (User?.Identity?.IsAuthenticated == true)
+        {
+            var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(idValue, out var actorId))
+            {
+                return actorId;
+            }
+        }
+
+        return 0;
     }
 }

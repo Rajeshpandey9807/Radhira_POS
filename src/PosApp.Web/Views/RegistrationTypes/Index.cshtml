@@ -41,13 +41,25 @@
                         <strong>@type.RegistrationTypeName</strong>
                     </td>
                     <td>
-                        <span class="status-pill @(type.IsActive ? "online" : "offline")">@(type.IsActive ? "Active" : "Inactive")</span>
+                        <form asp-action="Toggle"
+                              asp-route-id="@type.RegistrationTypeId"
+                              asp-route-activate="@(type.IsActive ? false : true)"
+                              method="post"
+                              class="toggle-switch">
+                            <button type="submit"
+                                    class="toggle-switch__button @(type.IsActive ? "is-active" : string.Empty)"
+                                    aria-pressed="@(type.IsActive ? "true" : "false")">
+                                <span class="toggle-switch__track">
+                                    <span class="toggle-switch__thumb"></span>
+                                </span>
+                                <span class="toggle-switch__label">@(
+                                        type.IsActive ? "Active" : "Inactive"
+                                    )</span>
+                            </button>
+                        </form>
                     </td>
                     <td class="actions">
-                        <a asp-action="Edit" asp-route-id="@type.Id">Edit</a>
-                        <form asp-action="Delete" asp-route-id="@type.Id" method="post" onsubmit="return confirm('Delete this registration type?');">
-                            <button type="submit">Delete</button>
-                        </form>
+                        <a asp-action="Edit" asp-route-id="@type.RegistrationTypeId">Edit</a>
                     </td>
                 </tr>
             }
