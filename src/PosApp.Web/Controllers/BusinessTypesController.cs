@@ -39,15 +39,14 @@ public class BusinessTypesController : Controller
         try
         {
             await _businessTypeService.CreateAsync(new BusinessTypeInput(
-                model.IndustryTypeName,
-                model.IsActive));
+                model.BusinessTypeName), GetActorName());
 
             TempData["ToastMessage"] = "Business type added";
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex) when (IsUniqueConstraintViolation(ex))
         {
-            ModelState.AddModelError(nameof(model.IndustryTypeName), "Industry type already exists.");
+            ModelState.AddModelError(nameof(model.BusinessTypeName), "Business type already exists.");
             return View(model);
         }
     }
@@ -62,9 +61,8 @@ public class BusinessTypesController : Controller
 
         var model = new BusinessTypeFormViewModel
         {
-            BusinessTypeId = details.Id,
-            IndustryTypeName = details.IndustryTypeName,
-            IsActive = details.IsActive
+            BusinessTypeId = details.BusinessTypeId,
+            BusinessTypeName = details.BusinessTypeName
         };
 
         return View(model);
@@ -82,15 +80,14 @@ public class BusinessTypesController : Controller
         try
         {
             await _businessTypeService.UpdateAsync(id, new BusinessTypeInput(
-                model.IndustryTypeName,
-                model.IsActive));
+                model.BusinessTypeName), GetActorName());
 
             TempData["ToastMessage"] = "Business type updated";
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex) when (IsUniqueConstraintViolation(ex))
         {
-            ModelState.AddModelError(nameof(model.IndustryTypeName), "Industry type already exists.");
+            ModelState.AddModelError(nameof(model.BusinessTypeName), "Business type already exists.");
             return View(model);
         }
     }
@@ -99,14 +96,24 @@ public class BusinessTypesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _businessTypeService.DeleteAsync(id);
+        var deleted = await _businessTypeService.DeactivateAsync(id, GetActorName());
         if (!deleted)
         {
             return NotFound();
         }
 
-        TempData["ToastMessage"] = "Business type deleted";
+        TempData["ToastMessage"] = "Business type deactivated";
         return RedirectToAction(nameof(Index));
+    }
+
+    private string GetActorName()
+    {
+        if (User?.Identity?.IsAuthenticated == true)
+        {
+            return string.IsNullOrWhiteSpace(User.Identity?.Name) ? "System" : User.Identity!.Name!;
+        }
+
+        return "System";
     }
 
     private static bool IsUniqueConstraintViolation(Exception exception)

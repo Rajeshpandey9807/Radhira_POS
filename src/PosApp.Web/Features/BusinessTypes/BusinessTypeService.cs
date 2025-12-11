@@ -19,9 +19,9 @@ public sealed class BusinessTypeService
     public async Task<IReadOnlyList<BusinessTypeListItem>> GetAsync()
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT Id, IndustryTypeName, IsActive
+        const string sql = @"SELECT BusinessTypeId, BusinessTypeName, IsActive, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
                              FROM BusinessTypes
-                             ORDER BY IndustryTypeName";
+                             ORDER BY BusinessTypeName";
 
         var result = await connection.QueryAsync<BusinessTypeListItem>(sql);
         return result.ToList();
@@ -30,49 +30,57 @@ public sealed class BusinessTypeService
     public async Task<BusinessTypeDetails?> GetByIdAsync(Guid id)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT Id, IndustryTypeName, IsActive
+        const string sql = @"SELECT BusinessTypeId, BusinessTypeName, IsActive
                              FROM BusinessTypes
-                             WHERE Id = @Id";
+                             WHERE BusinessTypeId = @Id";
 
         return await connection.QuerySingleOrDefaultAsync<BusinessTypeDetails>(sql, new { Id = id.ToString() });
     }
 
-    public async Task CreateAsync(BusinessTypeInput input, CancellationToken cancellationToken = default)
+    public async Task CreateAsync(BusinessTypeInput input, string createdBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"INSERT INTO BusinessTypes (Id, IndustryTypeName, IsActive)
-                             VALUES (@Id, @IndustryTypeName, @IsActive)";
+        const string sql = @"INSERT INTO BusinessTypes (BusinessTypeId, BusinessTypeName, IsActive, CreatedBy, CreatedOn)
+                             VALUES (@Id, @BusinessTypeName, 1, @CreatedBy, CURRENT_TIMESTAMP)";
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
             Id = Guid.NewGuid().ToString(),
-            IndustryTypeName = input.IndustryTypeName.Trim(),
-            IsActive = input.IsActive ? 1 : 0
+            BusinessTypeName = input.BusinessTypeName.Trim(),
+            CreatedBy = createdBy
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task UpdateAsync(Guid id, BusinessTypeInput input, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(Guid id, BusinessTypeInput input, string updatedBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE BusinessTypes
-                             SET IndustryTypeName = @IndustryTypeName,
-                                 IsActive = @IsActive,
-                                 UpdatedAt = CURRENT_TIMESTAMP
-                             WHERE Id = @Id";
+                             SET BusinessTypeName = @BusinessTypeName,
+                                 UpdatedBy = @UpdatedBy,
+                                 UpdatedOn = CURRENT_TIMESTAMP
+                             WHERE BusinessTypeId = @Id";
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
             Id = id.ToString(),
-            IndustryTypeName = input.IndustryTypeName.Trim(),
-            IsActive = input.IsActive ? 1 : 0
+            BusinessTypeName = input.BusinessTypeName.Trim(),
+            UpdatedBy = updatedBy
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeactivateAsync(Guid id, string updatedBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = "DELETE FROM BusinessTypes WHERE Id = @Id";
-        var affected = await connection.ExecuteAsync(new CommandDefinition(sql, new { Id = id.ToString() }, cancellationToken: cancellationToken));
+        const string sql = @"UPDATE BusinessTypes
+                             SET IsActive = 0,
+                                 UpdatedBy = @UpdatedBy,
+                                 UpdatedOn = CURRENT_TIMESTAMP
+                             WHERE BusinessTypeId = @Id";
+        var affected = await connection.ExecuteAsync(new CommandDefinition(sql, new
+        {
+            Id = id.ToString(),
+            UpdatedBy = updatedBy
+        }, cancellationToken: cancellationToken));
         return affected > 0;
     }
 }
