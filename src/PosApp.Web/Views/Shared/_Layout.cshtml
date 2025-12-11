@@ -32,12 +32,6 @@
             <a class="brand" asp-controller="Home" asp-action="Index">Radhira POS</a>
             <p class="side-tagline">Smart retail, bold pink.</p>
             <button type="button"
-                    class="pill-button nav-mode-toggle"
-                    data-settings-toggle
-                    aria-pressed="false">
-                <span data-settings-toggle-label>Settings</span>
-            </button>
-            <button type="button"
                     class="sidebar-toggle pill-button"
                     data-sidebar-toggle
                     aria-pressed="false">
@@ -110,6 +104,15 @@
     {
         <div class="toast">@toast</div>
     }
+
+    <button type="button"
+            class="floating-settings"
+            data-settings-toggle
+            aria-pressed="false"
+            aria-label="Settings">
+        <span class="floating-settings__glyph" aria-hidden="true">&#9881;</span>
+        <span class="sr-only" data-settings-toggle-label>Settings</span>
+    </button>
 
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

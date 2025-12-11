@@ -53,13 +53,12 @@
 })();
 
 (() => {
-  const toggle = document.querySelector('[data-settings-toggle]');
-  if (!toggle) {
+  const toggles = document.querySelectorAll('[data-settings-toggle]');
+  if (!toggles.length) {
     return;
   }
 
   const body = document.body;
-  const label = toggle.querySelector('[data-settings-toggle-label]');
   const storageKey = 'radhira-pos:nav-mode';
 
   const readPreference = () => {
@@ -82,19 +81,26 @@
   const applyMode = (mode) => {
     const showSettings = mode === 'settings';
     body.classList.toggle('settings-menu', showSettings);
-    toggle.setAttribute('aria-pressed', showSettings ? 'true' : 'false');
-    if (label) {
-      label.textContent = showSettings ? 'Back to menu' : 'Settings';
-    }
+    const nextLabel = showSettings ? 'Back to menu' : 'Settings';
+    toggles.forEach((toggle) => {
+      toggle.setAttribute('aria-pressed', showSettings ? 'true' : 'false');
+      toggle.setAttribute('aria-label', nextLabel);
+      const labelNode = toggle.querySelector('[data-settings-toggle-label]');
+      if (labelNode) {
+        labelNode.textContent = nextLabel;
+      }
+    });
   };
 
   let mode = readPreference();
   applyMode(mode);
 
-  toggle.addEventListener('click', () => {
-    mode = mode === 'settings' ? 'default' : 'settings';
-    applyMode(mode);
-    persistPreference(mode);
+  toggles.forEach((toggle) => {
+    toggle.addEventListener('click', () => {
+      mode = mode === 'settings' ? 'default' : 'settings';
+      applyMode(mode);
+      persistPreference(mode);
+    });
   });
 })();
 
