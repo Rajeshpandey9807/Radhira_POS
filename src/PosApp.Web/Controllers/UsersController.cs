@@ -32,6 +32,8 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(UserFormViewModel model)
     {
+        model.Password = model.Password?.Trim();
+
         if (string.IsNullOrWhiteSpace(model.Password))
         {
             ModelState.AddModelError(nameof(model.Password), "Password is required.");
@@ -50,18 +52,17 @@ public class UsersController : Controller
         try
         {
             await _userService.CreateAsync(new UserInput(
-                model.Username.Trim(),
-                model.DisplayName.Trim(),
+                model.FullName.Trim(),
                 model.Email.Trim(),
-                model.PhoneNumber.Trim(),
+                model.MobileNumber.Trim(),
                 model.RoleId,
                 model.Password));
-            TempData["ToastMessage"] = $"User {model.DisplayName} invited";
+            TempData["ToastMessage"] = $"User {model.FullName} added";
             return RedirectToAction(nameof(Index));
         }
         catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
         {
-            ModelState.AddModelError(nameof(model.Username), "Username already exists. Choose another one.");
+            ModelState.AddModelError(nameof(model.Email), "Email already exists. Choose another one.");
             await PopulateRolesAsync(model);
             return View(model);
         }
@@ -78,10 +79,9 @@ public class UsersController : Controller
         var model = await PopulateRolesAsync(new UserFormViewModel
         {
             Id = details.Id,
-            Username = details.Username,
-            DisplayName = details.DisplayName,
+            FullName = details.FullName,
             Email = details.Email,
-            PhoneNumber = details.PhoneNumber,
+            MobileNumber = details.MobileNumber,
             RoleId = details.RoleId
         });
 
@@ -92,6 +92,8 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Guid id, UserFormViewModel model)
     {
+        model.Password = model.Password?.Trim();
+
         if (!ModelState.IsValid)
         {
             await PopulateRolesAsync(model);
@@ -99,14 +101,13 @@ public class UsersController : Controller
         }
 
         await _userService.UpdateAsync(id, new UserInput(
-            model.Username,
-            model.DisplayName,
+            model.FullName,
             model.Email,
-            model.PhoneNumber,
+            model.MobileNumber,
             model.RoleId,
             model.Password));
 
-        TempData["ToastMessage"] = $"User {model.DisplayName} updated";
+        TempData["ToastMessage"] = $"User {model.FullName} updated";
         return RedirectToAction(nameof(Index));
     }
 

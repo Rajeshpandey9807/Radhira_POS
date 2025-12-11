@@ -23,7 +23,8 @@ The bootstrapper provisions these tables; the structure doubles as a recommended
 | Table | Purpose | Key Columns |
 | --- | --- | --- |
 | `Roles` | Defines permission bundles for each operator type. | `Id (TEXT PK)`, `Name (UNIQUE)`, `Permissions` JSON/CSV |
-| `Users` | Cashiers and admins that can authenticate. | `Id`, `Username (UNIQUE)`, `DisplayName`, `Email`, `RoleId (FK Roles)`, `PasswordHash`, `IsActive`, timestamps |
+| `Users` | Cashiers and admins that can authenticate. | `UserId`, `FullName`, `Email (UNIQUE)`, `MobileNumber`, `RoleId (FK Roles)`, `IsActive`, `CreatedOn`, `UpdatedOn` |
+| `UserAuth` | Credential + verification metadata per user. | `AuthId`, `UserId (UNIQUE FK Users)`, `PasswordHash`, `PasswordSalt`, `LastLoginAt`, `EmailVerified`, `MobileVerified` |
 | `Categories` | Color-coded groupings for the catalog UI. | `Id`, `Name (UNIQUE)`, `Color` |
 | `Products` | Sellable SKUs with pricing + reorder info. | `Id`, `Sku (UNIQUE)`, `Name`, `CategoryId`, `UnitPrice`, `ReorderPoint`, `IsActive` |
 | `Customers` | Optional buyer profiles for loyalty or invoices. | `Id`, `DisplayName`, `Email`, `Phone`, `CreatedAt` |
@@ -38,3 +39,4 @@ The bootstrapper provisions these tables; the structure doubles as a recommended
 - Plug the POS screen into live product/sale services.
 - Replace the placeholder password scheme with ASP.NET Identity or your auth provider of choice.
 - Add unit/integration tests for repositories and controllers.
+- Model subscription tracking by introducing a `UserSubscriptions` table (e.g., `SubscriptionId`, `UserId`, `PlanCode`, `Status`, `StartsOn`, `EndsOn`, `AutoRenew`, timestamps) and wiring it into the user profile flow (Step 2).
