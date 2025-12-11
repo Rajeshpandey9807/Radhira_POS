@@ -1,0 +1,56 @@
+@model IReadOnlyList<IndustryTypeListItem>
+@{
+    ViewData["Title"] = "Industry types";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Business setup</p>
+        <h2>Industry types</h2>
+        <p>Organize industries for downstream onboarding and classification workflows.</p>
+    </div>
+    <div class="hero-actions">
+        <a asp-action="Create" class="btn primary">Add industry type</a>
+        <a asp-controller="Home" asp-action="Index" class="btn ghost">Back to dashboard</a>
+    </div>
+</section>
+
+<table class="modern-table">
+    <thead>
+        <tr>
+            <th>Industry type</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="3">
+                    <div class="empty">No industry types yet. Add the first one.</div>
+                </td>
+            </tr>
+        }
+        else
+        {
+            foreach (var type in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@type.IndustryTypeName</strong>
+                    </td>
+                    <td>
+                        <span class="status-pill @(type.IsActive ? "online" : "offline")">@(type.IsActive ? "Active" : "Inactive")</span>
+                    </td>
+                    <td class="actions">
+                        <a asp-action="Edit" asp-route-id="@type.IndustryTypeId">Edit</a>
+                        <form asp-action="Delete" asp-route-id="@type.IndustryTypeId" method="post" onsubmit="return confirm('Deactivate this industry type?');">
+                            <button type="submit">Deactivate</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

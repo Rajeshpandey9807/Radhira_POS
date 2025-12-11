@@ -1,6 +1,7 @@
 using PosApp.Web.Data;
 using PosApp.Web.Features.BusinessTypes;
 using PosApp.Web.Features.Dashboard;
+using PosApp.Web.Features.IndustryTypes;
 using PosApp.Web.Features.Roles;
 using PosApp.Web.Features.RegistrationTypes;
 using PosApp.Web.Features.Users;
@@ -14,6 +15,7 @@ builder.Services.AddScoped<DatabaseInitializer>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<BusinessTypeService>();
+builder.Services.AddScoped<IndustryTypeService>();
 builder.Services.AddScoped<RegistrationTypeService>();
 builder.Services.AddScoped<DashboardService>();
 
