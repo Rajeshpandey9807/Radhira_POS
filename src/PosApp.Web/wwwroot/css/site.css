@@ -728,10 +728,16 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   color: var(--pink-900);
 }
 
+:root[data-theme="light"] .btn.primary {
+  background: linear-gradient(115deg, #ff64b5, #ffb866);
+  box-shadow: 0 14px 30px rgba(255, 99, 181, 0.35);
+  color: #fff;
+}
+
 :root[data-theme="light"] .btn.ghost {
-  border-color: rgba(17, 19, 34, 0.18);
-  background: rgba(31, 33, 51, 0.04);
-  color: #1f2133;
+  border-color: rgba(255, 153, 102, 0.5);
+  background: rgba(255, 153, 102, 0.12);
+  color: #b44c12;
 }
 
 :root[data-theme="light"] .brand {
