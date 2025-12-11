@@ -67,11 +67,11 @@ public sealed class IndustryTypeService
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task<bool> DeactivateAsync(int id, int updatedBy, CancellationToken cancellationToken = default)
+    public async Task<bool> SetStatusAsync(int id, bool isActive, int updatedBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE IndustryTypes
-                             SET IsActive = 0,
+                             SET IsActive = @IsActive,
                                  UpdatedBy = @UpdatedBy,
                                  UpdatedOn = CURRENT_TIMESTAMP
                              WHERE IndustryTypeId = @Id";
@@ -79,6 +79,7 @@ public sealed class IndustryTypeService
         var affected = await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
             Id = id,
+            IsActive = isActive ? 1 : 0,
             UpdatedBy = updatedBy
         }, cancellationToken: cancellationToken));
 

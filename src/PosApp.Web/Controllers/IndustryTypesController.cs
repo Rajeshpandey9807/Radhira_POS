@@ -91,15 +91,15 @@ public class IndustryTypesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Toggle(int id, bool activate)
     {
-        var success = await _industryTypeService.DeactivateAsync(id, GetActorId());
+        var success = await _industryTypeService.SetStatusAsync(id, activate, GetActorId());
         if (!success)
         {
             return NotFound();
         }
 
-        TempData["ToastMessage"] = "Industry type deactivated";
+        TempData["ToastMessage"] = activate ? "Industry type activated" : "Industry type deactivated";
         return RedirectToAction(nameof(Index));
     }
 

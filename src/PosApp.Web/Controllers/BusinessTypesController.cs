@@ -95,15 +95,15 @@ public class BusinessTypesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Toggle(int id, bool activate)
     {
-        var deleted = await _businessTypeService.DeactivateAsync(id, GetActorId());
-        if (!deleted)
+        var updated = await _businessTypeService.SetStatusAsync(id, activate, GetActorId());
+        if (!updated)
         {
             return NotFound();
         }
 
-        TempData["ToastMessage"] = "Business type deactivated";
+        TempData["ToastMessage"] = activate ? "Business type activated" : "Business type deactivated";
         return RedirectToAction(nameof(Index));
     }
 

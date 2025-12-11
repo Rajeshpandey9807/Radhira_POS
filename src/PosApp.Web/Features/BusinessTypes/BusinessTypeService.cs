@@ -67,17 +67,18 @@ public sealed class BusinessTypeService
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task<bool> DeactivateAsync(int id, int updatedBy, CancellationToken cancellationToken = default)
+    public async Task<bool> SetStatusAsync(int id, bool isActive, int updatedBy, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE BusinessTypes
-                             SET IsActive = 0,
+                             SET IsActive = @IsActive,
                                  UpdatedBy = @UpdatedBy,
                                  UpdatedOn = CURRENT_TIMESTAMP
                              WHERE BusinessTypeId = @Id";
         var affected = await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
             Id = id,
+            IsActive = isActive ? 1 : 0,
             UpdatedBy = updatedBy
         }, cancellationToken: cancellationToken));
         return affected > 0;

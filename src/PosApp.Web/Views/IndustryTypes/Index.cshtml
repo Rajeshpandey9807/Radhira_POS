@@ -45,8 +45,12 @@
                     </td>
                     <td class="actions">
                         <a asp-action="Edit" asp-route-id="@type.IndustryTypeId">Edit</a>
-                        <form asp-action="Delete" asp-route-id="@type.IndustryTypeId" method="post" onsubmit="return confirm('Deactivate this industry type?');">
-                            <button type="submit">Deactivate</button>
+                        <form asp-action="Toggle"
+                              asp-route-id="@type.IndustryTypeId"
+                              asp-route-activate="@(type.IsActive ? false : true)"
+                              method="post"
+                              onsubmit="return confirm('@(type.IsActive ? "Deactivate this industry type?" : "Activate this industry type?")');">
+                            <button type="submit">@(type.IsActive ? "Deactivate" : "Activate")</button>
                         </form>
                     </td>
                 </tr>
