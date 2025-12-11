@@ -27,7 +27,7 @@ public sealed class RoleService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT r.Id, r.Name, COALESCE(r.Permissions, '') AS Permissions,
-                                    (SELECT COUNT(*) FROM Users u WHERE u.RoleId = r.Id) AS AssignedUsers
+                                    (SELECT COUNT(*) FROM UserRoles ur WHERE ur.RoleId = r.Id) AS AssignedUsers
                              FROM Roles r
                              ORDER BY r.Name";
 
@@ -78,7 +78,7 @@ public sealed class RoleService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
 
-        const string usageSql = "SELECT COUNT(*) FROM Users WHERE RoleId = @Id";
+        const string usageSql = "SELECT COUNT(*) FROM UserRoles WHERE RoleId = @Id";
         var usageCount = await connection.ExecuteScalarAsync<int>(new CommandDefinition(usageSql, new { Id = id.ToString() }, cancellationToken: cancellationToken));
 
         if (usageCount > 0)
