@@ -11,30 +11,13 @@
     </div>
 </section>
 
-<section class="card-form wizard-card" aria-label="User creation wizard">
-    <div class="wizard-head">
-        <ol class="wizard-steps" aria-label="Progress">
-            <li class="wizard-step is-active" data-step-indicator="1">
-                <span class="wizard-step-pill" aria-hidden="true">1</span>
-                <span class="wizard-step-label">Basic details</span>
-            </li>
-            <li class="wizard-step" data-step-indicator="2">
-                <span class="wizard-step-pill" aria-hidden="true">2</span>
-                <span class="wizard-step-label">Credentials</span>
-            </li>
-        </ol>
-
-        <div class="wizard-meta">
-            <span class="wizard-meta__title" id="wizardTitle">Step 1 of 2</span>
-            <span class="wizard-meta__subtitle">All fields are required.</span>
-        </div>
-    </div>
-
+<section class="card-form wizard-card" aria-label="Register user form">
     <form id="userCreateWizard" class="wizard-form" novalidate>
         <!-- Keep a role value available (static UI; no submit). -->
         <input type="hidden" name="RoleId" value="@Model.RoleId" />
 
-        <div class="wizard-panel" data-step="1" aria-labelledby="wizardTitle">
+        <div class="wizard-section">
+            <p class="eyebrow">Basic details</p>
             <div class="form-grid">
                 <div class="field-group">
                     <label for="displayName">Full Name</label>
@@ -73,14 +56,10 @@
                     <small class="field-hint" data-default="Digits only (include country code if needed).">Digits only (include country code if needed).</small>
                 </div>
             </div>
-
-            <div class="form-actions wizard-actions">
-                <a class="btn ghost" asp-action="Index">Cancel</a>
-                <button class="btn primary" type="button" data-next>Next</button>
-            </div>
         </div>
 
-        <div class="wizard-panel is-hidden" data-step="2" aria-labelledby="wizardTitle" hidden>
+        <div class="wizard-section">
+            <p class="eyebrow">Account credentials</p>
             <div class="form-grid">
                 <div class="field-group">
                     <label for="username">Username</label>
@@ -106,11 +85,11 @@
                     <small class="field-hint" data-default="Use at least 6 characters.">Use at least 6 characters.</small>
                 </div>
             </div>
+        </div>
 
-            <div class="form-actions wizard-actions">
-                <button class="btn ghost" type="button" data-back>Back</button>
-                <button class="btn primary" type="button" data-confirm>Confirm / Save</button>
-            </div>
+        <div class="form-actions wizard-actions">
+            <a class="btn ghost" asp-action="Index">Cancel</a>
+            <button class="btn primary" type="button" data-confirm>Confirm / Save</button>
         </div>
     </form>
 </section>
@@ -161,10 +140,6 @@
         (() => {
             const form = document.getElementById('userCreateWizard');
             if (!form) return;
-
-            const stepPanels = Array.from(form.querySelectorAll('[data-step]'));
-            const stepIndicators = Array.from(document.querySelectorAll('[data-step-indicator]'));
-            const wizardTitle = document.getElementById('wizardTitle');
 
             const overlay = document.querySelector('[data-otp-overlay]');
             const otpInput = document.getElementById('otpCode');
@@ -243,21 +218,6 @@
                 return ok;
             };
 
-            const goToStep = (step) => {
-                stepPanels.forEach((panel) => {
-                    const isActive = panel.getAttribute('data-step') === String(step);
-                    if (isActive) show(panel); else hide(panel);
-                });
-
-                stepIndicators.forEach((li) => {
-                    li.classList.toggle('is-active', li.getAttribute('data-step-indicator') === String(step));
-                });
-
-                if (wizardTitle) {
-                    wizardTitle.textContent = 'Step ' + step + ' of 2';
-                }
-            };
-
             const openOtp = () => {
                 if (!overlay) return;
                 show(overlay);
@@ -294,32 +254,13 @@
                 const target = e.target;
                 if (!(target instanceof HTMLElement)) return;
 
-                const nextButton = target.closest('[data-next]');
-                const backButton = target.closest('[data-back]');
                 const confirmButton = target.closest('[data-confirm]');
                 const otpCloseButton = target.closest('[data-otp-close]');
                 const otpCancelButton = target.closest('[data-otp-cancel]');
                 const otpVerifyButton = target.closest('[data-otp-verify]');
 
-                if (nextButton) {
-                    const step1 = stepPanels.find((p) => p.getAttribute('data-step') === '1');
-                    const inputs = step1 ? Array.from(step1.querySelectorAll('input[data-validate]')) : [];
-                    if (validateInputs(inputs)) {
-                        goToStep(2);
-                        const first = form.querySelector('[data-step="2"] input');
-                        if (first instanceof HTMLInputElement) first.focus();
-                    }
-                }
-
-                if (backButton) {
-                    goToStep(1);
-                    const first = form.querySelector('[data-step="1"] input');
-                    if (first instanceof HTMLInputElement) first.focus();
-                }
-
                 if (confirmButton) {
-                    const step2 = stepPanels.find((p) => p.getAttribute('data-step') === '2');
-                    const inputs = step2 ? Array.from(step2.querySelectorAll('input[data-validate]')) : [];
+                    const inputs = Array.from(form.querySelectorAll('input[data-validate]'));
                     if (validateInputs(inputs)) {
                         openOtp();
                     }
@@ -353,8 +294,7 @@
             });
 
             // Enter key convenience:
-            // - Step 1: Enter -> Next
-            // - Step 2: Enter -> Confirm / Save
+            // - Form: Enter -> Confirm / Save
             // - OTP modal: Enter -> Verify
             form.addEventListener('keydown', (e) => {
                 if (e.key !== 'Enter') return;
@@ -369,15 +309,12 @@
                     return;
                 }
 
-                const step1Open = stepPanels.some((p) => p.getAttribute('data-step') === '1' && !p.classList.contains('is-hidden'));
-                const action = step1Open ? form.querySelector('[data-next]') : form.querySelector('[data-confirm]');
+                const action = form.querySelector('[data-confirm]');
                 if (action instanceof HTMLButtonElement) {
                     e.preventDefault();
                     action.click();
                 }
             });
-
-            goToStep(1);
         })();
     </script>
 }
