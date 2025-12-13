@@ -417,7 +417,7 @@ public sealed class BusinessProfileService
         public string? BusinessName { get; set; }
         public string? CompanyPhoneNumber { get; set; }
         public string? CompanyEmail { get; set; }
-        public int IsGstRegistered { get; set; }
+        public bool IsGstRegistered { get; set; }
         public string? GstNumber { get; set; }
         public string? PanNumber { get; set; }
         public int? IndustryTypeId { get; set; }
