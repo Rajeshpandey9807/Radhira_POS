@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
     <script>
         (function () {
             var storageKey = "radhira-pos:theme";
@@ -73,10 +74,21 @@
             </nav>
             <div class="user-chip stack">
                 <div>
-                    <span class="chip-label">Signed in</span>
-                    <strong>Admin</strong>
+                    <span class="chip-label">@(User?.Identity?.IsAuthenticated == true ? "Signed in" : "Not signed in")</span>
+                    <strong>@(User?.Identity?.IsAuthenticated == true ? (User.Identity?.Name ?? "User") : "Guest")</strong>
                 </div>
                 <span class="dot"></span>
+                @if (User?.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="pill-button">Sign out</button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="pill-button">Sign in</a>
+                }
             </div>
         </aside>
 
