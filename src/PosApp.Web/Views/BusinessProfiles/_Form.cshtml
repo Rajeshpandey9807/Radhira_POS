@@ -142,68 +142,84 @@
         <div class="bp-section__header">
             <div>
                 <h3 class="bp-section__title">Business classification</h3>
-                <p class="bp-section__subtitle">Used for reports and configuration.</p>
+                <p class="bp-section__subtitle">Helps tailor invoices, taxes, and reporting for your business.</p>
             </div>
         </div>
 
-        <div class="form-grid">
-            <div class="field-group span-all">
-                <label asp-for="SelectedBusinessTypeIds">Business Type (Select multiple, if applicable)</label>
-                <select id="BusinessTypePicker">
-                    <option value="">Choose...</option>
-                    @foreach (var item in Model.BusinessTypes)
-                    {
-                        <option value="@item.BusinessTypeId">@item.BusinessTypeName</option>
-                    }
-                </select>
-                <small class="bp-help">Select a type from the dropdown to add it. You can add multiple.</small>
-
-                @{
-                    var selectedLookup = Model.SelectedBusinessTypeIds.ToHashSet();
-                    var selectedItems = Model.BusinessTypes.Where(x => selectedLookup.Contains(x.BusinessTypeId)).ToList();
-                }
-
-                <div class="bp-chips" id="SelectedBusinessTypesChips" aria-label="Selected business types">
-                    @foreach (var selected in selectedItems)
-                    {
-                        <span class="bp-chip" data-id="@selected.BusinessTypeId">
-                            <span class="bp-chip__label">@selected.BusinessTypeName</span>
-                            <button type="button" class="bp-chip__remove" aria-label="Remove @selected.BusinessTypeName">&times;</button>
-                        </span>
-                    }
+        <div class="bp-classification">
+            <div class="bp-panel">
+                <div class="bp-panel__header">
+                    <h4 class="bp-panel__title">Business types</h4>
+                    <p class="bp-panel__subtitle">Choose one or more that best describe what you do.</p>
                 </div>
 
-                <div id="SelectedBusinessTypesInputs">
-                    @foreach (var id in Model.SelectedBusinessTypeIds)
-                    {
-                        <input type="hidden" name="SelectedBusinessTypeIds" value="@id" data-id="@id" />
+                <div class="field-group">
+                    <label asp-for="SelectedBusinessTypeIds">Business Type (Select multiple, if applicable)</label>
+                    <select id="BusinessTypePicker">
+                        <option value="">Choose...</option>
+                        @foreach (var item in Model.BusinessTypes)
+                        {
+                            <option value="@item.BusinessTypeId">@item.BusinessTypeName</option>
+                        }
+                    </select>
+                    <small class="bp-help">Pick a type to add it. Remove any selection with the × button.</small>
+
+                    @{
+                        var selectedLookup = Model.SelectedBusinessTypeIds.ToHashSet();
+                        var selectedItems = Model.BusinessTypes.Where(x => selectedLookup.Contains(x.BusinessTypeId)).ToList();
                     }
+
+                    <div class="bp-chips" id="SelectedBusinessTypesChips" aria-label="Selected business types">
+                        @foreach (var selected in selectedItems)
+                        {
+                            <span class="bp-chip" data-id="@selected.BusinessTypeId">
+                                <span class="bp-chip__label">@selected.BusinessTypeName</span>
+                                <button type="button" class="bp-chip__remove" aria-label="Remove @selected.BusinessTypeName">&times;</button>
+                            </span>
+                        }
+                    </div>
+
+                    <div id="SelectedBusinessTypesInputs">
+                        @foreach (var id in Model.SelectedBusinessTypeIds)
+                        {
+                            <input type="hidden" name="SelectedBusinessTypeIds" value="@id" data-id="@id" />
+                        }
+                    </div>
+                    <span asp-validation-for="SelectedBusinessTypeIds"></span>
                 </div>
-                <span asp-validation-for="SelectedBusinessTypeIds"></span>
             </div>
 
-            <div class="field-group">
-                <label asp-for="IndustryTypeId">Industry Type</label>
-                <select asp-for="IndustryTypeId">
-                    <option value="">Choose...</option>
-                    @foreach (var item in Model.IndustryTypes)
-                    {
-                        <option value="@item.IndustryTypeId">@item.IndustryTypeName</option>
-                    }
-                </select>
-                <span asp-validation-for="IndustryTypeId"></span>
-            </div>
+            <div class="bp-panel">
+                <div class="bp-panel__header">
+                    <h4 class="bp-panel__title">Classification</h4>
+                    <p class="bp-panel__subtitle">Used for reporting filters and business setup defaults.</p>
+                </div>
 
-            <div class="field-group">
-                <label asp-for="RegistrationTypeId">Business Registration Type</label>
-                <select asp-for="RegistrationTypeId">
-                    <option value="">Choose...</option>
-                    @foreach (var item in Model.RegistrationTypes)
-                    {
-                        <option value="@item.RegistrationTypeId">@item.RegistrationTypeName</option>
-                    }
-                </select>
-                <span asp-validation-for="RegistrationTypeId"></span>
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label asp-for="IndustryTypeId">Industry Type</label>
+                        <select asp-for="IndustryTypeId">
+                            <option value="">Choose...</option>
+                            @foreach (var item in Model.IndustryTypes)
+                            {
+                                <option value="@item.IndustryTypeId">@item.IndustryTypeName</option>
+                            }
+                        </select>
+                        <span asp-validation-for="IndustryTypeId"></span>
+                    </div>
+
+                    <div class="field-group">
+                        <label asp-for="RegistrationTypeId">Business Registration Type</label>
+                        <select asp-for="RegistrationTypeId">
+                            <option value="">Choose...</option>
+                            @foreach (var item in Model.RegistrationTypes)
+                            {
+                                <option value="@item.RegistrationTypeId">@item.RegistrationTypeName</option>
+                            }
+                        </select>
+                        <span asp-validation-for="RegistrationTypeId"></span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
