@@ -3,11 +3,17 @@
     ViewData["Title"] = "Business profile";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/business-profile.css" asp-append-version="true" />
+}
+
 <section class="users-header">
-    <div>
+    <div class="bp-shell">
         <p class="eyebrow">Business setup</p>
         <h2>Add Business Details</h2>
-        <p>Note: Details added below will be shown on your Invoices</p>
+        <div class="bp-note">
+            <strong>Note:</strong> Details added below will be shown on your Invoices
+        </div>
     </div>
 </section>
 
@@ -22,9 +28,10 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
-            function wireImagePreview(inputId, imgId) {
+            function wireImagePreview(inputId, imgId, placeholderId) {
                 var input = document.getElementById(inputId);
                 var img = document.getElementById(imgId);
+                var placeholder = document.getElementById(placeholderId);
                 if (!input || !img) return;
 
                 input.addEventListener("change", function () {
@@ -32,12 +39,14 @@
                     if (!file) {
                         img.style.display = "none";
                         img.removeAttribute("src");
+                        if (placeholder) placeholder.style.display = "block";
                         return;
                     }
 
                     if (!file.type || !file.type.startsWith("image/")) {
                         img.style.display = "none";
                         img.removeAttribute("src");
+                        if (placeholder) placeholder.style.display = "block";
                         return;
                     }
 
@@ -45,6 +54,7 @@
                     img.onload = function () { URL.revokeObjectURL(url); };
                     img.src = url;
                     img.style.display = "block";
+                    if (placeholder) placeholder.style.display = "none";
                 });
             }
 
@@ -55,7 +65,7 @@
                 if (!gstSelect || !gstGroup || !gstInput) return;
 
                 var isYes = gstSelect.value === "true";
-                gstGroup.style.display = isYes ? "" : "none";
+                gstGroup.classList.toggle("bp-hidden", !isYes);
                 if (isYes) {
                     gstInput.setAttribute("required", "required");
                 } else {
@@ -64,8 +74,8 @@
                 }
             }
 
-            wireImagePreview("BusinessLogoFile", "BusinessLogoPreview");
-            wireImagePreview("SignatureFile", "SignaturePreview");
+            wireImagePreview("BusinessLogoFile", "BusinessLogoPreview", "BusinessLogoPlaceholder");
+            wireImagePreview("SignatureFile", "SignaturePreview", "SignaturePlaceholder");
 
             var gstSelect = document.getElementById("IsGstRegistered");
             if (gstSelect) {

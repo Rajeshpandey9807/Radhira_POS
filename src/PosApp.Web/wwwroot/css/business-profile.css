@@ -1,0 +1,118 @@
+/* Page-scoped styles for Business Profile form */
+
+.bp-shell {
+  max-width: 1100px;
+}
+
+.bp-note {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(135deg, rgba(245, 0, 135, 0.12), rgba(255, 255, 255, 0.04));
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.bp-note strong {
+  color: #fff;
+}
+
+.bp-form {
+  display: grid;
+  gap: 16px;
+}
+
+.bp-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.bp-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.bp-section__title {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.bp-section__subtitle {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.92rem;
+}
+
+.bp-required {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+}
+
+.bp-required span {
+  color: var(--pink-300);
+  font-weight: 700;
+}
+
+.bp-help {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.88rem;
+}
+
+.bp-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.bp-preview {
+  margin-top: 12px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.18);
+  padding: 12px;
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+}
+
+.bp-preview img {
+  max-width: 100%;
+  max-height: 180px;
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.22);
+  padding: 6px;
+}
+
+.bp-preview__placeholder {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.bp-hidden {
+  display: none !important;
+}
+
+.bp-multi-select {
+  min-height: 140px;
+}
+
+/* Make file inputs feel nicer without changing global styles */
+.bp-file input[type="file"] {
+  padding: 0.85rem 1rem;
+}
+
