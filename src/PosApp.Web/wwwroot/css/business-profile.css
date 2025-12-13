@@ -27,6 +27,7 @@
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: var(--radius);
   padding: 18px;
+  overflow: visible;
 }
 
 .bp-section__header {
@@ -134,6 +135,7 @@
   border: 1px solid rgba(255, 255, 255, 0.10);
   background: rgba(0, 0, 0, 0.12);
   padding: 14px;
+  overflow: visible;
 }
 
 .bp-panel__header {

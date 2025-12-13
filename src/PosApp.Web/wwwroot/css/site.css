@@ -487,6 +487,16 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   font-weight: 600;
 }
 
+.field-group {
+  position: relative;
+  z-index: 0;
+}
+
+/* Helps native dropdowns render above nearby controls in some browsers/layouts. */
+.field-group:focus-within {
+  z-index: 50;
+}
+
 .field-group.checkbox {
   display: flex;
   align-items: center;
