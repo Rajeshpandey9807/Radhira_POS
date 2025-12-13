@@ -27,7 +27,8 @@ public sealed class DatabaseInitializer
 
         if (!isSqlite)
         {
-            _logger.LogInformation("Skipping automatic SQLite schema setup for provider {ProviderName}. Ensure the SQL Server schema exists.", providerName);
+            _logger.LogInformation("SQLite schema setup skipped for provider {ProviderName}. Ensuring Business Profile tables exist.", providerName);
+            await EnsureSqlServerBusinessProfileSchemaAsync(connection, cancellationToken);
             return;
         }
 
@@ -51,7 +52,12 @@ public sealed class DatabaseInitializer
             "CREATE TABLE IF NOT EXISTS BusinessTypes (BusinessTypeId INTEGER PRIMARY KEY AUTOINCREMENT, BusinessTypeName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);",
             "CREATE TABLE IF NOT EXISTS RegistrationTypes (RegistrationTypeId INTEGER PRIMARY KEY AUTOINCREMENT, RegistrationTypeName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);",
             "CREATE TABLE IF NOT EXISTS IndustryTypes (IndustryTypeId INTEGER PRIMARY KEY AUTOINCREMENT, IndustryTypeName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);",
-            "CREATE TABLE IF NOT EXISTS States (StateId INTEGER PRIMARY KEY AUTOINCREMENT, StateName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);"
+            "CREATE TABLE IF NOT EXISTS States (StateId INTEGER PRIMARY KEY AUTOINCREMENT, StateName TEXT NOT NULL UNIQUE, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);",
+
+            // Business profile schema (SQLite/dev)
+            "CREATE TABLE IF NOT EXISTS Businesses (BusinessId INTEGER PRIMARY KEY AUTOINCREMENT, BusinessName TEXT NOT NULL, CompanyPhoneNumber TEXT NULL, CompanyEmail TEXT NULL, IsGstRegistered INTEGER NOT NULL DEFAULT 0, GstNumber TEXT NULL, PanNumber TEXT NULL, IndustryTypeId INTEGER NULL, RegistrationTypeId INTEGER NULL, MsmeNumber TEXT NULL, Website TEXT NULL, AdditionalInfo TEXT NULL, LogoFileName TEXT NULL, LogoContentType TEXT NULL, LogoData BLOB NULL, SignatureFileName TEXT NULL, SignatureContentType TEXT NULL, SignatureData BLOB NULL, CreatedBy INTEGER NOT NULL DEFAULT 0, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL, FOREIGN KEY(IndustryTypeId) REFERENCES IndustryTypes(IndustryTypeId), FOREIGN KEY(RegistrationTypeId) REFERENCES RegistrationTypes(RegistrationTypeId));",
+            "CREATE TABLE IF NOT EXISTS BusinessAddresses (BusinessAddressId INTEGER PRIMARY KEY AUTOINCREMENT, BusinessId INTEGER NOT NULL, BillingAddress TEXT NULL, City TEXT NULL, Pincode TEXT NULL, StateId INTEGER NULL, CreatedBy INTEGER NOT NULL DEFAULT 0, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL, FOREIGN KEY(BusinessId) REFERENCES Businesses(BusinessId) ON DELETE CASCADE, FOREIGN KEY(StateId) REFERENCES States(StateId));",
+            "CREATE TABLE IF NOT EXISTS BusinessBusinessTypes (BusinessId INTEGER NOT NULL, BusinessTypeId INTEGER NOT NULL, PRIMARY KEY (BusinessId, BusinessTypeId), FOREIGN KEY(BusinessId) REFERENCES Businesses(BusinessId) ON DELETE CASCADE, FOREIGN KEY(BusinessTypeId) REFERENCES BusinessTypes(BusinessTypeId));"
         };
 
         foreach (var sql in sqlCommands)
@@ -63,6 +69,89 @@ public sealed class DatabaseInitializer
         await EnsureNormalizedUserDataAsync(connection, cancellationToken);
         await EnsureRegistrationTypesSchemaAsync(connection, cancellationToken);
         await SeedDefaultsAsync(connection, cancellationToken);
+    }
+
+    private static async Task EnsureSqlServerBusinessProfileSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
+    {
+        // Keep this minimal: only ensure the Business Profile tables exist for SQL Server environments.
+        // Other schema is assumed to be managed externally (as per existing app behavior).
+        var sql = @"
+IF OBJECT_ID('dbo.Businesses', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Businesses
+    (
+        BusinessId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        BusinessName NVARCHAR(200) NOT NULL,
+        CompanyPhoneNumber NVARCHAR(30) NULL,
+        CompanyEmail NVARCHAR(200) NULL,
+        IsGstRegistered BIT NOT NULL CONSTRAINT DF_Businesses_IsGstRegistered DEFAULT(0),
+        GstNumber NVARCHAR(30) NULL,
+        PanNumber NVARCHAR(20) NULL,
+        IndustryTypeId INT NULL,
+        RegistrationTypeId INT NULL,
+        MsmeNumber NVARCHAR(50) NULL,
+        Website NVARCHAR(200) NULL,
+        AdditionalInfo NVARCHAR(800) NULL,
+        LogoFileName NVARCHAR(260) NULL,
+        LogoContentType NVARCHAR(100) NULL,
+        LogoData VARBINARY(MAX) NULL,
+        SignatureFileName NVARCHAR(260) NULL,
+        SignatureContentType NVARCHAR(100) NULL,
+        SignatureData VARBINARY(MAX) NULL,
+        CreatedBy INT NOT NULL CONSTRAINT DF_Businesses_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_Businesses_CreatedOn DEFAULT SYSUTCDATETIME(),
+        UpdatedBy INT NULL,
+        UpdatedOn DATETIME2 NULL
+    );
+
+    IF OBJECT_ID('dbo.IndustryTypes', 'U') IS NOT NULL
+        ALTER TABLE dbo.Businesses WITH CHECK ADD CONSTRAINT FK_Businesses_IndustryTypes
+            FOREIGN KEY (IndustryTypeId) REFERENCES dbo.IndustryTypes(IndustryTypeId);
+
+    IF OBJECT_ID('dbo.RegistrationTypes', 'U') IS NOT NULL
+        ALTER TABLE dbo.Businesses WITH CHECK ADD CONSTRAINT FK_Businesses_RegistrationTypes
+            FOREIGN KEY (RegistrationTypeId) REFERENCES dbo.RegistrationTypes(RegistrationTypeId);
+END
+
+IF OBJECT_ID('dbo.BusinessAddresses', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.BusinessAddresses
+    (
+        BusinessAddressId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        BusinessId INT NOT NULL,
+        BillingAddress NVARCHAR(500) NULL,
+        City NVARCHAR(120) NULL,
+        Pincode NVARCHAR(12) NULL,
+        StateId INT NULL,
+        CreatedBy INT NOT NULL CONSTRAINT DF_BusinessAddresses_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_BusinessAddresses_CreatedOn DEFAULT SYSUTCDATETIME(),
+        UpdatedBy INT NULL,
+        UpdatedOn DATETIME2 NULL,
+        CONSTRAINT FK_BusinessAddresses_Businesses FOREIGN KEY (BusinessId) REFERENCES dbo.Businesses(BusinessId) ON DELETE CASCADE
+    );
+
+    IF OBJECT_ID('dbo.States', 'U') IS NOT NULL
+        ALTER TABLE dbo.BusinessAddresses WITH CHECK ADD CONSTRAINT FK_BusinessAddresses_States
+            FOREIGN KEY (StateId) REFERENCES dbo.States(StateId);
+END
+
+IF OBJECT_ID('dbo.BusinessBusinessTypes', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.BusinessBusinessTypes
+    (
+        BusinessId INT NOT NULL,
+        BusinessTypeId INT NOT NULL,
+        CONSTRAINT PK_BusinessBusinessTypes PRIMARY KEY (BusinessId, BusinessTypeId),
+        CONSTRAINT FK_BusinessBusinessTypes_Businesses FOREIGN KEY (BusinessId) REFERENCES dbo.Businesses(BusinessId) ON DELETE CASCADE
+    );
+
+    IF OBJECT_ID('dbo.BusinessTypes', 'U') IS NOT NULL
+        ALTER TABLE dbo.BusinessBusinessTypes WITH CHECK ADD CONSTRAINT FK_BusinessBusinessTypes_BusinessTypes
+            FOREIGN KEY (BusinessTypeId) REFERENCES dbo.BusinessTypes(BusinessTypeId);
+END
+";
+
+        await connection.ExecuteAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
     }
 
     private static async Task EnsureLegacyUserColumnsAsync(IDbConnection connection, CancellationToken cancellationToken)

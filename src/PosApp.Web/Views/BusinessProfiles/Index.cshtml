@@ -18,6 +18,7 @@
 </section>
 
 <form asp-action="Index" method="post" enctype="multipart/form-data" class="card-form">
+    <input type="hidden" asp-for="BusinessId" />
     <partial name="_Form" model="Model" />
     <div class="form-actions">
         <button class="btn primary" type="submit">Save business profile</button>

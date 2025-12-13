@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PosApp.Web.Features.BusinessProfiles;
@@ -11,17 +12,20 @@ namespace PosApp.Web.Controllers;
 
 public class BusinessProfilesController : Controller
 {
+    private readonly BusinessProfileService _businessProfileService;
     private readonly BusinessTypeService _businessTypeService;
     private readonly IndustryTypeService _industryTypeService;
     private readonly RegistrationTypeService _registrationTypeService;
     private readonly StateService _stateService;
 
     public BusinessProfilesController(
+        BusinessProfileService businessProfileService,
         BusinessTypeService businessTypeService,
         IndustryTypeService industryTypeService,
         RegistrationTypeService registrationTypeService,
         StateService stateService)
     {
+        _businessProfileService = businessProfileService;
         _businessTypeService = businessTypeService;
         _industryTypeService = industryTypeService;
         _registrationTypeService = registrationTypeService;
@@ -31,7 +35,8 @@ public class BusinessProfilesController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var model = await PopulateOptionsAsync(new BusinessProfileFormViewModel());
+        var model = await _businessProfileService.GetLatestAsync() ?? new BusinessProfileFormViewModel();
+        await PopulateOptionsAsync(model);
         return View(model);
     }
 
@@ -45,8 +50,9 @@ public class BusinessProfilesController : Controller
             return View(model);
         }
 
-        // UI-only for now: persistence can be added once the BusinessProfile table/entity is defined.
-        TempData["ToastMessage"] = "Business profile details captured (UI only).";
+        var savedBusinessId = await _businessProfileService.SaveAsync(model, GetActorId());
+        model.BusinessId = savedBusinessId;
+        TempData["ToastMessage"] = "Business profile saved.";
 
         await PopulateOptionsAsync(model);
         return View(model);
@@ -67,6 +73,20 @@ public class BusinessProfilesController : Controller
         model.States = states.Where(x => x.IsActive).ToList();
 
         return model;
+    }
+
+    private int GetActorId()
+    {
+        if (User?.Identity?.IsAuthenticated == true)
+        {
+            var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(idValue, out var actorId))
+            {
+                return actorId;
+            }
+        }
+
+        return 0;
     }
 }
 

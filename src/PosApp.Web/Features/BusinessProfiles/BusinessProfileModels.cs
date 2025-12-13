@@ -11,6 +11,8 @@ namespace PosApp.Web.Features.BusinessProfiles;
 
 public sealed class BusinessProfileFormViewModel : IValidatableObject
 {
+    public int? BusinessId { get; set; }
+
     [Required]
     [MaxLength(200)]
     [Display(Name = "Business name")]
