@@ -27,7 +27,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IDbConnectionFactory, SqlServerConnectionFactory>();
 builder.Services.AddScoped<DatabaseInitializer>();
 builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<RoleService>();
+builder.Services.AddScoped<RoleMasterService>();
 builder.Services.AddScoped<BusinessTypeService>();
 builder.Services.AddScoped<IndustryTypeService>();
 builder.Services.AddScoped<RegistrationTypeService>();

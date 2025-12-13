@@ -5,9 +5,9 @@ namespace PosApp.Web.Controllers;
 
 public class RolesController : Controller
 {
-    private readonly RoleService _roleService;
+    private readonly RoleMasterService _roleService;
 
-    public RolesController(RoleService roleService)
+    public RolesController(RoleMasterService roleService)
     {
         _roleService = roleService;
     }

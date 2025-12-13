@@ -143,7 +143,7 @@ SELECT TOP 1
 FROM Users u
 INNER JOIN UserAuth a ON a.UserId = u.UserId
 LEFT JOIN UserRoles ur ON ur.UserId = u.UserId
-LEFT JOIN Roles r ON r.Id = ur.RoleId
+LEFT JOIN RoleMaster r ON r.Id = ur.RoleId
 WHERE (u.Email = @Identifier OR u.MobileNumber = @Identifier);";
 
             try
@@ -172,7 +172,7 @@ SELECT
 FROM Users u
 INNER JOIN UserAuth a ON a.UserId = u.Id
 LEFT JOIN UserRoles ur ON ur.UserId = u.Id
-LEFT JOIN Roles r ON r.Id = ur.RoleId
+LEFT JOIN RoleMaster r ON r.Id = ur.RoleId
 WHERE (u.Username = @Identifier OR u.Email = @Identifier)
 LIMIT 1;";
 

@@ -14,11 +14,11 @@ public enum RoleDeleteResult
     NotFound
 }
 
-public sealed class RoleService
+public sealed class RoleMasterService
 {
     private readonly IDbConnectionFactory _connectionFactory;
 
-    public RoleService(IDbConnectionFactory connectionFactory)
+    public RoleMasterService(IDbConnectionFactory connectionFactory)
     {
         _connectionFactory = connectionFactory;
     }
@@ -28,7 +28,7 @@ public sealed class RoleService
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT r.Id, r.Name, COALESCE(r.Permissions, '') AS Permissions,
                                     (SELECT COUNT(*) FROM UserRoles ur WHERE ur.RoleId = r.Id) AS AssignedUsers
-                             FROM Roles r
+                             FROM RoleMaster r
                              ORDER BY r.Name";
 
         var result = await connection.QueryAsync<RoleListItem>(sql);
@@ -39,7 +39,7 @@ public sealed class RoleService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT Id, Name, COALESCE(Permissions, '') AS Permissions
-                             FROM Roles
+                             FROM RoleMaster
                              WHERE Id = @Id";
         return await connection.QuerySingleOrDefaultAsync<RoleDetails>(sql, new { Id = id });
     }
@@ -47,7 +47,7 @@ public sealed class RoleService
     public async Task CreateAsync(RoleInput input, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"INSERT INTO Roles (Name, Permissions)
+        const string sql = @"INSERT INTO RoleMaster (Name, Permissions)
                              VALUES (@Name, @Permissions)";
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
@@ -60,7 +60,7 @@ public sealed class RoleService
     public async Task UpdateAsync(int id, RoleInput input, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"UPDATE Roles
+        const string sql = @"UPDATE RoleMaster
                              SET Name = @Name,
                                  Permissions = @Permissions
                              WHERE Id = @Id";
@@ -85,7 +85,7 @@ public sealed class RoleService
             return RoleDeleteResult.InUse;
         }
 
-        const string deleteSql = "DELETE FROM Roles WHERE Id = @Id";
+        const string deleteSql = "DELETE FROM RoleMaster WHERE Id = @Id";
         var affected = await connection.ExecuteAsync(new CommandDefinition(deleteSql, new { Id = id }, cancellationToken: cancellationToken));
 
         return affected > 0 ? RoleDeleteResult.Success : RoleDeleteResult.NotFound;
