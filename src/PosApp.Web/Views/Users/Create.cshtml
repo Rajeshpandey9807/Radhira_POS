@@ -38,7 +38,7 @@
             </div>
             <div class="field-group">
                 <label for="Email">Email</label>
-                <input asp-for="Email" id="Email" placeholder="jane@store.com" type="email" autocomplete="email" />
+                <input asp-for="Email" id="Email" placeholder="jane@@store.com" type="email" autocomplete="email" />
                 <span asp-validation-for="Email"></span>
             </div>
             <div class="field-group">
@@ -148,7 +148,7 @@
                 }
             };
 
-            const isEmail = (value) => typeof value === 'string' && value.includes('@') && value.includes('.');
+            const isEmail = (value) => typeof value === 'string' && value.includes('@@') && value.includes('.');
             const isPhoneLike = (value) => typeof value === 'string' && value.replace(/[^\d]/g, '').length >= 8;
 
             const validateStep1 = () => {
