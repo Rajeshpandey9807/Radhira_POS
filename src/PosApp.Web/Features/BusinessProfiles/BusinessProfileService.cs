@@ -201,12 +201,13 @@ public sealed class BusinessProfileService
         parameters.Add("BusinessTypeId", FirstOrNull(model.SelectedBusinessTypeIds));
         parameters.Add("LogoFileName", model.BusinessLogoFile?.FileName);
         parameters.Add("LogoContentType", model.BusinessLogoFile?.ContentType);
-        parameters.Add("LogoData", logoBytes);
-        parameters.Add("BusinessLogo", logoBytes);
+        // Important: explicitly type binary params so NULL isn't treated as NVARCHAR by SQL Server.
+        parameters.Add("LogoData", logoBytes, dbType: DbType.Binary);
+        parameters.Add("BusinessLogo", logoBytes, dbType: DbType.Binary);
         parameters.Add("SignatureFileName", model.SignatureFile?.FileName);
         parameters.Add("SignatureContentType", model.SignatureFile?.ContentType);
-        parameters.Add("SignatureData", signatureBytes);
-        parameters.Add("Signature", signatureBytes);
+        parameters.Add("SignatureData", signatureBytes, dbType: DbType.Binary);
+        parameters.Add("Signature", signatureBytes, dbType: DbType.Binary);
         parameters.Add("ActorId", actorId);
 
         var newId = await connection.ExecuteScalarAsync<long>(new CommandDefinition(insertSql, parameters, transaction: transaction, cancellationToken: cancellationToken));
@@ -264,12 +265,13 @@ public sealed class BusinessProfileService
         parameters.Add("BusinessTypeId", FirstOrNull(model.SelectedBusinessTypeIds));
         parameters.Add("LogoFileName", model.BusinessLogoFile?.FileName);
         parameters.Add("LogoContentType", model.BusinessLogoFile?.ContentType);
-        parameters.Add("LogoData", logoBytes);
-        parameters.Add("BusinessLogo", logoBytes);
+        // Important: explicitly type binary params so NULL isn't treated as NVARCHAR by SQL Server.
+        parameters.Add("LogoData", logoBytes, dbType: DbType.Binary);
+        parameters.Add("BusinessLogo", logoBytes, dbType: DbType.Binary);
         parameters.Add("SignatureFileName", model.SignatureFile?.FileName);
         parameters.Add("SignatureContentType", model.SignatureFile?.ContentType);
-        parameters.Add("SignatureData", signatureBytes);
-        parameters.Add("Signature", signatureBytes);
+        parameters.Add("SignatureData", signatureBytes, dbType: DbType.Binary);
+        parameters.Add("Signature", signatureBytes, dbType: DbType.Binary);
         parameters.Add("ActorId", actorId);
 
         await connection.ExecuteAsync(new CommandDefinition(sql, parameters, transaction: transaction, cancellationToken: cancellationToken));
