@@ -522,6 +522,20 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   min-height: 96px;
 }
 
+.image-preview {
+  margin-top: 12px;
+}
+
+.image-preview img {
+  max-width: 240px;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px;
+}
+
 .field-group span {
   color: #ffb3c7;
   font-size: 0.85rem;

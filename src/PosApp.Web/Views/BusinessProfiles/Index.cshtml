@@ -20,5 +20,59 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            function wireImagePreview(inputId, imgId) {
+                var input = document.getElementById(inputId);
+                var img = document.getElementById(imgId);
+                if (!input || !img) return;
+
+                input.addEventListener("change", function () {
+                    var file = input.files && input.files[0];
+                    if (!file) {
+                        img.style.display = "none";
+                        img.removeAttribute("src");
+                        return;
+                    }
+
+                    if (!file.type || !file.type.startsWith("image/")) {
+                        img.style.display = "none";
+                        img.removeAttribute("src");
+                        return;
+                    }
+
+                    var url = URL.createObjectURL(file);
+                    img.onload = function () { URL.revokeObjectURL(url); };
+                    img.src = url;
+                    img.style.display = "block";
+                });
+            }
+
+            function syncGstNumberVisibility() {
+                var gstSelect = document.getElementById("IsGstRegistered");
+                var gstGroup = document.getElementById("gstNumberGroup");
+                var gstInput = document.getElementById("GstNumber");
+                if (!gstSelect || !gstGroup || !gstInput) return;
+
+                var isYes = gstSelect.value === "true";
+                gstGroup.style.display = isYes ? "" : "none";
+                if (isYes) {
+                    gstInput.setAttribute("required", "required");
+                } else {
+                    gstInput.removeAttribute("required");
+                    gstInput.value = "";
+                }
+            }
+
+            wireImagePreview("BusinessLogoFile", "BusinessLogoPreview");
+            wireImagePreview("SignatureFile", "SignaturePreview");
+
+            var gstSelect = document.getElementById("IsGstRegistered");
+            if (gstSelect) {
+                gstSelect.addEventListener("change", syncGstNumberVisibility);
+            }
+            syncGstNumberVisibility();
+        })();
+    </script>
 }
 

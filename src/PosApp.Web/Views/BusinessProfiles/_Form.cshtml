@@ -1,6 +1,15 @@
 @model PosApp.Web.Features.BusinessProfiles.BusinessProfileFormViewModel
 
 <div class="form-grid">
+    <div class="field-group span-all">
+        <label asp-for="BusinessLogoFile">Upload business logo</label>
+        <input asp-for="BusinessLogoFile" type="file" accept="image/*" />
+        <div class="image-preview" data-image-preview>
+            <img id="BusinessLogoPreview" alt="Business logo preview" style="display:none;" />
+        </div>
+        <span asp-validation-for="BusinessLogoFile"></span>
+    </div>
+
     <div class="field-group">
         <label asp-for="BusinessName">Business Name *</label>
         <input asp-for="BusinessName" placeholder="Radhira Retail" autocomplete="organization" />
@@ -59,6 +68,12 @@
         <span asp-validation-for="IsGstRegistered"></span>
     </div>
 
+    <div class="field-group" id="gstNumberGroup" style="display:none;">
+        <label asp-for="GstNumber">GST Number *</label>
+        <input asp-for="GstNumber" placeholder="22AAAAA0000A1Z5" autocapitalize="characters" />
+        <span asp-validation-for="GstNumber"></span>
+    </div>
+
     <div class="field-group">
         <label asp-for="PanNumber"></label>
         <input asp-for="PanNumber" placeholder="ABCDE1234F" autocapitalize="characters" />
@@ -105,6 +120,9 @@
         <label asp-for="SignatureFile">Upload signature</label>
         <input asp-for="SignatureFile" type="file" accept="image/*" />
         <small>Signature image used on invoices (PNG/JPG recommended).</small>
+        <div class="image-preview" data-image-preview>
+            <img id="SignaturePreview" alt="Signature preview" style="display:none;" />
+        </div>
         <span asp-validation-for="SignatureFile"></span>
     </div>
 

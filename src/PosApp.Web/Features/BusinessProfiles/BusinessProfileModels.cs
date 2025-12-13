@@ -9,7 +9,7 @@ using PosApp.Web.Features.States;
 
 namespace PosApp.Web.Features.BusinessProfiles;
 
-public sealed class BusinessProfileFormViewModel
+public sealed class BusinessProfileFormViewModel : IValidatableObject
 {
     [Required]
     [MaxLength(200)]
@@ -43,6 +43,10 @@ public sealed class BusinessProfileFormViewModel
     [Display(Name = "Are you GST registered?")]
     public bool? IsGstRegistered { get; set; }
 
+    [MaxLength(30)]
+    [Display(Name = "GST number")]
+    public string? GstNumber { get; set; }
+
     [MaxLength(20)]
     [Display(Name = "PAN number")]
     public string? PanNumber { get; set; }
@@ -58,6 +62,9 @@ public sealed class BusinessProfileFormViewModel
 
     [Display(Name = "Signature")]
     public IFormFile? SignatureFile { get; set; }
+
+    [Display(Name = "Business logo")]
+    public IFormFile? BusinessLogoFile { get; set; }
 
     [MaxLength(50)]
     [Display(Name = "MSME number")]
@@ -76,5 +83,13 @@ public sealed class BusinessProfileFormViewModel
     public IEnumerable<IndustryTypeListItem> IndustryTypes { get; set; } = Array.Empty<IndustryTypeListItem>();
     public IEnumerable<RegistrationTypeListItem> RegistrationTypes { get; set; } = Array.Empty<RegistrationTypeListItem>();
     public IEnumerable<StateListItem> States { get; set; } = Array.Empty<StateListItem>();
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (IsGstRegistered == true && string.IsNullOrWhiteSpace(GstNumber))
+        {
+            yield return new ValidationResult("GST number is required when GST registration is Yes.", new[] { nameof(GstNumber) });
+        }
+    }
 }
 
