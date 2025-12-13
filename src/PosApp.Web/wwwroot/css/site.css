@@ -524,6 +524,132 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   margin-top: 24px;
 }
 
+.wizard-steps {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.wizard-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+}
+
+.wizard-step.is-active {
+  border-color: rgba(245, 0, 135, 0.45);
+  background: rgba(245, 0, 135, 0.12);
+  color: #fff;
+}
+
+.wizard-step__pill {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.12);
+  font-weight: 700;
+}
+
+.wizard-step.is-active .wizard-step__pill {
+  background: linear-gradient(120deg, var(--pink-500), var(--pink-300));
+}
+
+.otp-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.otp-modal[hidden] {
+  display: none;
+}
+
+.otp-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+}
+
+.otp-modal__panel {
+  position: relative;
+  width: min(520px, 100%);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(17, 19, 34, 0.92);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  padding: 20px;
+}
+
+.otp-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.otp-modal__header h3 {
+  margin: 0;
+}
+
+.otp-modal__close {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.otp-modal__close:hover,
+.otp-modal__close:focus-visible {
+  border-color: rgba(255, 128, 171, 0.8);
+  outline: none;
+}
+
+.otp-modal__copy {
+  margin: 0 0 16px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.6;
+}
+
+.otp-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.otp-modal__hint {
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.9rem;
+}
+
+.otp-modal__error {
+  display: block;
+  margin-top: 8px;
+  color: #ffb3c7;
+  font-size: 0.9rem;
+}
+
 .toggle-switch {
   display: inline-flex;
   align-items: center;

@@ -56,7 +56,7 @@ public class UsersController : Controller
                 model.PhoneNumber.Trim(),
                 model.RoleId,
                 model.Password));
-            TempData["ToastMessage"] = $"User {model.DisplayName} invited";
+            TempData["ToastMessage"] = $"User {model.DisplayName} created";
             return RedirectToAction(nameof(Index));
         }
         catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)

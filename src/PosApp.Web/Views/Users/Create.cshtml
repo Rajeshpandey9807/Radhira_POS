@@ -1,24 +1,302 @@
+@using System.Linq
 @model UserFormViewModel
 @{
-    ViewData["Title"] = "Invite user";
+    ViewData["Title"] = "Create user";
+
+    var step2HasErrors =
+        (ViewData.ModelState.TryGetValue(nameof(Model.Username), out var usernameState) && usernameState.Errors.Any())
+        || (ViewData.ModelState.TryGetValue(nameof(Model.Password), out var passwordState) && passwordState.Errors.Any())
+        || (ViewData.ModelState.TryGetValue(nameof(Model.RoleId), out var roleState) && roleState.Errors.Any());
 }
 
 <section class="users-header">
     <div>
-        <p class="eyebrow">Invite teammate</p>
-        <h2>Keep the shift running</h2>
-        <p>Set the role and we will scaffold permissions automatically.</p>
+        <p class="eyebrow">Create user</p>
+        <h2>Two-step onboarding</h2>
+        <p>Step 1 captures contact details. Step 2 creates the login. On save, we’ll ask for an OTP to verify email/mobile.</p>
     </div>
 </section>
 
-<form asp-action="Create" method="post" class="card-form">
-    <partial name="_Form" model="Model" />
+<form asp-action="Create" method="post" class="card-form" data-user-create-wizard data-initial-step="@(step2HasErrors ? 2 : 1)">
+    <div class="wizard-steps" aria-label="Create user steps">
+        <div class="wizard-step" data-step-indicator="1" aria-current="step">
+            <span class="wizard-step__pill">1</span>
+            <span class="wizard-step__label">Contact</span>
+        </div>
+        <div class="wizard-step" data-step-indicator="2">
+            <span class="wizard-step__pill">2</span>
+            <span class="wizard-step__label">Account</span>
+        </div>
+    </div>
+
+    <div class="wizard-panel" data-step="1">
+        <div class="form-grid">
+            <div class="field-group">
+                <label for="DisplayName">Full name</label>
+                <input asp-for="DisplayName" id="DisplayName" placeholder="Jane Doe" autocomplete="name" />
+                <span asp-validation-for="DisplayName"></span>
+            </div>
+            <div class="field-group">
+                <label for="Email">Email</label>
+                <input asp-for="Email" id="Email" placeholder="jane@store.com" type="email" autocomplete="email" />
+                <span asp-validation-for="Email"></span>
+            </div>
+            <div class="field-group">
+                <label for="PhoneNumber">Mobile number</label>
+                <input asp-for="PhoneNumber" id="PhoneNumber" placeholder="+1 555 0100" type="tel" autocomplete="tel" />
+                <span asp-validation-for="PhoneNumber"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="wizard-panel" data-step="2" hidden>
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="Username"></label>
+                <input asp-for="Username" placeholder="cashier01" autocomplete="username" />
+                <span asp-validation-for="Username"></span>
+            </div>
+            <div class="field-group">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" type="password" autocomplete="new-password" />
+                <span asp-validation-for="Password"></span>
+            </div>
+            <div class="field-group">
+                <label asp-for="RoleId">Role</label>
+                <select asp-for="RoleId">
+                    <option value="">Choose...</option>
+                    @foreach (var role in Model.Roles)
+                    {
+                        <option value="@role.Id">@role.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="RoleId"></span>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" name="OtpCode" value="" data-otp-hidden />
+
     <div class="form-actions">
         <a class="btn ghost" asp-action="Index">Cancel</a>
-        <button class="btn primary" type="submit">Invite user</button>
+        <button class="btn ghost" type="button" data-wizard-back hidden>Back</button>
+        <button class="btn primary" type="button" data-wizard-next>Next</button>
+        <button class="btn primary" type="button" data-wizard-save hidden>Confirm &amp; Save</button>
+    </div>
+
+    <div class="otp-modal" data-otp-modal hidden role="dialog" aria-modal="true" aria-labelledby="otp-title">
+        <div class="otp-modal__backdrop" data-otp-close></div>
+        <div class="otp-modal__panel">
+            <header class="otp-modal__header">
+                <h3 id="otp-title">Verify email / mobile</h3>
+                <button class="otp-modal__close" type="button" aria-label="Close" data-otp-close>&times;</button>
+            </header>
+            <p class="otp-modal__copy">
+                Enter the 6-digit OTP you received on email/mobile to complete verification.
+            </p>
+            <div class="field-group">
+                <label for="otp-input">OTP</label>
+                <input id="otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" data-otp-input />
+                <span class="otp-modal__error" data-otp-error hidden>Please enter a valid 6-digit OTP.</span>
+            </div>
+            <div class="otp-modal__actions">
+                <button class="btn ghost" type="button" data-otp-close>Cancel</button>
+                <button class="btn primary" type="button" data-otp-confirm>Verify &amp; Save</button>
+            </div>
+            <p class="otp-modal__hint">
+                Didn’t receive an OTP? <a href="#" data-otp-resend>Resend</a>
+            </p>
+        </div>
     </div>
 </form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const form = document.querySelector('[data-user-create-wizard]');
+            if (!form) return;
+
+            const panels = {
+                1: form.querySelector('[data-step="1"]'),
+                2: form.querySelector('[data-step="2"]')
+            };
+            const indicators = {
+                1: form.querySelector('[data-step-indicator="1"]'),
+                2: form.querySelector('[data-step-indicator="2"]')
+            };
+
+            const backBtn = form.querySelector('[data-wizard-back]');
+            const nextBtn = form.querySelector('[data-wizard-next]');
+            const saveBtn = form.querySelector('[data-wizard-save]');
+
+            const otpModal = form.querySelector('[data-otp-modal]');
+            const otpInput = form.querySelector('[data-otp-input]');
+            const otpError = form.querySelector('[data-otp-error]');
+            const otpHidden = form.querySelector('[data-otp-hidden]');
+            const otpConfirm = form.querySelector('[data-otp-confirm]');
+            const otpCloseNodes = form.querySelectorAll('[data-otp-close]');
+            const otpResend = form.querySelector('[data-otp-resend]');
+
+            const field = (name) => form.querySelector(`[name="${name}"]`);
+            const displayError = (input, message) => {
+                if (!input) return;
+                const container = input.closest('.field-group');
+                const span = container ? container.querySelector('span') : null;
+                if (span && message) {
+                    span.textContent = message;
+                }
+            };
+
+            const isEmail = (value) => typeof value === 'string' && value.includes('@') && value.includes('.');
+            const isPhoneLike = (value) => typeof value === 'string' && value.replace(/[^\d]/g, '').length >= 8;
+
+            const validateStep1 = () => {
+                const fullName = field('DisplayName');
+                const email = field('Email');
+                const phone = field('PhoneNumber');
+
+                let ok = true;
+                if (!fullName || !fullName.value.trim()) {
+                    ok = false;
+                    displayError(fullName, 'Full name is required.');
+                } else {
+                    displayError(fullName, '');
+                }
+
+                if (!email || !email.value.trim() || !isEmail(email.value.trim())) {
+                    ok = false;
+                    displayError(email, 'A valid email is required.');
+                } else {
+                    displayError(email, '');
+                }
+
+                if (!phone || !phone.value.trim() || !isPhoneLike(phone.value.trim())) {
+                    ok = false;
+                    displayError(phone, 'A valid mobile number is required.');
+                } else {
+                    displayError(phone, '');
+                }
+
+                return ok;
+            };
+
+            const validateStep2 = () => {
+                const username = field('Username');
+                const password = field('Password');
+                const roleId = field('RoleId');
+
+                let ok = true;
+                if (!username || username.value.trim().length < 3) {
+                    ok = false;
+                    displayError(username, 'Username must be at least 3 characters.');
+                } else {
+                    displayError(username, '');
+                }
+
+                if (!password || password.value.length < 6) {
+                    ok = false;
+                    displayError(password, 'Password must be at least 6 characters.');
+                } else {
+                    displayError(password, '');
+                }
+
+                if (!roleId || !roleId.value) {
+                    ok = false;
+                    displayError(roleId, 'Role is required.');
+                } else {
+                    displayError(roleId, '');
+                }
+
+                return ok;
+            };
+
+            const setStep = (nextStep) => {
+                const step = nextStep === 2 ? 2 : 1;
+
+                panels[1].hidden = step !== 1;
+                panels[2].hidden = step !== 2;
+
+                indicators[1].classList.toggle('is-active', step === 1);
+                indicators[2].classList.toggle('is-active', step === 2);
+                indicators[1].setAttribute('aria-current', step === 1 ? 'step' : 'false');
+                indicators[2].setAttribute('aria-current', step === 2 ? 'step' : 'false');
+
+                backBtn.hidden = step === 1;
+                nextBtn.hidden = step === 2;
+                saveBtn.hidden = step === 1;
+
+                const focusTarget = step === 1 ? field('DisplayName') : field('Username');
+                if (focusTarget) {
+                    focusTarget.focus({ preventScroll: true });
+                }
+            };
+
+            const openOtpModal = () => {
+                otpError.hidden = true;
+                otpInput.value = '';
+                otpModal.hidden = false;
+                setTimeout(() => otpInput.focus(), 0);
+            };
+
+            const closeOtpModal = () => {
+                otpModal.hidden = true;
+            };
+
+            const initial = parseInt(form.getAttribute('data-initial-step') || '1', 10);
+            setStep(initial === 2 ? 2 : 1);
+
+            nextBtn.addEventListener('click', () => {
+                if (!validateStep1()) return;
+                setStep(2);
+            });
+
+            backBtn.addEventListener('click', () => {
+                setStep(1);
+            });
+
+            saveBtn.addEventListener('click', () => {
+                if (!validateStep2()) return;
+                openOtpModal();
+            });
+
+            otpCloseNodes.forEach((node) => node.addEventListener('click', closeOtpModal));
+
+            otpResend?.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Static UI only.
+                otpError.hidden = false;
+                otpError.textContent = 'Resend is not wired up yet (static UI).';
+            });
+
+            otpConfirm.addEventListener('click', () => {
+                const otp = (otpInput.value || '').trim();
+                const valid = /^\d{6}$/.test(otp);
+                if (!valid) {
+                    otpError.hidden = false;
+                    otpError.textContent = 'Please enter a valid 6-digit OTP.';
+                    otpInput.focus();
+                    return;
+                }
+
+                otpHidden.value = otp;
+                otpError.hidden = true;
+
+                otpConfirm.disabled = true;
+                saveBtn.disabled = true;
+                nextBtn.disabled = true;
+                backBtn.disabled = true;
+
+                form.submit();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (otpModal.hidden) return;
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeOtpModal();
+                }
+            });
+        })();
+    </script>
 }
