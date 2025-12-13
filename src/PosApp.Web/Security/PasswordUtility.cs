@@ -5,13 +5,13 @@ namespace PosApp.Web.Security;
 
 public static class PasswordUtility
 {
-    public sealed record PasswordHash(string PasswordHash, string PasswordSalt);
+    public sealed record PasswordHashResult(string PasswordHash, string PasswordSalt);
 
     /// <summary>
     /// Creates a salted password hash using PBKDF2 (HMAC-SHA256).
     /// Stored format: base64(hash) + base64(salt).
     /// </summary>
-    public static PasswordHash HashPassword(string password)
+    public static PasswordHashResult HashPassword(string password)
     {
         if (string.IsNullOrWhiteSpace(password))
         {
@@ -21,7 +21,7 @@ public static class PasswordUtility
         var salt = RandomNumberGenerator.GetBytes(32);
         var hash = Pbkdf2(password, salt, iterations: 100_000, numBytesRequested: 32);
 
-        return new PasswordHash(
+        return new PasswordHashResult(
             PasswordHash: Convert.ToBase64String(hash),
             PasswordSalt: Convert.ToBase64String(salt));
     }
