@@ -1,5 +1,6 @@
 using PosApp.Web.Data;
 using PosApp.Web.Features.BusinessTypes;
+using PosApp.Web.Features.BusinessProfiles;
 using PosApp.Web.Features.Dashboard;
 using PosApp.Web.Features.IndustryTypes;
 using PosApp.Web.Features.Roles;
@@ -32,6 +33,7 @@ builder.Services.AddScoped<BusinessTypeService>();
 builder.Services.AddScoped<IndustryTypeService>();
 builder.Services.AddScoped<RegistrationTypeService>();
 builder.Services.AddScoped<StateService>();
+builder.Services.AddScoped<BusinessProfileService>();
 builder.Services.AddScoped<DashboardService>();
 
 var app = builder.Build();

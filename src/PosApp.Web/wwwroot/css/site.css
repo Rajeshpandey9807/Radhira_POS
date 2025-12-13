@@ -477,10 +477,24 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   gap: 18px;
 }
 
+.span-all {
+  grid-column: 1 / -1;
+}
+
 .field-group label {
   display: block;
   margin-bottom: 6px;
   font-weight: 600;
+}
+
+.field-group {
+  position: relative;
+  z-index: 0;
+}
+
+/* Helps native dropdowns render above nearby controls in some browsers/layouts. */
+.field-group:focus-within {
+  z-index: 50;
 }
 
 .field-group.checkbox {
@@ -503,13 +517,44 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
 }
 
 .field-group input,
-.field-group select {
+.field-group select,
+.field-group textarea {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(0, 0, 0, 0.2);
   color: #fff;
+}
+
+/* Ensure dropdown options remain readable across themes. */
+.field-group select option {
+  color: #1f2133;
+  background: #fff;
+}
+
+:root[data-theme="dark"] .field-group select option {
+  color: #fff;
+  background: #1f2133;
+}
+
+.field-group textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.image-preview {
+  margin-top: 12px;
+}
+
+.image-preview img {
+  max-width: 240px;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px;
 }
 
 .field-group span {

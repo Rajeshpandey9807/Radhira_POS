@@ -1,0 +1,256 @@
+@model PosApp.Web.Features.BusinessProfiles.BusinessProfileFormViewModel
+
+<div class="bp-form">
+    <section class="bp-section">
+        <div class="bp-section__header">
+            <div>
+                <h3 class="bp-section__title">Uploads</h3>
+                <p class="bp-section__subtitle">Add your branding for invoices.</p>
+            </div>
+        </div>
+
+        <div class="bp-upload-grid">
+            <div class="field-group bp-file">
+                <label asp-for="BusinessLogoFile">Business logo</label>
+                <input asp-for="BusinessLogoFile" type="file" accept="image/*" />
+                <small class="bp-help">Recommended: square logo, PNG preferred.</small>
+                <div class="bp-preview">
+                    <div id="BusinessLogoPlaceholder" class="bp-preview__placeholder">Logo preview will appear here</div>
+                    <img id="BusinessLogoPreview" alt="Business logo preview" style="display:none;" />
+                </div>
+                <span asp-validation-for="BusinessLogoFile"></span>
+            </div>
+
+            <div class="field-group bp-file">
+                <label asp-for="SignatureFile">Signature</label>
+                <input asp-for="SignatureFile" type="file" accept="image/*" />
+                <small class="bp-help">Used for invoice authorization (PNG/JPG).</small>
+                <div class="bp-preview">
+                    <div id="SignaturePlaceholder" class="bp-preview__placeholder">Signature preview will appear here</div>
+                    <img id="SignaturePreview" alt="Signature preview" style="display:none;" />
+                </div>
+                <span asp-validation-for="SignatureFile"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="bp-section">
+        <div class="bp-section__header">
+            <div>
+                <h3 class="bp-section__title">Business details</h3>
+                <p class="bp-section__subtitle">Basic information shown on invoices.</p>
+            </div>
+            <div class="bp-required"><span>*</span> Required</div>
+        </div>
+
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="BusinessName">Business Name *</label>
+                <input asp-for="BusinessName" placeholder="Radhira Retail" autocomplete="organization" />
+                <span asp-validation-for="BusinessName"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="CompanyPhoneNumber"></label>
+                <input asp-for="CompanyPhoneNumber" placeholder="+91 98765 43210" type="tel" autocomplete="tel" />
+                <span asp-validation-for="CompanyPhoneNumber"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="CompanyEmail"></label>
+                <input asp-for="CompanyEmail" placeholder="accounts@company.com" type="email" autocomplete="email" />
+                <span asp-validation-for="CompanyEmail"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="bp-section">
+        <div class="bp-section__header">
+            <div>
+                <h3 class="bp-section__title">Billing address</h3>
+                <p class="bp-section__subtitle">Used as the default invoice address.</p>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="field-group span-all">
+                <label asp-for="BillingAddress"></label>
+                <textarea asp-for="BillingAddress" rows="3" placeholder="Street, area, landmark"></textarea>
+                <span asp-validation-for="BillingAddress"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="StateId">State</label>
+                <select asp-for="StateId" data-bp-select="true">
+                    <option value="">Choose...</option>
+                    @foreach (var item in Model.States)
+                    {
+                        <option value="@item.StateId">@item.StateName</option>
+                    }
+                </select>
+                <span asp-validation-for="StateId"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="City"></label>
+                <input asp-for="City" placeholder="Chennai" autocomplete="address-level2" />
+                <span asp-validation-for="City"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="Pincode"></label>
+                <input asp-for="Pincode" placeholder="600001" inputmode="numeric" autocomplete="postal-code" />
+                <span asp-validation-for="Pincode"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="bp-section">
+        <div class="bp-section__header">
+            <div>
+                <h3 class="bp-section__title">Tax details</h3>
+                <p class="bp-section__subtitle">GST number is required when GST is registered.</p>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="IsGstRegistered"></label>
+                <select asp-for="IsGstRegistered" data-bp-select="true">
+                    <option value="">Choose...</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                </select>
+                <span asp-validation-for="IsGstRegistered"></span>
+            </div>
+
+            <div class="field-group bp-hidden" id="gstNumberGroup">
+                <label asp-for="GstNumber">GST Number *</label>
+                <input asp-for="GstNumber" placeholder="22AAAAA0000A1Z5" autocapitalize="characters" />
+                <span asp-validation-for="GstNumber"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="PanNumber"></label>
+                <input asp-for="PanNumber" placeholder="ABCDE1234F" autocapitalize="characters" />
+                <span asp-validation-for="PanNumber"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="bp-section">
+        <div class="bp-section__header">
+            <div>
+                <h3 class="bp-section__title">Business classification</h3>
+                <p class="bp-section__subtitle">Helps tailor invoices, taxes, and reporting for your business.</p>
+            </div>
+        </div>
+
+        <div class="bp-classification">
+            <div class="bp-panel">
+                <div class="bp-panel__header">
+                    <h4 class="bp-panel__title">Business types</h4>
+                    <p class="bp-panel__subtitle">Choose one or more that best describe what you do.</p>
+                </div>
+
+                <div class="field-group">
+                    <label asp-for="SelectedBusinessTypeIds">Business Type (Select multiple, if applicable)</label>
+                    <select id="BusinessTypePicker" data-bp-select="true">
+                        <option value="">Choose...</option>
+                        @foreach (var item in Model.BusinessTypes)
+                        {
+                            <option value="@item.BusinessTypeId">@item.BusinessTypeName</option>
+                        }
+                    </select>
+                    <small class="bp-help">Pick a type to add it. Remove any selection with the × button.</small>
+
+                    @{
+                        var selectedLookup = Model.SelectedBusinessTypeIds.ToHashSet();
+                        var selectedItems = Model.BusinessTypes.Where(x => selectedLookup.Contains(x.BusinessTypeId)).ToList();
+                    }
+
+                    <div class="bp-chips" id="SelectedBusinessTypesChips" aria-label="Selected business types">
+                        @foreach (var selected in selectedItems)
+                        {
+                            <span class="bp-chip" data-id="@selected.BusinessTypeId">
+                                <span class="bp-chip__label">@selected.BusinessTypeName</span>
+                                <button type="button" class="bp-chip__remove" aria-label="Remove @selected.BusinessTypeName">&times;</button>
+                            </span>
+                        }
+                    </div>
+
+                    <div id="SelectedBusinessTypesInputs">
+                        @foreach (var id in Model.SelectedBusinessTypeIds)
+                        {
+                            <input type="hidden" name="SelectedBusinessTypeIds" value="@id" data-id="@id" />
+                        }
+                    </div>
+                    <span asp-validation-for="SelectedBusinessTypeIds"></span>
+                </div>
+            </div>
+
+            <div class="bp-panel">
+                <div class="bp-panel__header">
+                    <h4 class="bp-panel__title">Classification</h4>
+                    <p class="bp-panel__subtitle">Used for reporting filters and business setup defaults.</p>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label asp-for="IndustryTypeId">Industry Type</label>
+                        <select asp-for="IndustryTypeId" data-bp-select="true">
+                            <option value="">Choose...</option>
+                            @foreach (var item in Model.IndustryTypes)
+                            {
+                                <option value="@item.IndustryTypeId">@item.IndustryTypeName</option>
+                            }
+                        </select>
+                        <span asp-validation-for="IndustryTypeId"></span>
+                    </div>
+
+                    <div class="field-group">
+                        <label asp-for="RegistrationTypeId">Business Registration Type</label>
+                        <select asp-for="RegistrationTypeId" data-bp-select="true">
+                            <option value="">Choose...</option>
+                            @foreach (var item in Model.RegistrationTypes)
+                            {
+                                <option value="@item.RegistrationTypeId">@item.RegistrationTypeName</option>
+                            }
+                        </select>
+                        <span asp-validation-for="RegistrationTypeId"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bp-section">
+        <div class="bp-section__header">
+            <div>
+                <h3 class="bp-section__title">Additional business information</h3>
+                <p class="bp-section__subtitle">Add additional business information such as MSME number, Website etc.</p>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="MsmeNumber"></label>
+                <input asp-for="MsmeNumber" placeholder="UDYAM-XX-00-0000000" />
+                <span asp-validation-for="MsmeNumber"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="Website"></label>
+                <input asp-for="Website" placeholder="https://yourcompany.com" type="url" />
+                <span asp-validation-for="Website"></span>
+            </div>
+
+            <div class="field-group span-all">
+                <label asp-for="AdditionalInfo"></label>
+                <textarea asp-for="AdditionalInfo" rows="3" placeholder="Any other details you want to appear in invoices..."></textarea>
+                <span asp-validation-for="AdditionalInfo"></span>
+            </div>
+        </div>
+    </section>
+</div>
+

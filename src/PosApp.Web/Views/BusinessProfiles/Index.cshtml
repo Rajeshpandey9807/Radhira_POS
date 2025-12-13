@@ -1,0 +1,310 @@
+@model PosApp.Web.Features.BusinessProfiles.BusinessProfileFormViewModel
+@{
+    ViewData["Title"] = "Business profile";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/business-profile.css" asp-append-version="true" />
+}
+
+<section class="users-header">
+    <div class="bp-shell">
+        <p class="eyebrow">Business setup</p>
+        <h2>Add Business Details</h2>
+        <div class="bp-note">
+            <strong>Note:</strong> Details added below will be shown on your Invoices
+        </div>
+    </div>
+</section>
+
+<form asp-action="Index" method="post" enctype="multipart/form-data" class="card-form">
+    <input type="hidden" asp-for="BusinessId" />
+    <partial name="_Form" model="Model" />
+    <div class="form-actions">
+        <button class="btn primary" type="submit">Save business profile</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            function enhanceSelect(select) {
+                if (!select || select.dataset.bpSelectEnhanced === "true") return;
+
+                var wrapper = document.createElement("div");
+                wrapper.className = "bp-select";
+
+                // Keep the original select for model binding/validation, but prevent native UI interaction.
+                select.classList.add("bp-select__native");
+
+                var button = document.createElement("button");
+                button.type = "button";
+                button.className = "bp-select__button";
+                button.setAttribute("aria-haspopup", "listbox");
+                button.setAttribute("aria-expanded", "false");
+
+                var labelSpan = document.createElement("span");
+                labelSpan.className = "bp-select__label";
+                button.appendChild(labelSpan);
+
+                var menu = document.createElement("div");
+                menu.className = "bp-select__menu";
+                menu.setAttribute("role", "listbox");
+                menu.style.display = "none";
+                document.body.appendChild(menu);
+
+                function getSelectedText() {
+                    var opt = select.options[select.selectedIndex];
+                    return opt ? opt.text : "Choose...";
+                }
+
+                function syncButtonLabel() {
+                    labelSpan.textContent = getSelectedText();
+                    button.classList.toggle("is-placeholder", !select.value);
+                }
+
+                function buildMenu() {
+                    menu.innerHTML = "";
+                    for (var i = 0; i < select.options.length; i++) {
+                        var opt = select.options[i];
+                        var item = document.createElement("button");
+                        item.type = "button";
+                        item.className = "bp-select__option";
+                        item.setAttribute("role", "option");
+                        item.setAttribute("data-value", opt.value);
+                        item.textContent = opt.text;
+                        if (opt.disabled) {
+                            item.disabled = true;
+                            item.setAttribute("aria-disabled", "true");
+                        }
+                        if (opt.value === select.value) {
+                            item.classList.add("is-selected");
+                            item.setAttribute("aria-selected", "true");
+                        } else {
+                            item.setAttribute("aria-selected", "false");
+                        }
+                        menu.appendChild(item);
+                    }
+                }
+
+                function positionMenu() {
+                    var rect = button.getBoundingClientRect();
+                    var maxHeight = Math.max(220, window.innerHeight - rect.bottom - 16);
+                    menu.style.position = "fixed";
+                    menu.style.left = rect.left + "px";
+                    menu.style.top = (rect.bottom + 8) + "px";
+                    menu.style.width = rect.width + "px";
+                    menu.style.maxHeight = maxHeight + "px";
+                }
+
+                function openMenu() {
+                    buildMenu();
+                    positionMenu();
+                    menu.style.display = "block";
+                    button.setAttribute("aria-expanded", "true");
+
+                    // Scroll selected option into view
+                    var selected = menu.querySelector(".bp-select__option.is-selected");
+                    if (selected && selected.scrollIntoView) {
+                        selected.scrollIntoView({ block: "nearest" });
+                    }
+                }
+
+                function closeMenu() {
+                    menu.style.display = "none";
+                    button.setAttribute("aria-expanded", "false");
+                }
+
+                function isOpen() {
+                    return menu.style.display !== "none";
+                }
+
+                button.addEventListener("click", function () {
+                    if (isOpen()) {
+                        closeMenu();
+                    } else {
+                        openMenu();
+                    }
+                });
+
+                menu.addEventListener("click", function (e) {
+                    var target = e.target;
+                    if (!target || !target.classList || !target.classList.contains("bp-select__option")) return;
+                    var value = target.getAttribute("data-value");
+                    select.value = value;
+                    select.dispatchEvent(new Event("change", { bubbles: true }));
+                    syncButtonLabel();
+                    closeMenu();
+                });
+
+                select.addEventListener("change", function () {
+                    syncButtonLabel();
+                });
+
+                document.addEventListener("click", function (e) {
+                    if (!isOpen()) return;
+                    var t = e.target;
+                    if (t === button || button.contains(t) || t === menu || menu.contains(t)) return;
+                    closeMenu();
+                }, true);
+
+                document.addEventListener("keydown", function (e) {
+                    if (!isOpen()) return;
+                    if (e.key === "Escape") {
+                        e.preventDefault();
+                        closeMenu();
+                        button.focus();
+                    }
+                });
+
+                window.addEventListener("resize", function () {
+                    if (!isOpen()) return;
+                    positionMenu();
+                });
+
+                window.addEventListener("scroll", function () {
+                    if (!isOpen()) return;
+                    positionMenu();
+                }, true);
+
+                // Insert wrapper before select, then move select + button into it.
+                select.parentNode.insertBefore(wrapper, select);
+                wrapper.appendChild(select);
+                wrapper.appendChild(button);
+
+                select.dataset.bpSelectEnhanced = "true";
+                syncButtonLabel();
+            }
+
+            function enhanceAllBusinessProfileSelects() {
+                var selects = document.querySelectorAll('select[data-bp-select="true"]');
+                for (var i = 0; i < selects.length; i++) {
+                    enhanceSelect(selects[i]);
+                }
+            }
+
+            function wireImagePreview(inputId, imgId, placeholderId) {
+                var input = document.getElementById(inputId);
+                var img = document.getElementById(imgId);
+                var placeholder = document.getElementById(placeholderId);
+                if (!input || !img) return;
+
+                input.addEventListener("change", function () {
+                    var file = input.files && input.files[0];
+                    if (!file) {
+                        img.style.display = "none";
+                        img.removeAttribute("src");
+                        if (placeholder) placeholder.style.display = "block";
+                        return;
+                    }
+
+                    if (!file.type || !file.type.startsWith("image/")) {
+                        img.style.display = "none";
+                        img.removeAttribute("src");
+                        if (placeholder) placeholder.style.display = "block";
+                        return;
+                    }
+
+                    var url = URL.createObjectURL(file);
+                    img.onload = function () { URL.revokeObjectURL(url); };
+                    img.src = url;
+                    img.style.display = "block";
+                    if (placeholder) placeholder.style.display = "none";
+                });
+            }
+
+            function syncGstNumberVisibility() {
+                var gstSelect = document.getElementById("IsGstRegistered");
+                var gstGroup = document.getElementById("gstNumberGroup");
+                var gstInput = document.getElementById("GstNumber");
+                if (!gstSelect || !gstGroup || !gstInput) return;
+
+                var isYes = gstSelect.value === "true";
+                gstGroup.classList.toggle("bp-hidden", !isYes);
+                if (isYes) {
+                    gstInput.setAttribute("required", "required");
+                } else {
+                    gstInput.removeAttribute("required");
+                    gstInput.value = "";
+                }
+            }
+
+            wireImagePreview("BusinessLogoFile", "BusinessLogoPreview", "BusinessLogoPlaceholder");
+            wireImagePreview("SignatureFile", "SignaturePreview", "SignaturePlaceholder");
+
+            // Upgrade all dropdowns to a styled menu that can't be clipped by containers.
+            enhanceAllBusinessProfileSelects();
+
+            function wireBusinessTypePicker() {
+                var picker = document.getElementById("BusinessTypePicker");
+                var chips = document.getElementById("SelectedBusinessTypesChips");
+                var inputs = document.getElementById("SelectedBusinessTypesInputs");
+                if (!picker || !chips || !inputs) return;
+
+                function hasId(id) {
+                    return !!inputs.querySelector('input[type="hidden"][name="SelectedBusinessTypeIds"][value="' + id + '"]');
+                }
+
+                function addId(id, label) {
+                    if (!id || hasId(id)) return;
+
+                    var hidden = document.createElement("input");
+                    hidden.type = "hidden";
+                    hidden.name = "SelectedBusinessTypeIds";
+                    hidden.value = id;
+                    hidden.setAttribute("data-id", id);
+                    inputs.appendChild(hidden);
+
+                    var chip = document.createElement("span");
+                    chip.className = "bp-chip";
+                    chip.setAttribute("data-id", id);
+
+                    var chipLabel = document.createElement("span");
+                    chipLabel.className = "bp-chip__label";
+                    chipLabel.textContent = label || ("Type " + id);
+
+                    var remove = document.createElement("button");
+                    remove.type = "button";
+                    remove.className = "bp-chip__remove";
+                    remove.setAttribute("aria-label", "Remove " + (label || "selected business type"));
+                    remove.innerHTML = "&times;";
+
+                    chip.appendChild(chipLabel);
+                    chip.appendChild(remove);
+                    chips.appendChild(chip);
+                }
+
+                picker.addEventListener("change", function () {
+                    var selectedOption = picker.options[picker.selectedIndex];
+                    var id = picker.value;
+                    if (!id) return;
+                    addId(id, selectedOption ? selectedOption.text : "");
+                    picker.value = "";
+                });
+
+                chips.addEventListener("click", function (e) {
+                    var target = e.target;
+                    if (!target || !target.classList || !target.classList.contains("bp-chip__remove")) return;
+                    var chip = target.closest(".bp-chip");
+                    if (!chip) return;
+                    var id = chip.getAttribute("data-id");
+                    if (!id) return;
+
+                    var hidden = inputs.querySelector('input[type="hidden"][name="SelectedBusinessTypeIds"][value="' + id + '"]');
+                    if (hidden) hidden.remove();
+                    chip.remove();
+                });
+            }
+
+            wireBusinessTypePicker();
+
+            var gstSelect = document.getElementById("IsGstRegistered");
+            if (gstSelect) {
+                gstSelect.addEventListener("change", syncGstNumberVisibility);
+            }
+            syncGstNumberVisibility();
+        })();
+    </script>
+}
+
