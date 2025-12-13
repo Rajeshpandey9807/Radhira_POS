@@ -1,0 +1,110 @@
+@model PosApp.Web.Models.LoginViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Sign in";
+    var returnUrl = (ViewData["ReturnUrl"] as string) ?? string.Empty;
+}
+
+<div class="auth-shell">
+    <div class="auth-hero" aria-hidden="true">
+        <div class="auth-hero__brand">
+            <img class="auth-hero__mark" src="~/images/auth/brand-mark.svg" alt="" />
+            <div>
+                <div class="auth-hero__name">Radhira POS</div>
+                <div class="auth-hero__tagline">Smart retail, bold pink.</div>
+            </div>
+        </div>
+
+        <img class="auth-hero__illustration" src="~/images/auth/login-illustration.svg" alt="" />
+
+        <div class="auth-hero__bullets">
+            <div class="auth-bullet">
+                <span class="auth-bullet__icon" aria-hidden="true">⚡</span>
+                <div>
+                    <strong>Fast checkout</strong>
+                    <div class="muted">Keep lines moving with a clean, keyboard-friendly flow.</div>
+                </div>
+            </div>
+            <div class="auth-bullet">
+                <span class="auth-bullet__icon" aria-hidden="true">🔒</span>
+                <div>
+                    <strong>Secure access</strong>
+                    <div class="muted">Your session is protected with cookie-based sign-in.</div>
+                </div>
+            </div>
+            <div class="auth-bullet">
+                <span class="auth-bullet__icon" aria-hidden="true">📊</span>
+                <div>
+                    <strong>Dashboard ready</strong>
+                    <div class="muted">Jump straight into insights after signing in.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-card">
+        <div class="auth-card__header">
+            <h1>Welcome back</h1>
+            <p class="muted">Sign in to continue to your workspace.</p>
+        </div>
+
+        <form asp-action="Login" asp-controller="Account" method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+            <div asp-validation-summary="ModelOnly" class="auth-validation" role="alert"></div>
+
+            <div class="auth-field">
+                <label asp-for="Identifier"></label>
+                <div class="auth-input">
+                    <span class="auth-input__glyph" aria-hidden="true">@</span>
+                    <input asp-for="Identifier" autocomplete="username" placeholder="admin@example.com" />
+                </div>
+                <span asp-validation-for="Identifier" class="text-danger"></span>
+            </div>
+
+            <div class="auth-field">
+                <label asp-for="Password"></label>
+                <div class="auth-input">
+                    <span class="auth-input__glyph" aria-hidden="true">•••</span>
+                    <input asp-for="Password" autocomplete="current-password" placeholder="Your password" />
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="auth-row">
+                <label class="auth-checkbox">
+                    <input asp-for="RememberMe" />
+                    <span>@Html.DisplayNameFor(m => m.RememberMe)</span>
+                </label>
+
+                <a class="auth-link" href="#" tabindex="-1" aria-disabled="true" title="Not implemented yet">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn primary w-100">Sign in</button>
+
+            <div class="auth-divider" aria-hidden="true">
+                <span>Tips</span>
+            </div>
+
+            <div class="auth-tips">
+                <div class="auth-tip">
+                    <img class="auth-tip__icon" src="~/images/auth/lock-badge.svg" alt="" />
+                    <div>
+                        <strong>Default admin</strong>
+                        <div class="muted">If you’re using the seeded SQLite DB: <code>admin</code> / <code>changeme</code></div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div class="auth-card__footer muted">
+            <span>By signing in, you agree to the store’s acceptable use policy.</span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

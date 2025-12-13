@@ -6,15 +6,28 @@ using PosApp.Web.Features.Roles;
 using PosApp.Web.Features.RegistrationTypes;
 using PosApp.Web.Features.Users;
 using PosApp.Web.Features.States;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/Login";
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromHours(12);
+        options.Cookie.Name = "radhira-pos.auth";
+    });
+builder.Services.AddAuthorization();
 builder.Services.AddSingleton<IDbConnectionFactory, SqlServerConnectionFactory>();
 builder.Services.AddScoped<DatabaseInitializer>();
 builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<RoleService>();
+builder.Services.AddScoped<RoleMasterService>();
 builder.Services.AddScoped<BusinessTypeService>();
 builder.Services.AddScoped<IndustryTypeService>();
 builder.Services.AddScoped<RegistrationTypeService>();
@@ -42,6 +55,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

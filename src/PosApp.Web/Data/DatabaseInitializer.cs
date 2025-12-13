@@ -33,13 +33,13 @@ public sealed class DatabaseInitializer
 
         var sqlCommands = new[]
         {
-            "CREATE TABLE IF NOT EXISTS Roles (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Permissions TEXT NULL);",
+            "CREATE TABLE IF NOT EXISTS RoleMaster (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Permissions TEXT NULL);",
             // Normalized user schema:
             // - Users holds profile fields only (no auth, no role FK).
             // - UserRoles maps a user to a role.
             // - UserAuth stores salted password hashes.
             "CREATE TABLE IF NOT EXISTS Users (Id TEXT PRIMARY KEY, Username TEXT NOT NULL UNIQUE, DisplayName TEXT NOT NULL, Email TEXT NOT NULL, PhoneNumber TEXT NOT NULL, IsActive INTEGER NOT NULL DEFAULT 1, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, CreatedBy TEXT NULL, UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy TEXT NULL);",
-            "CREATE TABLE IF NOT EXISTS UserRoles (UserId TEXT PRIMARY KEY, RoleId TEXT NOT NULL, FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE, FOREIGN KEY(RoleId) REFERENCES Roles(Id));",
+            "CREATE TABLE IF NOT EXISTS UserRoles (UserId TEXT PRIMARY KEY, RoleId TEXT NOT NULL, FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE, FOREIGN KEY(RoleId) REFERENCES RoleMaster(Id));",
             "CREATE TABLE IF NOT EXISTS UserAuth (UserId TEXT PRIMARY KEY, PasswordHash TEXT NOT NULL, PasswordSalt TEXT NOT NULL, FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE);",
             "CREATE TABLE IF NOT EXISTS Categories (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Color TEXT NULL);",
             "CREATE TABLE IF NOT EXISTS Products (Id TEXT PRIMARY KEY, Sku TEXT NOT NULL UNIQUE, Name TEXT NOT NULL, CategoryId TEXT NULL, UnitPrice REAL NOT NULL, ReorderPoint INTEGER NOT NULL DEFAULT 0, IsActive INTEGER NOT NULL DEFAULT 1, FOREIGN KEY(CategoryId) REFERENCES Categories(Id));",
@@ -163,7 +163,7 @@ public sealed class DatabaseInitializer
         var adminRoleId = Guid.Parse("0f340000-3df4-4ef7-8d3f-748f6ec9d001");
         var cashierRoleId = Guid.Parse("0f340000-3df4-4ef7-8d3f-748f6ec9d002");
 
-        const string insertRoleSql = @"INSERT INTO Roles (Id, Name, Permissions) VALUES (@Id, @Name, @Permissions)
+        const string insertRoleSql = @"INSERT INTO RoleMaster (Id, Name, Permissions) VALUES (@Id, @Name, @Permissions)
             ON CONFLICT(Name) DO UPDATE SET Permissions = excluded.Permissions;";
 
         await connection.ExecuteAsync(new CommandDefinition(insertRoleSql, new
