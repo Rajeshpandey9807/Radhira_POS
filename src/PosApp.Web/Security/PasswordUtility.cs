@@ -5,7 +5,7 @@ namespace PosApp.Web.Security;
 
 public static class PasswordUtility
 {
-    public sealed record PasswordHash(string HashedPassword, string PasswordSalt);
+    public sealed record PasswordHash(string PasswordHash, string PasswordSalt);
 
     /// <summary>
     /// Creates a salted password hash using PBKDF2 (HMAC-SHA256).
@@ -22,7 +22,7 @@ public static class PasswordUtility
         var hash = Pbkdf2(password, salt, iterations: 100_000, numBytesRequested: 32);
 
         return new PasswordHash(
-            HashedPassword: Convert.ToBase64String(hash),
+            PasswordHash: Convert.ToBase64String(hash),
             PasswordSalt: Convert.ToBase64String(salt));
     }
 

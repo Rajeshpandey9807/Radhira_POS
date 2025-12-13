@@ -66,8 +66,8 @@ public sealed class UserService
         const string insertUserRoleSql = @"INSERT INTO UserRoles (UserId, RoleId)
                                           VALUES (@UserId, @RoleId);";
 
-        const string insertAuthSql = @"INSERT INTO UserAuth (UserId, HashedPassword, PasswordSalt)
-                                      VALUES (@UserId, @HashedPassword, @PasswordSalt);";
+        const string insertAuthSql = @"INSERT INTO UserAuth (UserId, PasswordHash, PasswordSalt)
+                                      VALUES (@UserId, @PasswordHash, @PasswordSalt);";
 
         try
         {
@@ -94,7 +94,7 @@ public sealed class UserService
             await connection.ExecuteAsync(new CommandDefinition(insertAuthSql, new
             {
                 UserId = userId,
-                HashedPassword = passwordHash.HashedPassword,
+                PasswordHash = passwordHash.PasswordHash,
                 PasswordSalt = passwordHash.PasswordSalt
             }, transaction: transaction, cancellationToken: cancellationToken));
 
@@ -137,12 +137,12 @@ public sealed class UserService
                                       VALUES (@UserId, @RoleId);";
 
         const string updateAuthSql = @"UPDATE UserAuth
-                                      SET HashedPassword = @HashedPassword,
+                                      SET PasswordHash = @PasswordHash,
                                           PasswordSalt = @PasswordSalt
                                       WHERE UserId = @UserId;";
 
-        const string insertAuthSql = @"INSERT INTO UserAuth (UserId, HashedPassword, PasswordSalt)
-                                      VALUES (@UserId, @HashedPassword, @PasswordSalt);";
+        const string insertAuthSql = @"INSERT INTO UserAuth (UserId, PasswordHash, PasswordSalt)
+                                      VALUES (@UserId, @PasswordHash, @PasswordSalt);";
 
         try
         {
@@ -161,7 +161,7 @@ public sealed class UserService
                 var authParams = new
                 {
                     UserId = id,
-                    HashedPassword = passwordHash.HashedPassword,
+                    PasswordHash = passwordHash.PasswordHash,
                     PasswordSalt = passwordHash.PasswordSalt
                 };
 
