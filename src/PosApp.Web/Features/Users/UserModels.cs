@@ -3,25 +3,25 @@ using System.ComponentModel.DataAnnotations;
 namespace PosApp.Web.Features.Users;
 
 public sealed record UserAccount(
-    Guid Id,
+    int Id,
     string Username,
     string DisplayName,
     string Email,
     string PhoneNumber,
-    Guid RoleId,
+    int RoleId,
     string RoleName,
     bool IsActive,
     DateTime CreatedAt);
 
-public sealed record RoleOption(Guid Id, string Name);
+public sealed record RoleOption(int Id, string Name);
 
 public sealed record UserDetails(
-    Guid Id,
+    int Id,
     string Username,
     string DisplayName,
     string Email,
     string PhoneNumber,
-    Guid RoleId,
+    int RoleId,
     bool IsActive);
 
 public sealed record UserInput(
@@ -29,12 +29,12 @@ public sealed record UserInput(
     string DisplayName,
     string Email,
     string PhoneNumber,
-    Guid RoleId,
+    int RoleId,
     string? Password);
 
 public sealed class UserFormViewModel
 {
-    public Guid? Id { get; set; }
+    public int? Id { get; set; }
 
     [Required]
     [MinLength(3)]
@@ -55,7 +55,8 @@ public sealed class UserFormViewModel
     public string PhoneNumber { get; set; } = string.Empty;
 
     [Required]
-    public Guid RoleId { get; set; }
+    [Range(1, int.MaxValue, ErrorMessage = "Role is required.")]
+    public int RoleId { get; set; }
 
     [DataType(DataType.Password)]
     [Display(Name = "Password")]

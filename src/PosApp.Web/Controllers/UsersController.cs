@@ -67,7 +67,7 @@ public class UsersController : Controller
         }
     }
 
-    public async Task<IActionResult> Edit(Guid id)
+    public async Task<IActionResult> Edit(int id)
     {
         var details = await _userService.GetDetailsAsync(id);
         if (details is null)
@@ -90,7 +90,7 @@ public class UsersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, UserFormViewModel model)
+    public async Task<IActionResult> Edit(int id, UserFormViewModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -112,7 +112,7 @@ public class UsersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Toggle(Guid id)
+    public async Task<IActionResult> Toggle(int id)
     {
         await _userService.ToggleStatusAsync(id);
         TempData["ToastMessage"] = "User status updated";
@@ -123,7 +123,7 @@ public class UsersController : Controller
     {
         var roles = await _userService.GetRoleOptionsAsync();
         model.Roles = roles;
-        if (model.RoleId == Guid.Empty && roles.Any())
+        if (model.RoleId == 0 && roles.Any())
         {
             model.RoleId = roles.First().Id;
         }

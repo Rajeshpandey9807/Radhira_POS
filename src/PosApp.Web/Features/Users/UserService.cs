@@ -42,14 +42,14 @@ public sealed class UserService
         return result.ToList();
     }
 
-    public async Task<UserDetails?> GetDetailsAsync(Guid id)
+    public async Task<UserDetails?> GetDetailsAsync(int id)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT u.Id, u.Username, u.DisplayName, u.Email, u.PhoneNumber, ur.RoleId, u.IsActive
                              FROM Users u
                              INNER JOIN UserRoles ur ON ur.UserId = u.Id
                              WHERE u.Id = @Id";
-        return await connection.QuerySingleOrDefaultAsync<UserDetails>(sql, new { Id = id.ToString() });
+        return await connection.QuerySingleOrDefaultAsync<UserDetails>(sql, new { Id = id });
     }
 
     public async Task CreateAsync(UserInput input, CancellationToken cancellationToken = default)
@@ -62,11 +62,7 @@ public sealed class UserService
         var email = input.Email.Trim();
         var phoneNumber = input.PhoneNumber.Trim();
         var password = input.Password ?? throw new InvalidOperationException("Password is required when creating a user.");
-        var userId = Guid.NewGuid().ToString();
         var passwordHash = PasswordUtility.HashPassword(password);
-
-        const string insertUserSql = @"INSERT INTO Users (Id, Username, DisplayName, Email, PhoneNumber, IsActive, CreatedBy)
-                                      VALUES (@Id, @Username, @DisplayName, @Email, @PhoneNumber, 1, @CreatedBy);";
 
         const string insertUserRoleSql = @"INSERT INTO UserRoles (UserId, RoleId)
                                           VALUES (@UserId, @RoleId);";
@@ -76,9 +72,14 @@ public sealed class UserService
 
         try
         {
-            await connection.ExecuteAsync(new CommandDefinition(insertUserSql, new
+            // SQL Server (INT identity) requires getting the generated key. Using SCOPE_IDENTITY().
+            // For SQLite (TEXT ids) this path is not used in production for this app; it is kept for dev/demo.
+            const string insertUserAndReturnIdSql = @"INSERT INTO Users (Username, DisplayName, Email, PhoneNumber, IsActive, CreatedBy)
+                                                     VALUES (@Username, @DisplayName, @Email, @PhoneNumber, 1, @CreatedBy);
+                                                     SELECT CAST(SCOPE_IDENTITY() AS int);";
+
+            var userId = await connection.ExecuteScalarAsync<int>(new CommandDefinition(insertUserAndReturnIdSql, new
             {
-                Id = userId,
                 Username = normalizedUsername,
                 DisplayName = displayName,
                 Email = email,
@@ -89,7 +90,7 @@ public sealed class UserService
             await connection.ExecuteAsync(new CommandDefinition(insertUserRoleSql, new
             {
                 UserId = userId,
-                RoleId = input.RoleId.ToString()
+                RoleId = input.RoleId
             }, transaction: transaction, cancellationToken: cancellationToken));
 
             await connection.ExecuteAsync(new CommandDefinition(insertAuthSql, new
@@ -108,7 +109,7 @@ public sealed class UserService
         }
     }
 
-    public async Task UpdateAsync(Guid id, UserInput input, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(int id, UserInput input, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         using var transaction = connection.BeginTransaction();
@@ -126,7 +127,7 @@ public sealed class UserService
         var phoneNumber = input.PhoneNumber.Trim();
 
         var parameters = new DynamicParameters();
-        parameters.Add("Id", id.ToString());
+        parameters.Add("Id", id);
         parameters.Add("Username", normalizedUsername);
         parameters.Add("DisplayName", displayName);
         parameters.Add("Email", email);
@@ -153,7 +154,7 @@ public sealed class UserService
         {
             await connection.ExecuteAsync(new CommandDefinition(sql, parameters, transaction: transaction, cancellationToken: cancellationToken));
 
-            var roleParams = new { UserId = id.ToString(), RoleId = input.RoleId.ToString() };
+            var roleParams = new { UserId = id, RoleId = input.RoleId };
             var roleAffected = await connection.ExecuteAsync(new CommandDefinition(updateRoleSql, roleParams, transaction: transaction, cancellationToken: cancellationToken));
             if (roleAffected == 0)
             {
@@ -165,7 +166,7 @@ public sealed class UserService
                 var passwordHash = PasswordUtility.HashPassword(input.Password);
                 var authParams = new
                 {
-                    UserId = id.ToString(),
+                    UserId = id,
                     HashedPassword = passwordHash.HashedPassword,
                     PasswordSalt = passwordHash.PasswordSalt
                 };
@@ -186,7 +187,7 @@ public sealed class UserService
         }
     }
 
-    public async Task ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task ToggleStatusAsync(int id, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE Users
@@ -194,6 +195,6 @@ public sealed class UserService
                                  UpdatedAt = CURRENT_TIMESTAMP
                              WHERE Id = @Id";
 
-        await connection.ExecuteAsync(new CommandDefinition(sql, new { Id = id.ToString() }, cancellationToken: cancellationToken));
+        await connection.ExecuteAsync(new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
     }
 }

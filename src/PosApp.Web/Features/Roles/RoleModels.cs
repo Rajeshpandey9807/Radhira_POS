@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations;
 namespace PosApp.Web.Features.Roles;
 
 public sealed record RoleListItem(
-    Guid Id,
+    int Id,
     string Name,
     string Permissions,
     int AssignedUsers);
 
 public sealed record RoleDetails(
-    Guid Id,
+    int Id,
     string Name,
     string Permissions);
 
@@ -19,7 +19,7 @@ public sealed record RoleInput(
 
 public sealed class RoleFormViewModel
 {
-    public Guid? Id { get; set; }
+    public int? Id { get; set; }
 
     [Required]
     [MaxLength(64)]
