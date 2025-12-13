@@ -81,7 +81,7 @@
 
             <div class="field-group">
                 <label asp-for="StateId">State</label>
-                <select asp-for="StateId">
+                <select asp-for="StateId" data-bp-select="true">
                     <option value="">Choose...</option>
                     @foreach (var item in Model.States)
                     {
@@ -116,7 +116,7 @@
         <div class="form-grid">
             <div class="field-group">
                 <label asp-for="IsGstRegistered"></label>
-                <select asp-for="IsGstRegistered">
+                <select asp-for="IsGstRegistered" data-bp-select="true">
                     <option value="">Choose...</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
@@ -155,7 +155,7 @@
 
                 <div class="field-group">
                     <label asp-for="SelectedBusinessTypeIds">Business Type (Select multiple, if applicable)</label>
-                    <select id="BusinessTypePicker">
+                    <select id="BusinessTypePicker" data-bp-select="true">
                         <option value="">Choose...</option>
                         @foreach (var item in Model.BusinessTypes)
                         {
@@ -198,7 +198,7 @@
                 <div class="form-grid">
                     <div class="field-group">
                         <label asp-for="IndustryTypeId">Industry Type</label>
-                        <select asp-for="IndustryTypeId">
+                        <select asp-for="IndustryTypeId" data-bp-select="true">
                             <option value="">Choose...</option>
                             @foreach (var item in Model.IndustryTypes)
                             {
@@ -210,7 +210,7 @@
 
                     <div class="field-group">
                         <label asp-for="RegistrationTypeId">Business Registration Type</label>
-                        <select asp-for="RegistrationTypeId">
+                        <select asp-for="RegistrationTypeId" data-bp-select="true">
                             <option value="">Choose...</option>
                             @foreach (var item in Model.RegistrationTypes)
                             {

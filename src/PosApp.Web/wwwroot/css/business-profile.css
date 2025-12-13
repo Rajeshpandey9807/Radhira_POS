@@ -117,6 +117,92 @@
   padding: 0.85rem 1rem;
 }
 
+.bp-select {
+  position: relative;
+}
+
+/* Keep the real select for binding/validation, but disable native UI. */
+.bp-select__native {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bp-select__button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bp-select__button:focus-visible {
+  outline: 2px solid var(--pink-300);
+  outline-offset: 3px;
+}
+
+.bp-select__button.is-placeholder .bp-select__label {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.bp-select__button::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid rgba(255, 255, 255, 0.75);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.75);
+  transform: rotate(45deg);
+  flex: 0 0 auto;
+  margin-top: -2px;
+}
+
+.bp-select__menu {
+  z-index: 5000;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(35, 37, 58, 0.98);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  padding: 8px;
+  overflow: auto;
+  backdrop-filter: blur(10px);
+}
+
+.bp-select__option {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.bp-select__option:hover,
+.bp-select__option:focus-visible {
+  background: rgba(245, 0, 135, 0.16);
+  outline: none;
+}
+
+.bp-select__option.is-selected {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.bp-select__option[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .bp-chips {
   display: flex;
   flex-wrap: wrap;
@@ -242,5 +328,34 @@
 
 :root[data-theme="light"] .bp-panel__subtitle {
   color: rgba(31, 33, 51, 0.72);
+}
+
+:root[data-theme="light"] .bp-select__button {
+  border-color: rgba(17, 19, 34, 0.14);
+  background: rgba(255, 255, 255, 0.85);
+  color: rgba(31, 33, 51, 0.92);
+}
+
+:root[data-theme="light"] .bp-select__button.is-placeholder .bp-select__label {
+  color: rgba(31, 33, 51, 0.65);
+}
+
+:root[data-theme="light"] .bp-select__button::after {
+  border-right-color: rgba(31, 33, 51, 0.75);
+  border-bottom-color: rgba(31, 33, 51, 0.75);
+}
+
+:root[data-theme="light"] .bp-select__menu {
+  border-color: rgba(17, 19, 34, 0.12);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+:root[data-theme="light"] .bp-select__option {
+  color: rgba(31, 33, 51, 0.92);
+}
+
+:root[data-theme="light"] .bp-select__option.is-selected {
+  background: rgba(245, 0, 135, 0.10);
+  border-color: rgba(245, 0, 135, 0.14);
 }
 
