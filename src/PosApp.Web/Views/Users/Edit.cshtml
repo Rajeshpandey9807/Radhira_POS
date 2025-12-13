@@ -6,13 +6,13 @@
 <section class="users-header">
     <div>
         <p class="eyebrow">Update teammate</p>
-        <h2>@Model.DisplayName</h2>
+        <h2>@Model.FullName</h2>
         <p>Adjust the role or contact information. Changes take effect immediately.</p>
     </div>
 </section>
 
-<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="card-form">
-    <input type="hidden" asp-for="Id" />
+<form asp-action="Edit" asp-route-id="@Model.UserId" method="post" class="card-form">
+    <input type="hidden" asp-for="UserId" />
     <partial name="_Form" model="Model" />
     <div class="form-actions">
         <a class="btn ghost" asp-action="Index">Cancel</a>

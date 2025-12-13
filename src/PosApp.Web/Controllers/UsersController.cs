@@ -50,18 +50,17 @@ public class UsersController : Controller
         try
         {
             await _userService.CreateAsync(new UserInput(
-                model.Username.Trim(),
-                model.DisplayName.Trim(),
+                model.FullName.Trim(),
                 model.Email.Trim(),
-                model.PhoneNumber.Trim(),
+                model.MobileNumber.Trim(),
                 model.RoleId,
                 model.Password));
-            TempData["ToastMessage"] = $"User {model.DisplayName} invited";
+            TempData["ToastMessage"] = $"User {model.FullName} created";
             return RedirectToAction(nameof(Index));
         }
         catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
         {
-            ModelState.AddModelError(nameof(model.Username), "Username already exists. Choose another one.");
+            ModelState.AddModelError(nameof(model.Email), "Email already exists. Choose another one.");
             await PopulateRolesAsync(model);
             return View(model);
         }
@@ -77,11 +76,10 @@ public class UsersController : Controller
 
         var model = await PopulateRolesAsync(new UserFormViewModel
         {
-            Id = details.Id,
-            Username = details.Username,
-            DisplayName = details.DisplayName,
+            UserId = details.UserId,
+            FullName = details.FullName,
             Email = details.Email,
-            PhoneNumber = details.PhoneNumber,
+            MobileNumber = details.MobileNumber,
             RoleId = details.RoleId
         });
 
@@ -99,14 +97,13 @@ public class UsersController : Controller
         }
 
         await _userService.UpdateAsync(id, new UserInput(
-            model.Username,
-            model.DisplayName,
+            model.FullName,
             model.Email,
-            model.PhoneNumber,
+            model.MobileNumber,
             model.RoleId,
             model.Password));
 
-        TempData["ToastMessage"] = $"User {model.DisplayName} updated";
+        TempData["ToastMessage"] = $"User {model.FullName} updated";
         return RedirectToAction(nameof(Index));
     }
 

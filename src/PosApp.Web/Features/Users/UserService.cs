@@ -22,13 +22,13 @@ public sealed class UserService
     public async Task<IReadOnlyList<UserAccount>> GetUsersAsync()
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT u.Id, u.Username, u.DisplayName, u.Email, u.PhoneNumber,
+        const string sql = @"SELECT u.UserId, u.FullName, u.Email, u.MobileNumber,
                                     ur.RoleId, r.Name AS RoleName,
-                                    u.IsActive, u.CreatedAt AS CreatedAt
+                                    u.IsActive, u.CreatedOn
                              FROM Users u
-                             INNER JOIN UserRoles ur ON ur.UserId = u.Id
-                             INNER JOIN Roles r ON ur.RoleId = r.Id
-                             ORDER BY u.CreatedAt DESC";
+                             INNER JOIN UserRoles ur ON ur.UserId = u.UserId
+                             INNER JOIN Roles r ON ur.RoleId = r.RoleId
+                             ORDER BY u.CreatedOn DESC";
 
         var result = await connection.QueryAsync<UserAccount>(sql);
         return result.ToList();
@@ -37,7 +37,7 @@ public sealed class UserService
     public async Task<IReadOnlyList<RoleOption>> GetRoleOptionsAsync()
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = "SELECT Id, Name FROM Roles ORDER BY Name";
+        const string sql = "SELECT RoleId AS Id, Name FROM Roles ORDER BY Name";
         var result = await connection.QueryAsync<RoleOption>(sql);
         return result.ToList();
     }
@@ -45,11 +45,11 @@ public sealed class UserService
     public async Task<UserDetails?> GetDetailsAsync(int id)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT u.Id, u.Username, u.DisplayName, u.Email, u.PhoneNumber, ur.RoleId, u.IsActive
+        const string sql = @"SELECT u.UserId, u.FullName, u.Email, u.MobileNumber, ur.RoleId, u.IsActive
                              FROM Users u
-                             INNER JOIN UserRoles ur ON ur.UserId = u.Id
-                             WHERE u.Id = @Id";
-        return await connection.QuerySingleOrDefaultAsync<UserDetails>(sql, new { Id = id });
+                             INNER JOIN UserRoles ur ON ur.UserId = u.UserId
+                             WHERE u.UserId = @UserId";
+        return await connection.QuerySingleOrDefaultAsync<UserDetails>(sql, new { UserId = id });
     }
 
     public async Task CreateAsync(UserInput input, CancellationToken cancellationToken = default)
@@ -57,10 +57,9 @@ public sealed class UserService
         using var connection = await _connectionFactory.CreateConnectionAsync();
         using var transaction = connection.BeginTransaction();
 
-        var normalizedUsername = input.Username.Trim().ToLowerInvariant();
-        var displayName = input.DisplayName.Trim();
+        var fullName = input.FullName.Trim();
         var email = input.Email.Trim();
-        var phoneNumber = input.PhoneNumber.Trim();
+        var mobileNumber = input.MobileNumber.Trim();
         var password = input.Password ?? throw new InvalidOperationException("Password is required when creating a user.");
         var passwordHash = PasswordUtility.HashPassword(password);
 
@@ -74,17 +73,16 @@ public sealed class UserService
         {
             // SQL Server (INT identity) requires getting the generated key. Using SCOPE_IDENTITY().
             // For SQLite (TEXT ids) this path is not used in production for this app; it is kept for dev/demo.
-            const string insertUserAndReturnIdSql = @"INSERT INTO Users (Username, DisplayName, Email, PhoneNumber, IsActive, CreatedBy)
-                                                     VALUES (@Username, @DisplayName, @Email, @PhoneNumber, 1, @CreatedBy);
+            const string insertUserAndReturnIdSql = @"INSERT INTO Users (FullName, Email, MobileNumber, IsActive, CreatedOn, CreatedBy)
+                                                     VALUES (@FullName, @Email, @MobileNumber, 1, SYSUTCDATETIME(), @CreatedBy);
                                                      SELECT CAST(SCOPE_IDENTITY() AS int);";
 
             var userId = await connection.ExecuteScalarAsync<int>(new CommandDefinition(insertUserAndReturnIdSql, new
             {
-                Username = normalizedUsername,
-                DisplayName = displayName,
+                FullName = fullName,
                 Email = email,
-                PhoneNumber = phoneNumber,
-                CreatedBy = "system"
+                MobileNumber = mobileNumber,
+                CreatedBy = 0
             }, transaction: transaction, cancellationToken: cancellationToken));
 
             await connection.ExecuteAsync(new CommandDefinition(insertUserRoleSql, new
@@ -115,25 +113,21 @@ public sealed class UserService
         using var transaction = connection.BeginTransaction();
 
         var sql = @"UPDATE Users
-                    SET Username = @Username,
-                        DisplayName = @DisplayName,
+                    SET FullName = @FullName,
                         Email = @Email,
-                        PhoneNumber = @PhoneNumber,
-                        UpdatedAt = CURRENT_TIMESTAMP";
+                        MobileNumber = @MobileNumber";
 
-        var normalizedUsername = input.Username.Trim().ToLowerInvariant();
-        var displayName = input.DisplayName.Trim();
+        var fullName = input.FullName.Trim();
         var email = input.Email.Trim();
-        var phoneNumber = input.PhoneNumber.Trim();
+        var mobileNumber = input.MobileNumber.Trim();
 
         var parameters = new DynamicParameters();
-        parameters.Add("Id", id);
-        parameters.Add("Username", normalizedUsername);
-        parameters.Add("DisplayName", displayName);
+        parameters.Add("UserId", id);
+        parameters.Add("FullName", fullName);
         parameters.Add("Email", email);
-        parameters.Add("PhoneNumber", phoneNumber);
+        parameters.Add("MobileNumber", mobileNumber);
 
-        sql += " WHERE Id = @Id";
+        sql += " WHERE UserId = @UserId";
 
         const string updateRoleSql = @"UPDATE UserRoles
                                       SET RoleId = @RoleId
@@ -191,10 +185,9 @@ public sealed class UserService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE Users
-                             SET IsActive = CASE WHEN IsActive = 1 THEN 0 ELSE 1 END,
-                                 UpdatedAt = CURRENT_TIMESTAMP
-                             WHERE Id = @Id";
+                             SET IsActive = CASE WHEN IsActive = 1 THEN 0 ELSE 1 END
+                             WHERE UserId = @UserId";
 
-        await connection.ExecuteAsync(new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
+        await connection.ExecuteAsync(new CommandDefinition(sql, new { UserId = id }, cancellationToken: cancellationToken));
     }
 }
