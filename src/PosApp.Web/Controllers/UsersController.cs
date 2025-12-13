@@ -24,8 +24,9 @@ public class UsersController : Controller
 
     public async Task<IActionResult> Create()
     {
-        var model = await PopulateRolesAsync(new UserFormViewModel());
-        return View(model);
+        // Static UI screen: do not hit the database just to render the page.
+        // (Role loading can fail if the DB schema/types don't match the view model.)
+        return View(new UserFormViewModel());
     }
 
     [HttpPost]
