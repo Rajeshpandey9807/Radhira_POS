@@ -270,6 +270,12 @@
                 document.body.classList.remove('is-modal-open');
             };
 
+            // This UI is intentionally static. Prevent any native form submission
+            // (e.g. pressing Enter inside an input).
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+            });
+
             form.addEventListener('input', (e) => {
                 const input = e.target;
                 if (!(input instanceof HTMLInputElement)) return;
@@ -282,7 +288,14 @@
                 const target = e.target;
                 if (!(target instanceof HTMLElement)) return;
 
-                if (target.matches('[data-next]')) {
+                const nextButton = target.closest('[data-next]');
+                const backButton = target.closest('[data-back]');
+                const confirmButton = target.closest('[data-confirm]');
+                const otpCloseButton = target.closest('[data-otp-close]');
+                const otpCancelButton = target.closest('[data-otp-cancel]');
+                const otpVerifyButton = target.closest('[data-otp-verify]');
+
+                if (nextButton) {
                     const step1 = stepPanels.find((p) => p.getAttribute('data-step') === '1');
                     const inputs = step1 ? Array.from(step1.querySelectorAll('input[data-validate]')) : [];
                     if (validateInputs(inputs)) {
@@ -292,13 +305,13 @@
                     }
                 }
 
-                if (target.matches('[data-back]')) {
+                if (backButton) {
                     goToStep(1);
                     const first = form.querySelector('[data-step="1"] input');
                     if (first instanceof HTMLInputElement) first.focus();
                 }
 
-                if (target.matches('[data-confirm]')) {
+                if (confirmButton) {
                     const step2 = stepPanels.find((p) => p.getAttribute('data-step') === '2');
                     const inputs = step2 ? Array.from(step2.querySelectorAll('input[data-validate]')) : [];
                     if (validateInputs(inputs)) {
@@ -306,7 +319,7 @@
                     }
                 }
 
-                if (target.matches('[data-otp-close],[data-otp-cancel]')) {
+                if (otpCloseButton || otpCancelButton) {
                     closeOtp();
                 }
 
@@ -314,7 +327,7 @@
                     closeOtp();
                 }
 
-                if (target.matches('[data-otp-verify]')) {
+                if (otpVerifyButton) {
                     if (!otpInput) return;
                     const message = validators.otp(otpInput.value);
                     if (message) {
@@ -331,6 +344,31 @@
                 if (e.key !== 'Escape') return;
                 if (!overlay || overlay.classList.contains('is-hidden')) return;
                 closeOtp();
+            });
+
+            // Enter key convenience:
+            // - Step 1: Enter -> Next
+            // - Step 2: Enter -> Confirm / Save
+            // - OTP modal: Enter -> Verify
+            form.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter') return;
+
+                const otpOpen = overlay && !overlay.classList.contains('is-hidden');
+                if (otpOpen) {
+                    e.preventDefault();
+                    const verify = document.querySelector('[data-otp-verify]');
+                    if (verify instanceof HTMLButtonElement) {
+                        verify.click();
+                    }
+                    return;
+                }
+
+                const step1Open = stepPanels.some((p) => p.getAttribute('data-step') === '1' && !p.classList.contains('is-hidden'));
+                const action = step1Open ? form.querySelector('[data-next]') : form.querySelector('[data-confirm]');
+                if (action instanceof HTMLButtonElement) {
+                    e.preventDefault();
+                    action.click();
+                }
             });
 
             goToStep(1);
