@@ -21,15 +21,14 @@
             <th>User</th>
             <th>Role</th>
             <th>Status</th>
-            <th>Created</th>
-            <th></th>
+            <th class="actions-col">Actions</th>
         </tr>
     </thead>
     <tbody>
         @if (!Model.Any())
         {
             <tr>
-                <td colspan="5">
+                <td colspan="4">
                     <div class="empty">No users yet. Invite your first teammate.</div>
                 </td>
             </tr>
@@ -68,8 +67,7 @@
                             </button>
                         </form>
                     </td>
-                    <td>@user.CreatedOn.ToString("MMM dd")</td>
-                    <td class="actions">
+                    <td class="actions actions--right">
                         <a asp-action="Edit" asp-route-id="@user.UserId">Edit</a>
                     </td>
                 </tr>
