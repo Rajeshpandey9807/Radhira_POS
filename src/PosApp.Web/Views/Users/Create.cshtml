@@ -195,7 +195,8 @@
                 email: (value) => {
                     const v = value.trim();
                     if (!v) return 'Email is required.';
-                    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+                    // Razor treats `@` as code, so escape it as `@@` inside scripts.
+                    const ok = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(v);
                     return ok ? null : 'Please enter a valid email address.';
                 },
                 phone: (value) => {
