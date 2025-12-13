@@ -40,7 +40,7 @@ public class RolesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    public async Task<IActionResult> Edit(Guid id)
+    public async Task<IActionResult> Edit(int id)
     {
         var role = await _roleService.GetByIdAsync(id);
         if (role is null)
@@ -60,7 +60,7 @@ public class RolesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, RoleFormViewModel model)
+    public async Task<IActionResult> Edit(int id, RoleFormViewModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -77,7 +77,7 @@ public class RolesController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(int id)
     {
         var result = await _roleService.DeleteAsync(id);
         switch (result)

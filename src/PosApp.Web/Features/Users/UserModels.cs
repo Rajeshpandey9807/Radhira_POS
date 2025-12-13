@@ -3,47 +3,42 @@ using System.ComponentModel.DataAnnotations;
 namespace PosApp.Web.Features.Users;
 
 public sealed record UserAccount(
-    Guid Id,
-    string Username,
-    string DisplayName,
+    int UserId,
+    string FullName,
     string Email,
-    string PhoneNumber,
-    Guid RoleId,
+    string MobileNumber,
+    int RoleId,
     string RoleName,
     bool IsActive,
-    DateTime CreatedAt);
+    DateTime CreatedOn);
 
-public sealed record RoleOption(Guid Id, string Name);
+public sealed record RoleOption(int Id, string Name);
 
 public sealed record UserDetails(
-    Guid Id,
-    string Username,
-    string DisplayName,
+    int UserId,
+    string FullName,
     string Email,
-    string PhoneNumber,
-    Guid RoleId,
+    string MobileNumber,
+    int RoleId,
     bool IsActive);
 
 public sealed record UserInput(
-    string Username,
-    string DisplayName,
+    string FullName,
     string Email,
-    string PhoneNumber,
-    Guid RoleId,
+    string MobileNumber,
+    int RoleId,
     string? Password);
 
 public sealed class UserFormViewModel
 {
-    public Guid? Id { get; set; }
+    public int? UserId { get; set; }
+
+    public bool IsActive { get; set; } = true;
 
     [Required]
-    [MinLength(3)]
-    [MaxLength(32)]
-    public string Username { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(80)]
-    public string DisplayName { get; set; } = string.Empty;
+    [Display(Name = "Full name")]
+    [MaxLength(200)]
+    public string FullName { get; set; } = string.Empty;
 
     [Required]
     [EmailAddress]
@@ -51,11 +46,12 @@ public sealed class UserFormViewModel
 
     [Required]
     [Phone]
-    [Display(Name = "Phone number")]
-    public string PhoneNumber { get; set; } = string.Empty;
+    [Display(Name = "Mobile number")]
+    public string MobileNumber { get; set; } = string.Empty;
 
     [Required]
-    public Guid RoleId { get; set; }
+    [Range(1, int.MaxValue, ErrorMessage = "Role is required.")]
+    public int RoleId { get; set; }
 
     [DataType(DataType.Password)]
     [Display(Name = "Password")]

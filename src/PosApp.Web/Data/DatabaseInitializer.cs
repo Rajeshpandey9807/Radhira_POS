@@ -34,7 +34,13 @@ public sealed class DatabaseInitializer
         var sqlCommands = new[]
         {
             "CREATE TABLE IF NOT EXISTS Roles (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Permissions TEXT NULL);",
-            "CREATE TABLE IF NOT EXISTS Users (Id TEXT PRIMARY KEY, Username TEXT NOT NULL UNIQUE, DisplayName TEXT NOT NULL, Email TEXT NOT NULL, PhoneNumber TEXT NOT NULL, RoleId TEXT NOT NULL, PasswordHash TEXT NOT NULL, IsActive INTEGER NOT NULL DEFAULT 1, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(RoleId) REFERENCES Roles(Id));",
+            // Normalized user schema:
+            // - Users holds profile fields only (no auth, no role FK).
+            // - UserRoles maps a user to a role.
+            // - UserAuth stores salted password hashes.
+            "CREATE TABLE IF NOT EXISTS Users (Id TEXT PRIMARY KEY, Username TEXT NOT NULL UNIQUE, DisplayName TEXT NOT NULL, Email TEXT NOT NULL, PhoneNumber TEXT NOT NULL, IsActive INTEGER NOT NULL DEFAULT 1, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, CreatedBy TEXT NULL, UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy TEXT NULL);",
+            "CREATE TABLE IF NOT EXISTS UserRoles (UserId TEXT PRIMARY KEY, RoleId TEXT NOT NULL, FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE, FOREIGN KEY(RoleId) REFERENCES Roles(Id));",
+            "CREATE TABLE IF NOT EXISTS UserAuth (UserId TEXT PRIMARY KEY, PasswordHash TEXT NOT NULL, PasswordSalt TEXT NOT NULL, FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE);",
             "CREATE TABLE IF NOT EXISTS Categories (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Color TEXT NULL);",
             "CREATE TABLE IF NOT EXISTS Products (Id TEXT PRIMARY KEY, Sku TEXT NOT NULL UNIQUE, Name TEXT NOT NULL, CategoryId TEXT NULL, UnitPrice REAL NOT NULL, ReorderPoint INTEGER NOT NULL DEFAULT 0, IsActive INTEGER NOT NULL DEFAULT 1, FOREIGN KEY(CategoryId) REFERENCES Categories(Id));",
             "CREATE TABLE IF NOT EXISTS Customers (Id TEXT PRIMARY KEY, DisplayName TEXT NOT NULL, Email TEXT NULL, Phone TEXT NULL, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);",
@@ -54,6 +60,7 @@ public sealed class DatabaseInitializer
         }
 
         await EnsureLegacyUserColumnsAsync(connection, cancellationToken);
+        await EnsureNormalizedUserDataAsync(connection, cancellationToken);
         await EnsureRegistrationTypesSchemaAsync(connection, cancellationToken);
         await SeedDefaultsAsync(connection, cancellationToken);
     }
@@ -67,6 +74,44 @@ public sealed class DatabaseInitializer
         {
             const string addPhoneColumnSql = "ALTER TABLE Users ADD COLUMN PhoneNumber TEXT NOT NULL DEFAULT '';";
             await connection.ExecuteAsync(new CommandDefinition(addPhoneColumnSql, cancellationToken: cancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// If the database was created with the legacy, denormalized schema (Users.RoleId / Users.PasswordHash),
+    /// populate the new normalized tables so the current code path works.
+    /// </summary>
+    private static async Task EnsureNormalizedUserDataAsync(IDbConnection connection, CancellationToken cancellationToken)
+    {
+        const string columnQuery = "SELECT name FROM pragma_table_info('Users');";
+        var columns = (await connection.QueryAsync<string>(new CommandDefinition(columnQuery, cancellationToken: cancellationToken))).ToList();
+
+        var hasLegacyRoleId = columns.Contains("RoleId", StringComparer.OrdinalIgnoreCase);
+        var hasLegacyPasswordHash = columns.Contains("PasswordHash", StringComparer.OrdinalIgnoreCase);
+
+        if (!hasLegacyRoleId && !hasLegacyPasswordHash)
+        {
+            return;
+        }
+
+        if (hasLegacyRoleId)
+        {
+            const string migrateRolesSql = @"INSERT OR IGNORE INTO UserRoles (UserId, RoleId)
+                                            SELECT Id AS UserId, RoleId
+                                            FROM Users
+                                            WHERE RoleId IS NOT NULL AND TRIM(RoleId) <> '';";
+            await connection.ExecuteAsync(new CommandDefinition(migrateRolesSql, cancellationToken: cancellationToken));
+        }
+
+        if (hasLegacyPasswordHash)
+        {
+            // Legacy passwords were stored as an unsalted hash. We keep the value in UserAuth and leave salt empty.
+            // (New/updated users will use salted PBKDF2 values.)
+            const string migrateAuthSql = @"INSERT OR IGNORE INTO UserAuth (UserId, PasswordHash, PasswordSalt)
+                                           SELECT Id AS UserId, PasswordHash AS PasswordHash, '' AS PasswordSalt
+                                           FROM Users
+                                           WHERE PasswordHash IS NOT NULL AND TRIM(PasswordHash) <> '';";
+            await connection.ExecuteAsync(new CommandDefinition(migrateAuthSql, cancellationToken: cancellationToken));
         }
     }
 
@@ -155,8 +200,8 @@ public sealed class DatabaseInitializer
             }, cancellationToken: cancellationToken));
         }
 
-        const string adminUserSql = @"INSERT INTO Users (Id, Username, DisplayName, Email, PhoneNumber, RoleId, PasswordHash, IsActive)
-            VALUES (@Id, @Username, @DisplayName, @Email, @PhoneNumber, @RoleId, @PasswordHash, 1)
+        const string adminUserSql = @"INSERT INTO Users (Id, Username, DisplayName, Email, PhoneNumber, IsActive)
+            VALUES (@Id, @Username, @DisplayName, @Email, @PhoneNumber, 1)
             ON CONFLICT(Username) DO NOTHING;";
 
         var defaultAdminPassword = PasswordUtility.HashPassword("changeme");
@@ -168,8 +213,25 @@ public sealed class DatabaseInitializer
             DisplayName = "Super Admin",
             Email = "admin@example.com",
             PhoneNumber = "+1 555 0100",
-            RoleId = adminRoleId.ToString(),
-            PasswordHash = defaultAdminPassword
+        }, cancellationToken: cancellationToken));
+
+        // Ensure the admin role mapping + auth exist even if the user already existed.
+        const string adminRoleMapSql = @"INSERT INTO UserRoles (UserId, RoleId) VALUES (@UserId, @RoleId)
+            ON CONFLICT(UserId) DO UPDATE SET RoleId = excluded.RoleId;";
+        await connection.ExecuteAsync(new CommandDefinition(adminRoleMapSql, new
+        {
+            UserId = Guid.Parse("0f340000-3df4-4ef7-8d3f-748f6ec9d00f").ToString(),
+            RoleId = adminRoleId.ToString()
+        }, cancellationToken: cancellationToken));
+
+        const string adminAuthSql = @"INSERT INTO UserAuth (UserId, PasswordHash, PasswordSalt)
+            VALUES (@UserId, @PasswordHash, @PasswordSalt)
+            ON CONFLICT(UserId) DO UPDATE SET PasswordHash = excluded.PasswordHash, PasswordSalt = excluded.PasswordSalt;";
+        await connection.ExecuteAsync(new CommandDefinition(adminAuthSql, new
+        {
+            UserId = Guid.Parse("0f340000-3df4-4ef7-8d3f-748f6ec9d00f").ToString(),
+            PasswordHash = defaultAdminPassword.PasswordHash,
+            PasswordSalt = defaultAdminPassword.PasswordSalt
         }, cancellationToken: cancellationToken));
 
         if (adminInserted > 0)

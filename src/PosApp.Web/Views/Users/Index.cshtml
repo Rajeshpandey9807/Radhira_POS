@@ -21,15 +21,14 @@
             <th>User</th>
             <th>Role</th>
             <th>Status</th>
-            <th>Created</th>
-            <th></th>
+            <th class="actions-col">Actions</th>
         </tr>
     </thead>
     <tbody>
         @if (!Model.Any())
         {
             <tr>
-                <td colspan="5">
+                <td colspan="4">
                     <div class="empty">No users yet. Invite your first teammate.</div>
                 </td>
             </tr>
@@ -41,24 +40,35 @@
                 <tr>
                     <td>
                         <div class="user-cell">
-                            <div class="avatar-circle">@user.DisplayName[0]</div>
+                            <div class="avatar-circle">@user.FullName[0]</div>
                             <div>
-                                <strong>@user.DisplayName</strong>
+                                <strong>@user.FullName</strong>
                                 <p>@user.Email</p>
-                                <p>@user.PhoneNumber</p>
+                                <p>@user.MobileNumber</p>
                             </div>
                         </div>
                     </td>
                     <td>@user.RoleName</td>
                     <td>
-                        <span class="status-pill @(user.IsActive ? "online" : "offline")">@(user.IsActive ? "Active" : "Disabled")</span>
-                    </td>
-                    <td>@user.CreatedAt.ToString("MMM dd")</td>
-                    <td class="actions">
-                        <a asp-action="Edit" asp-route-id="@user.Id">Edit</a>
-                        <form asp-action="Toggle" asp-route-id="@user.Id" method="post">
-                            <button type="submit">@(user.IsActive ? "Disable" : "Activate")</button>
+                        <form asp-action="Toggle"
+                              asp-route-id="@user.UserId"
+                              asp-route-activate="@(user.IsActive ? false : true)"
+                              method="post"
+                              class="toggle-switch">
+                            <button type="submit"
+                                    class="toggle-switch__button @(user.IsActive ? "is-active" : string.Empty)"
+                                    aria-pressed="@(user.IsActive ? "true" : "false")">
+                                <span class="toggle-switch__track">
+                                    <span class="toggle-switch__thumb"></span>
+                                </span>
+                                <span class="toggle-switch__label">@(
+                                        user.IsActive ? "Active" : "Inactive"
+                                    )</span>
+                            </button>
                         </form>
+                    </td>
+                    <td class="actions actions--right">
+                        <a asp-action="Edit" asp-route-id="@user.UserId">Edit</a>
                     </td>
                 </tr>
             }

@@ -24,9 +24,8 @@ public class UsersController : Controller
 
     public async Task<IActionResult> Create()
     {
-        // Static UI screen: do not hit the database just to render the page.
-        // (Role loading can fail if the DB schema/types don't match the view model.)
-        return View(new UserFormViewModel());
+        var model = await PopulateRolesAsync(new UserFormViewModel());
+        return View(model);
     }
 
     [HttpPost]
@@ -51,24 +50,23 @@ public class UsersController : Controller
         try
         {
             await _userService.CreateAsync(new UserInput(
-                model.Username.Trim(),
-                model.DisplayName.Trim(),
+                model.FullName.Trim(),
                 model.Email.Trim(),
-                model.PhoneNumber.Trim(),
+                model.MobileNumber.Trim(),
                 model.RoleId,
                 model.Password));
-            TempData["ToastMessage"] = $"User {model.DisplayName} invited";
+            TempData["ToastMessage"] = $"User {model.FullName} created";
             return RedirectToAction(nameof(Index));
         }
         catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
         {
-            ModelState.AddModelError(nameof(model.Username), "Username already exists. Choose another one.");
+            ModelState.AddModelError(nameof(model.Email), "Email already exists. Choose another one.");
             await PopulateRolesAsync(model);
             return View(model);
         }
     }
 
-    public async Task<IActionResult> Edit(Guid id)
+    public async Task<IActionResult> Edit(int id)
     {
         var details = await _userService.GetDetailsAsync(id);
         if (details is null)
@@ -78,11 +76,11 @@ public class UsersController : Controller
 
         var model = await PopulateRolesAsync(new UserFormViewModel
         {
-            Id = details.Id,
-            Username = details.Username,
-            DisplayName = details.DisplayName,
+            UserId = details.UserId,
+            IsActive = details.IsActive,
+            FullName = details.FullName,
             Email = details.Email,
-            PhoneNumber = details.PhoneNumber,
+            MobileNumber = details.MobileNumber,
             RoleId = details.RoleId
         });
 
@@ -91,7 +89,7 @@ public class UsersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, UserFormViewModel model)
+    public async Task<IActionResult> Edit(int id, UserFormViewModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -100,23 +98,27 @@ public class UsersController : Controller
         }
 
         await _userService.UpdateAsync(id, new UserInput(
-            model.Username,
-            model.DisplayName,
+            model.FullName,
             model.Email,
-            model.PhoneNumber,
+            model.MobileNumber,
             model.RoleId,
             model.Password));
 
-        TempData["ToastMessage"] = $"User {model.DisplayName} updated";
+        TempData["ToastMessage"] = $"User {model.FullName} updated";
         return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Toggle(Guid id)
+    public async Task<IActionResult> Toggle(int id, bool activate)
     {
-        await _userService.ToggleStatusAsync(id);
-        TempData["ToastMessage"] = "User status updated";
+        var updated = await _userService.SetStatusAsync(id, activate);
+        if (!updated)
+        {
+            return NotFound();
+        }
+
+        TempData["ToastMessage"] = activate ? "User activated" : "User deactivated";
         return RedirectToAction(nameof(Index));
     }
 
@@ -124,7 +126,7 @@ public class UsersController : Controller
     {
         var roles = await _userService.GetRoleOptionsAsync();
         model.Roles = roles;
-        if (model.RoleId == Guid.Empty && roles.Any())
+        if (model.RoleId == 0 && roles.Any())
         {
             model.RoleId = roles.First().Id;
         }

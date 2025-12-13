@@ -27,7 +27,7 @@ public sealed class RoleService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT r.Id, r.Name, COALESCE(r.Permissions, '') AS Permissions,
-                                    (SELECT COUNT(*) FROM Users u WHERE u.RoleId = r.Id) AS AssignedUsers
+                                    (SELECT COUNT(*) FROM UserRoles ur WHERE ur.RoleId = r.Id) AS AssignedUsers
                              FROM Roles r
                              ORDER BY r.Name";
 
@@ -35,30 +35,29 @@ public sealed class RoleService
         return result.ToList();
     }
 
-    public async Task<RoleDetails?> GetByIdAsync(Guid id)
+    public async Task<RoleDetails?> GetByIdAsync(int id)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT Id, Name, COALESCE(Permissions, '') AS Permissions
                              FROM Roles
                              WHERE Id = @Id";
-        return await connection.QuerySingleOrDefaultAsync<RoleDetails>(sql, new { Id = id.ToString() });
+        return await connection.QuerySingleOrDefaultAsync<RoleDetails>(sql, new { Id = id });
     }
 
     public async Task CreateAsync(RoleInput input, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"INSERT INTO Roles (Id, Name, Permissions)
-                             VALUES (@Id, @Name, @Permissions)";
+        const string sql = @"INSERT INTO Roles (Name, Permissions)
+                             VALUES (@Name, @Permissions)";
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
-            Id = Guid.NewGuid().ToString(),
             Name = input.Name.Trim(),
             Permissions = input.Permissions.Trim()
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task UpdateAsync(Guid id, RoleInput input, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(int id, RoleInput input, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE Roles
@@ -68,18 +67,18 @@ public sealed class RoleService
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
-            Id = id.ToString(),
+            Id = id,
             Name = input.Name.Trim(),
             Permissions = input.Permissions.Trim()
         }, cancellationToken: cancellationToken));
     }
 
-    public async Task<RoleDeleteResult> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<RoleDeleteResult> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
 
-        const string usageSql = "SELECT COUNT(*) FROM Users WHERE RoleId = @Id";
-        var usageCount = await connection.ExecuteScalarAsync<int>(new CommandDefinition(usageSql, new { Id = id.ToString() }, cancellationToken: cancellationToken));
+        const string usageSql = "SELECT COUNT(*) FROM UserRoles WHERE RoleId = @Id";
+        var usageCount = await connection.ExecuteScalarAsync<int>(new CommandDefinition(usageSql, new { Id = id }, cancellationToken: cancellationToken));
 
         if (usageCount > 0)
         {
@@ -87,7 +86,7 @@ public sealed class RoleService
         }
 
         const string deleteSql = "DELETE FROM Roles WHERE Id = @Id";
-        var affected = await connection.ExecuteAsync(new CommandDefinition(deleteSql, new { Id = id.ToString() }, cancellationToken: cancellationToken));
+        var affected = await connection.ExecuteAsync(new CommandDefinition(deleteSql, new { Id = id }, cancellationToken: cancellationToken));
 
         return affected > 0 ? RoleDeleteResult.Success : RoleDeleteResult.NotFound;
     }

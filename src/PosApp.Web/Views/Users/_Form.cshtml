@@ -2,14 +2,9 @@
 
 <div class="form-grid">
     <div class="field-group">
-        <label asp-for="Username"></label>
-        <input asp-for="Username" placeholder="cashier01" />
-        <span asp-validation-for="Username"></span>
-    </div>
-    <div class="field-group">
-        <label asp-for="DisplayName"></label>
-        <input asp-for="DisplayName" placeholder="Floor Cashier" />
-        <span asp-validation-for="DisplayName"></span>
+        <label asp-for="FullName"></label>
+        <input asp-for="FullName" placeholder="Jane Doe" autocomplete="name" />
+        <span asp-validation-for="FullName"></span>
     </div>
     <div class="field-group">
         <label asp-for="Email"></label>
@@ -17,9 +12,9 @@
         <span asp-validation-for="Email"></span>
     </div>
     <div class="field-group">
-        <label asp-for="PhoneNumber"></label>
-        <input asp-for="PhoneNumber" placeholder="+1 555 0100" type="tel" />
-        <span asp-validation-for="PhoneNumber"></span>
+        <label asp-for="MobileNumber"></label>
+        <input asp-for="MobileNumber" placeholder="+1 555 0100" type="tel" autocomplete="tel" />
+        <span asp-validation-for="MobileNumber"></span>
     </div>
     <div class="field-group">
         <label asp-for="RoleId">Role</label>
@@ -36,7 +31,7 @@
         <label asp-for="Password"></label>
         <input asp-for="Password" type="password" autocomplete="new-password" />
         <span asp-validation-for="Password"></span>
-        @if (Model.Id.HasValue)
+        @if (Model.UserId.HasValue)
         {
             <small>Leave blank to keep the current password.</small>
         }

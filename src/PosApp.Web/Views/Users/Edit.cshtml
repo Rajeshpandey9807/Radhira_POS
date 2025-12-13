@@ -6,13 +6,37 @@
 <section class="users-header">
     <div>
         <p class="eyebrow">Update teammate</p>
-        <h2>@Model.DisplayName</h2>
+        <h2>@Model.FullName</h2>
         <p>Adjust the role or contact information. Changes take effect immediately.</p>
+        <p>
+            <span class="status-pill @(Model.IsActive ? "online" : "offline")">
+                @(Model.IsActive ? "Active" : "Disabled")
+            </span>
+        </p>
+    </div>
+    <div class="hero-actions">
+        <form asp-action="Toggle"
+              asp-route-id="@Model.UserId"
+              asp-route-activate="@(Model.IsActive ? false : true)"
+              method="post"
+              class="toggle-switch">
+            <button type="submit"
+                    class="toggle-switch__button @(Model.IsActive ? "is-active" : string.Empty)"
+                    aria-pressed="@(Model.IsActive ? "true" : "false")">
+                <span class="toggle-switch__track">
+                    <span class="toggle-switch__thumb"></span>
+                </span>
+                <span class="toggle-switch__label">@(
+                        Model.IsActive ? "Active" : "Inactive"
+                    )</span>
+            </button>
+        </form>
     </div>
 </section>
 
-<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="card-form">
-    <input type="hidden" asp-for="Id" />
+<form asp-action="Edit" asp-route-id="@Model.UserId" method="post" class="card-form">
+    <input type="hidden" asp-for="UserId" />
+    <input type="hidden" asp-for="IsActive" />
     <partial name="_Form" model="Model" />
     <div class="form-actions">
         <a class="btn ghost" asp-action="Index">Cancel</a>
