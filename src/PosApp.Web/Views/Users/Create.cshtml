@@ -54,7 +54,7 @@
                            name="Email"
                            type="email"
                            autocomplete="email"
-                           placeholder="jane@company.com"
+                           placeholder="jane.doe (at) company.com"
                            required
                            data-validate="email" />
                     <small class="field-hint" data-default="We’ll send the OTP to this email.">We’ll send the OTP to this email.</small>
@@ -195,9 +195,14 @@
                 email: (value) => {
                     const v = value.trim();
                     if (!v) return 'Email is required.';
-                    // Razor treats `@` as code, so escape it as `@@` inside scripts.
-                    const ok = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(v);
-                    return ok ? null : 'Please enter a valid email address.';
+                    // Lightweight email sanity check (avoids using a literal '@' to keep Razor happy).
+                    const at = String.fromCharCode(64);
+                    const atIndex = v.indexOf(at);
+                    if (atIndex <= 0 || atIndex !== v.lastIndexOf(at)) return 'Please enter a valid email address.';
+                    const domain = v.slice(atIndex + 1);
+                    const dotIndex = domain.lastIndexOf('.');
+                    if (dotIndex <= 0 || dotIndex >= domain.length - 1) return 'Please enter a valid email address.';
+                    return null;
                 },
                 phone: (value) => {
                     const digits = String(value ?? '').replace(/\D/g, '');
@@ -249,7 +254,7 @@
                 });
 
                 if (wizardTitle) {
-                    wizardTitle.textContent = `Step ${step} of 2`;
+                    wizardTitle.textContent = 'Step ' + step + ' of 2';
                 }
             };
 
