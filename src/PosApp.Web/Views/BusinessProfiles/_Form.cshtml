@@ -1,0 +1,134 @@
+@model PosApp.Web.Features.BusinessProfiles.BusinessProfileFormViewModel
+
+<div class="form-grid">
+    <div class="field-group">
+        <label asp-for="BusinessName">Business Name *</label>
+        <input asp-for="BusinessName" placeholder="Radhira Retail" autocomplete="organization" />
+        <span asp-validation-for="BusinessName"></span>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="CompanyPhoneNumber"></label>
+        <input asp-for="CompanyPhoneNumber" placeholder="+91 98765 43210" type="tel" autocomplete="tel" />
+        <span asp-validation-for="CompanyPhoneNumber"></span>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="CompanyEmail"></label>
+        <input asp-for="CompanyEmail" placeholder="accounts@company.com" type="email" autocomplete="email" />
+        <span asp-validation-for="CompanyEmail"></span>
+    </div>
+
+    <div class="field-group span-all">
+        <label asp-for="BillingAddress"></label>
+        <textarea asp-for="BillingAddress" rows="3" placeholder="Street, area, landmark"></textarea>
+        <span asp-validation-for="BillingAddress"></span>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="StateId">State</label>
+        <select asp-for="StateId">
+            <option value="">Choose...</option>
+            @foreach (var item in Model.States)
+            {
+                <option value="@item.StateId">@item.StateName</option>
+            }
+        </select>
+        <span asp-validation-for="StateId"></span>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="City"></label>
+        <input asp-for="City" placeholder="Chennai" autocomplete="address-level2" />
+        <span asp-validation-for="City"></span>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="Pincode"></label>
+        <input asp-for="Pincode" placeholder="600001" inputmode="numeric" autocomplete="postal-code" />
+        <span asp-validation-for="Pincode"></span>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="IsGstRegistered"></label>
+        <select asp-for="IsGstRegistered">
+            <option value="">Choose...</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+        </select>
+        <span asp-validation-for="IsGstRegistered"></span>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="PanNumber"></label>
+        <input asp-for="PanNumber" placeholder="ABCDE1234F" autocapitalize="characters" />
+        <span asp-validation-for="PanNumber"></span>
+    </div>
+
+    <div class="field-group span-all">
+        <label asp-for="SelectedBusinessTypeIds">Business Type (Select multiple, if applicable)</label>
+        <select asp-for="SelectedBusinessTypeIds" multiple size="6">
+            @foreach (var item in Model.BusinessTypes)
+            {
+                <option value="@item.BusinessTypeId">@item.BusinessTypeName</option>
+            }
+        </select>
+        <small>Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple.</small>
+        <span asp-validation-for="SelectedBusinessTypeIds"></span>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="IndustryTypeId">Industry Type</label>
+        <select asp-for="IndustryTypeId">
+            <option value="">Choose...</option>
+            @foreach (var item in Model.IndustryTypes)
+            {
+                <option value="@item.IndustryTypeId">@item.IndustryTypeName</option>
+            }
+        </select>
+        <span asp-validation-for="IndustryTypeId"></span>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="RegistrationTypeId">Business Registration Type</label>
+        <select asp-for="RegistrationTypeId">
+            <option value="">Choose...</option>
+            @foreach (var item in Model.RegistrationTypes)
+            {
+                <option value="@item.RegistrationTypeId">@item.RegistrationTypeName</option>
+            }
+        </select>
+        <span asp-validation-for="RegistrationTypeId"></span>
+    </div>
+
+    <div class="field-group span-all">
+        <label asp-for="SignatureFile">Upload signature</label>
+        <input asp-for="SignatureFile" type="file" accept="image/*" />
+        <small>Signature image used on invoices (PNG/JPG recommended).</small>
+        <span asp-validation-for="SignatureFile"></span>
+    </div>
+
+    <div class="field-group span-all">
+        <p class="eyebrow">Additional business information</p>
+        <p>Add additional business information such as MSME number, Website etc.</p>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="MsmeNumber"></label>
+        <input asp-for="MsmeNumber" placeholder="UDYAM-XX-00-0000000" />
+        <span asp-validation-for="MsmeNumber"></span>
+    </div>
+
+    <div class="field-group">
+        <label asp-for="Website"></label>
+        <input asp-for="Website" placeholder="https://yourcompany.com" type="url" />
+        <span asp-validation-for="Website"></span>
+    </div>
+
+    <div class="field-group span-all">
+        <label asp-for="AdditionalInfo"></label>
+        <textarea asp-for="AdditionalInfo" rows="3" placeholder="Any other details you want to appear in invoices..."></textarea>
+        <span asp-validation-for="AdditionalInfo"></span>
+    </div>
+</div>
+

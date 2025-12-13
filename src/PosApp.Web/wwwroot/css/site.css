@@ -477,6 +477,10 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   gap: 18px;
 }
 
+.span-all {
+  grid-column: 1 / -1;
+}
+
 .field-group label {
   display: block;
   margin-bottom: 6px;
@@ -503,13 +507,19 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
 }
 
 .field-group input,
-.field-group select {
+.field-group select,
+.field-group textarea {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(0, 0, 0, 0.2);
   color: #fff;
+}
+
+.field-group textarea {
+  resize: vertical;
+  min-height: 96px;
 }
 
 .field-group span {
