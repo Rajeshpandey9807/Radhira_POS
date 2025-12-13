@@ -14,6 +14,24 @@
             </span>
         </p>
     </div>
+    <div class="hero-actions">
+        <form asp-action="Toggle"
+              asp-route-id="@Model.UserId"
+              asp-route-activate="@(Model.IsActive ? false : true)"
+              method="post"
+              class="toggle-switch">
+            <button type="submit"
+                    class="toggle-switch__button @(Model.IsActive ? "is-active" : string.Empty)"
+                    aria-pressed="@(Model.IsActive ? "true" : "false")">
+                <span class="toggle-switch__track">
+                    <span class="toggle-switch__thumb"></span>
+                </span>
+                <span class="toggle-switch__label">@(
+                        Model.IsActive ? "Active" : "Inactive"
+                    )</span>
+            </button>
+        </form>
+    </div>
 </section>
 
 <form asp-action="Edit" asp-route-id="@Model.UserId" method="post" class="card-form">
@@ -22,9 +40,6 @@
     <partial name="_Form" model="Model" />
     <div class="form-actions">
         <a class="btn ghost" asp-action="Index">Cancel</a>
-        <form asp-action="Toggle" asp-route-id="@Model.UserId" method="post" style="display:inline;">
-            <button class="btn ghost" type="submit">@(Model.IsActive ? "Disable" : "Activate")</button>
-        </form>
         <button class="btn primary" type="submit">Save changes</button>
     </div>
 </form>

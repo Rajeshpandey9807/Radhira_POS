@@ -51,14 +51,26 @@
                     </td>
                     <td>@user.RoleName</td>
                     <td>
-                        <span class="status-pill @(user.IsActive ? "online" : "offline")">@(user.IsActive ? "Active" : "Disabled")</span>
+                        <form asp-action="Toggle"
+                              asp-route-id="@user.UserId"
+                              asp-route-activate="@(user.IsActive ? false : true)"
+                              method="post"
+                              class="toggle-switch">
+                            <button type="submit"
+                                    class="toggle-switch__button @(user.IsActive ? "is-active" : string.Empty)"
+                                    aria-pressed="@(user.IsActive ? "true" : "false")">
+                                <span class="toggle-switch__track">
+                                    <span class="toggle-switch__thumb"></span>
+                                </span>
+                                <span class="toggle-switch__label">@(
+                                        user.IsActive ? "Active" : "Inactive"
+                                    )</span>
+                            </button>
+                        </form>
                     </td>
                     <td>@user.CreatedOn.ToString("MMM dd")</td>
                     <td class="actions">
                         <a asp-action="Edit" asp-route-id="@user.UserId">Edit</a>
-                        <form asp-action="Toggle" asp-route-id="@user.UserId" method="post">
-                            <button type="submit">@(user.IsActive ? "Disable" : "Activate")</button>
-                        </form>
                     </td>
                 </tr>
             }

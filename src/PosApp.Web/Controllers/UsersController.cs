@@ -110,10 +110,15 @@ public class UsersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Toggle(int id)
+    public async Task<IActionResult> Toggle(int id, bool activate)
     {
-        await _userService.ToggleStatusAsync(id);
-        TempData["ToastMessage"] = "User status updated";
+        var updated = await _userService.SetStatusAsync(id, activate);
+        if (!updated)
+        {
+            return NotFound();
+        }
+
+        TempData["ToastMessage"] = activate ? "User activated" : "User deactivated";
         return RedirectToAction(nameof(Index));
     }
 

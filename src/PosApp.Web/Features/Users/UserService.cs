@@ -182,13 +182,19 @@ public sealed class UserService
         }
     }
 
-    public async Task ToggleStatusAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<bool> SetStatusAsync(int id, bool activate, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"UPDATE Users
-                             SET IsActive = CASE WHEN IsActive = 1 THEN 0 ELSE 1 END
+                             SET IsActive = @IsActive
                              WHERE UserId = @UserId";
 
-        await connection.ExecuteAsync(new CommandDefinition(sql, new { UserId = id }, cancellationToken: cancellationToken));
+        var affected = await connection.ExecuteAsync(new CommandDefinition(sql, new
+        {
+            UserId = id,
+            IsActive = activate ? 1 : 0
+        }, cancellationToken: cancellationToken));
+
+        return affected > 0;
     }
 }
