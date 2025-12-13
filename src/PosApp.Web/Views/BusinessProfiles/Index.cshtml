@@ -77,6 +77,69 @@
             wireImagePreview("BusinessLogoFile", "BusinessLogoPreview", "BusinessLogoPlaceholder");
             wireImagePreview("SignatureFile", "SignaturePreview", "SignaturePlaceholder");
 
+            function wireBusinessTypePicker() {
+                var picker = document.getElementById("BusinessTypePicker");
+                var chips = document.getElementById("SelectedBusinessTypesChips");
+                var inputs = document.getElementById("SelectedBusinessTypesInputs");
+                if (!picker || !chips || !inputs) return;
+
+                function hasId(id) {
+                    return !!inputs.querySelector('input[type="hidden"][name="SelectedBusinessTypeIds"][value="' + id + '"]');
+                }
+
+                function addId(id, label) {
+                    if (!id || hasId(id)) return;
+
+                    var hidden = document.createElement("input");
+                    hidden.type = "hidden";
+                    hidden.name = "SelectedBusinessTypeIds";
+                    hidden.value = id;
+                    hidden.setAttribute("data-id", id);
+                    inputs.appendChild(hidden);
+
+                    var chip = document.createElement("span");
+                    chip.className = "bp-chip";
+                    chip.setAttribute("data-id", id);
+
+                    var chipLabel = document.createElement("span");
+                    chipLabel.className = "bp-chip__label";
+                    chipLabel.textContent = label || ("Type " + id);
+
+                    var remove = document.createElement("button");
+                    remove.type = "button";
+                    remove.className = "bp-chip__remove";
+                    remove.setAttribute("aria-label", "Remove " + (label || "selected business type"));
+                    remove.innerHTML = "&times;";
+
+                    chip.appendChild(chipLabel);
+                    chip.appendChild(remove);
+                    chips.appendChild(chip);
+                }
+
+                picker.addEventListener("change", function () {
+                    var selectedOption = picker.options[picker.selectedIndex];
+                    var id = picker.value;
+                    if (!id) return;
+                    addId(id, selectedOption ? selectedOption.text : "");
+                    picker.value = "";
+                });
+
+                chips.addEventListener("click", function (e) {
+                    var target = e.target;
+                    if (!target || !target.classList || !target.classList.contains("bp-chip__remove")) return;
+                    var chip = target.closest(".bp-chip");
+                    if (!chip) return;
+                    var id = chip.getAttribute("data-id");
+                    if (!id) return;
+
+                    var hidden = inputs.querySelector('input[type="hidden"][name="SelectedBusinessTypeIds"][value="' + id + '"]');
+                    if (hidden) hidden.remove();
+                    chip.remove();
+                });
+            }
+
+            wireBusinessTypePicker();
+
             var gstSelect = document.getElementById("IsGstRegistered");
             if (gstSelect) {
                 gstSelect.addEventListener("change", syncGstNumberVisibility);

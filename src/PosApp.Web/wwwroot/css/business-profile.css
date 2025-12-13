@@ -116,6 +116,46 @@
   padding: 0.85rem 1rem;
 }
 
+.bp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.bp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.bp-chip__label {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.bp-chip__remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.18);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  line-height: 1;
+}
+
+.bp-chip__remove:hover {
+  background: rgba(245, 0, 135, 0.18);
+  border-color: rgba(245, 0, 135, 0.35);
+}
+
 /* Light theme adjustments for readability */
 :root[data-theme="light"] .bp-note {
   border: 1px solid rgba(17, 19, 34, 0.10);
@@ -147,5 +187,20 @@
 :root[data-theme="light"] .bp-preview img {
   border-color: rgba(17, 19, 34, 0.12);
   background: rgba(255, 255, 255, 0.9);
+}
+
+:root[data-theme="light"] .bp-chip {
+  border-color: rgba(17, 19, 34, 0.12);
+  background: rgba(255, 255, 255, 0.65);
+}
+
+:root[data-theme="light"] .bp-chip__label {
+  color: rgba(31, 33, 51, 0.9);
+}
+
+:root[data-theme="light"] .bp-chip__remove {
+  border-color: rgba(17, 19, 34, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  color: rgba(31, 33, 51, 0.9);
 }
 

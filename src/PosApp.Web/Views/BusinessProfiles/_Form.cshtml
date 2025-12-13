@@ -149,13 +149,36 @@
         <div class="form-grid">
             <div class="field-group span-all">
                 <label asp-for="SelectedBusinessTypeIds">Business Type (Select multiple, if applicable)</label>
-                <select asp-for="SelectedBusinessTypeIds" class="bp-multi-select" multiple size="7">
+                <select id="BusinessTypePicker">
+                    <option value="">Choose...</option>
                     @foreach (var item in Model.BusinessTypes)
                     {
                         <option value="@item.BusinessTypeId">@item.BusinessTypeName</option>
                     }
                 </select>
-                <small class="bp-help">Tip: Hold Ctrl (Windows/Linux) or Cmd (Mac) to select multiple.</small>
+                <small class="bp-help">Select a type from the dropdown to add it. You can add multiple.</small>
+
+                @{
+                    var selectedLookup = Model.SelectedBusinessTypeIds.ToHashSet();
+                    var selectedItems = Model.BusinessTypes.Where(x => selectedLookup.Contains(x.BusinessTypeId)).ToList();
+                }
+
+                <div class="bp-chips" id="SelectedBusinessTypesChips" aria-label="Selected business types">
+                    @foreach (var selected in selectedItems)
+                    {
+                        <span class="bp-chip" data-id="@selected.BusinessTypeId">
+                            <span class="bp-chip__label">@selected.BusinessTypeName</span>
+                            <button type="button" class="bp-chip__remove" aria-label="Remove @selected.BusinessTypeName">&times;</button>
+                        </span>
+                    }
+                </div>
+
+                <div id="SelectedBusinessTypesInputs">
+                    @foreach (var id in Model.SelectedBusinessTypeIds)
+                    {
+                        <input type="hidden" name="SelectedBusinessTypeIds" value="@id" data-id="@id" />
+                    }
+                </div>
                 <span asp-validation-for="SelectedBusinessTypeIds"></span>
             </div>
 
