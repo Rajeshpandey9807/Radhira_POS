@@ -26,8 +26,8 @@ public sealed class RoleService
     public async Task<IReadOnlyList<RoleListItem>> GetAsync()
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT r.RoleId AS Id, r.Name, COALESCE(r.Permissions, '') AS Permissions,
-                                    (SELECT COUNT(*) FROM UserRoles ur WHERE ur.RoleId = r.RoleId) AS AssignedUsers
+        const string sql = @"SELECT r.Id, r.Name, COALESCE(r.Permissions, '') AS Permissions,
+                                    (SELECT COUNT(*) FROM UserRoles ur WHERE ur.RoleId = r.Id) AS AssignedUsers
                              FROM Roles r
                              ORDER BY r.Name";
 
@@ -38,9 +38,9 @@ public sealed class RoleService
     public async Task<RoleDetails?> GetByIdAsync(int id)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT RoleId AS Id, Name, COALESCE(Permissions, '') AS Permissions
+        const string sql = @"SELECT Id, Name, COALESCE(Permissions, '') AS Permissions
                              FROM Roles
-                             WHERE RoleId = @Id";
+                             WHERE Id = @Id";
         return await connection.QuerySingleOrDefaultAsync<RoleDetails>(sql, new { Id = id });
     }
 
@@ -63,7 +63,7 @@ public sealed class RoleService
         const string sql = @"UPDATE Roles
                              SET Name = @Name,
                                  Permissions = @Permissions
-                             WHERE RoleId = @Id";
+                             WHERE Id = @Id";
 
         await connection.ExecuteAsync(new CommandDefinition(sql, new
         {
@@ -85,7 +85,7 @@ public sealed class RoleService
             return RoleDeleteResult.InUse;
         }
 
-        const string deleteSql = "DELETE FROM Roles WHERE RoleId = @Id";
+        const string deleteSql = "DELETE FROM Roles WHERE Id = @Id";
         var affected = await connection.ExecuteAsync(new CommandDefinition(deleteSql, new { Id = id }, cancellationToken: cancellationToken));
 
         return affected > 0 ? RoleDeleteResult.Success : RoleDeleteResult.NotFound;

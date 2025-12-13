@@ -27,7 +27,7 @@ public sealed class UserService
                                     u.IsActive, u.CreatedOn
                              FROM Users u
                              INNER JOIN UserRoles ur ON ur.UserId = u.UserId
-                             INNER JOIN Roles r ON ur.RoleId = r.RoleId
+                             INNER JOIN Roles r ON ur.RoleId = r.Id
                              ORDER BY u.CreatedOn DESC";
 
         var result = await connection.QueryAsync<UserAccount>(sql);
@@ -37,7 +37,7 @@ public sealed class UserService
     public async Task<IReadOnlyList<RoleOption>> GetRoleOptionsAsync()
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = "SELECT RoleId AS Id, Name FROM Roles ORDER BY Name";
+        const string sql = "SELECT Id, Name FROM Roles ORDER BY Name";
         var result = await connection.QueryAsync<RoleOption>(sql);
         return result.ToList();
     }
