@@ -195,7 +195,7 @@
                 email: (value) => {
                     const v = value.trim();
                     if (!v) return 'Email is required.';
-                    // Lightweight email sanity check (avoids using a literal '@' to keep Razor happy).
+                    // Lightweight email sanity check (uses ASCII code 64).
                     const at = String.fromCharCode(64);
                     const atIndex = v.indexOf(at);
                     if (atIndex <= 0 || atIndex !== v.lastIndexOf(at)) return 'Please enter a valid email address.';
