@@ -238,5 +238,39 @@ public sealed class DatabaseInitializer
         {
             _logger.LogInformation("Seeded default admin credentials (admin / changeme). Please update immediately.");
         }
+
+        // Seed business setup dropdown defaults (SQLite/dev only).
+        // In SQL Server environments, schema + seed data are expected to be managed externally.
+        const string insertBusinessTypeSql = @"INSERT OR IGNORE INTO BusinessTypes (BusinessTypeName, IsActive, CreatedBy)
+                                              VALUES (@Name, 1, 0);";
+        var defaultBusinessTypes = new[] { "Retail", "Wholesale", "Services", "Manufacturing" };
+        foreach (var name in defaultBusinessTypes)
+        {
+            await connection.ExecuteAsync(new CommandDefinition(insertBusinessTypeSql, new { Name = name }, cancellationToken: cancellationToken));
+        }
+
+        const string insertIndustryTypeSql = @"INSERT OR IGNORE INTO IndustryTypes (IndustryTypeName, IsActive, CreatedBy)
+                                              VALUES (@Name, 1, 0);";
+        var defaultIndustryTypes = new[] { "Grocery", "Restaurant", "Pharmacy", "Apparel", "Electronics" };
+        foreach (var name in defaultIndustryTypes)
+        {
+            await connection.ExecuteAsync(new CommandDefinition(insertIndustryTypeSql, new { Name = name }, cancellationToken: cancellationToken));
+        }
+
+        const string insertRegistrationTypeSql = @"INSERT OR IGNORE INTO RegistrationTypes (RegistrationTypeName, IsActive, CreatedBy)
+                                                   VALUES (@Name, 1, 0);";
+        var defaultRegistrationTypes = new[] { "Proprietorship", "Partnership", "LLP", "Private Limited", "Public Limited" };
+        foreach (var name in defaultRegistrationTypes)
+        {
+            await connection.ExecuteAsync(new CommandDefinition(insertRegistrationTypeSql, new { Name = name }, cancellationToken: cancellationToken));
+        }
+
+        const string insertStateSql = @"INSERT OR IGNORE INTO States (StateName, IsActive, CreatedBy)
+                                        VALUES (@Name, 1, 0);";
+        var defaultStates = new[] { "Tamil Nadu", "Karnataka", "Kerala", "Maharashtra", "Delhi" };
+        foreach (var name in defaultStates)
+        {
+            await connection.ExecuteAsync(new CommandDefinition(insertStateSql, new { Name = name }, cancellationToken: cancellationToken));
+        }
     }
 }
