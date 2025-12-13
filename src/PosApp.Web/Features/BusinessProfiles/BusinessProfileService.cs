@@ -117,7 +117,7 @@ public sealed class BusinessProfileService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         var isSqlite = connection.GetType().Name.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
-        var sqlServerSchema = isSqlite ? null : await GetSqlServerBusinessSchemaAsync(connection, cancellationToken);
+        SqlServerBusinessSchema? sqlServerSchema = isSqlite ? null : await GetSqlServerBusinessSchemaAsync(connection, cancellationToken);
         using var transaction = connection.BeginTransaction();
 
         try
