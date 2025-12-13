@@ -517,6 +517,17 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   color: #fff;
 }
 
+/* Ensure dropdown options remain readable across themes. */
+.field-group select option {
+  color: #1f2133;
+  background: #fff;
+}
+
+:root[data-theme="dark"] .field-group select option {
+  color: #fff;
+  background: #1f2133;
+}
+
 .field-group textarea {
   resize: vertical;
   min-height: 96px;
