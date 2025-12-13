@@ -23,11 +23,12 @@ public sealed class UserService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT u.UserId, u.FullName, u.Email, u.MobileNumber,
-                                    ur.RoleId, r.Name AS RoleName,
+                                    COALESCE(ur.RoleId, 0) AS RoleId,
+                                    COALESCE(r.Name, '') AS RoleName,
                                     u.IsActive, u.CreatedOn
                              FROM Users u
-                             INNER JOIN UserRoles ur ON ur.UserId = u.UserId
-                             INNER JOIN Roles r ON ur.RoleId = r.Id
+                             LEFT JOIN UserRoles ur ON ur.UserId = u.UserId
+                             LEFT JOIN Roles r ON ur.RoleId = r.Id
                              ORDER BY u.CreatedOn DESC";
 
         var result = await connection.QueryAsync<UserAccount>(sql);

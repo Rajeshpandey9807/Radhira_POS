@@ -77,6 +77,7 @@ public class UsersController : Controller
         var model = await PopulateRolesAsync(new UserFormViewModel
         {
             UserId = details.UserId,
+            IsActive = details.IsActive,
             FullName = details.FullName,
             Email = details.Email,
             MobileNumber = details.MobileNumber,

@@ -33,6 +33,8 @@ public sealed class UserFormViewModel
 {
     public int? UserId { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     [Required]
     [Display(Name = "Full name")]
     [MaxLength(200)]
