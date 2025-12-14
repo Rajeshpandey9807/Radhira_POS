@@ -1,0 +1,177 @@
+@{
+    ViewData["Title"] = "Add New Product";
+}
+
+<header class="page-header">
+    <div class="page-header__copy">
+        <p class="eyebrow">Item</p>
+        <h2>Add New Product</h2>
+        <p>Create a new product with pricing, GST, and stock details.</p>
+    </div>
+    <div class="page-header__actions">
+        <a asp-controller="Items" asp-action="Inventory" class="btn ghost">Back to Inventory</a>
+    </div>
+</header>
+
+<form class="form" action="#" method="post" aria-label="Add new product">
+    <fieldset class="card">
+        <legend class="card__legend">SECTION 1: Basic Details</legend>
+
+        <div class="form-grid">
+            <div class="field">
+                <label for="productType">Product Type</label>
+                <select id="productType" name="productType" required>
+                    <option value="" selected disabled>Select product type</option>
+                    <option>Goods</option>
+                    <option>Service</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="" selected disabled>Select category</option>
+                    <option>Stationery</option>
+                    <option>Beverages</option>
+                    <option>Electronics</option>
+                    <option>Services</option>
+                    <option>Misc</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="itemName">Item Name</label>
+                <input id="itemName" name="itemName" type="text" placeholder="e.g., Premium A4 Paper" required />
+            </div>
+
+            <div class="field">
+                <label for="salesPriceBasic">Sales Price</label>
+                <input id="salesPriceBasic" name="salesPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required />
+            </div>
+
+            <div class="field">
+                <label for="gstRateBasic">GST Tax Rate (%)</label>
+                <select id="gstRateBasic" name="gstRate" required>
+                    <option value="" selected disabled>Select GST rate</option>
+                    <option value="0">0%</option>
+                    <option value="5">5%</option>
+                    <option value="12">12%</option>
+                    <option value="18">18%</option>
+                    <option value="28">28%</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="unitBasic">Measuring Unit</label>
+                <select id="unitBasic" name="unit" required>
+                    <option value="" selected disabled>Select unit</option>
+                    <option>pcs</option>
+                    <option>kg</option>
+                    <option>liter</option>
+                    <option>box</option>
+                    <option>meter</option>
+                    <option>pack</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="openingStock">Opening Stock</label>
+                <input id="openingStock" name="openingStock" type="number" step="1" min="0" placeholder="0" />
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset class="card">
+        <legend class="card__legend">SECTION 2: Advanced Details</legend>
+
+        <div class="split-grid">
+            <section class="card card--sub" aria-label="Stock Details">
+                <div class="card__header">
+                    <h3 class="card__title">SUB-SECTION A: Stock Details</h3>
+                    <p class="card__subtitle">Codes, description, unit, and as-of date.</p>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="itemCode">Item Code</label>
+                        <div class="input-row">
+                            <input id="itemCode" name="itemCode" type="text" placeholder="e.g., PAP-A4-80G" />
+                            <button type="button" class="btn ghost btn--sm" aria-label="Auto-generate item code">Auto-generate</button>
+                        </div>
+                        <p class="help-text">You can enter a custom code or use auto-generate.</p>
+                    </div>
+
+                    <div class="field">
+                        <label for="hsnCode">HSN Code</label>
+                        <input id="hsnCode" name="hsnCode" type="text" placeholder="e.g., 4802" />
+                    </div>
+
+                    <div class="field">
+                        <label for="unitAdvanced">Measuring Unit</label>
+                        <select id="unitAdvanced" name="unitAdvanced">
+                            <option value="" selected disabled>Select unit</option>
+                            <option>pcs</option>
+                            <option>kg</option>
+                            <option>liter</option>
+                            <option>box</option>
+                            <option>meter</option>
+                            <option>pack</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="asOfDate">As Of Date</label>
+                        <input id="asOfDate" name="asOfDate" type="date" />
+                    </div>
+
+                    <div class="field field--full">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="4" placeholder="Optional notes about this product"></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card card--sub" aria-label="Pricing Details">
+                <div class="card__header">
+                    <h3 class="card__title">SUB-SECTION B: Pricing Details</h3>
+                    <p class="card__subtitle">Sales, MRP, purchase, and GST.</p>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="salesPriceAdvanced">Sales Price</label>
+                        <input id="salesPriceAdvanced" name="salesPriceAdvanced" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+
+                    <div class="field">
+                        <label for="mrp">MRP</label>
+                        <input id="mrp" name="mrp" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+
+                    <div class="field">
+                        <label for="purchasePrice">Purchase Price</label>
+                        <input id="purchasePrice" name="purchasePrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                    </div>
+
+                    <div class="field">
+                        <label for="gstRateAdvanced">GST Tax Rate (%)</label>
+                        <select id="gstRateAdvanced" name="gstRateAdvanced">
+                            <option value="" selected disabled>Select GST rate</option>
+                            <option value="0">0%</option>
+                            <option value="5">5%</option>
+                            <option value="12">12%</option>
+                            <option value="18">18%</option>
+                            <option value="28">28%</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="form-actions" role="group" aria-label="Form actions">
+            <button type="submit" class="btn primary">Save</button>
+            <button type="submit" class="btn ghost">Save &amp; New</button>
+            <a asp-controller="Items" asp-action="Inventory" class="btn ghost">Cancel</a>
+        </div>
+    </fieldset>
+</form>

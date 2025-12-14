@@ -2,20 +2,86 @@
     ViewData["Title"] = "Inventory";
 }
 
-<section class="users-header">
-    <div>
+<header class="page-header">
+    <div class="page-header__copy">
         <p class="eyebrow">Item</p>
         <h2>Inventory</h2>
-        <p>Manage stock, pricing, and product availability.</p>
+        <p>Manage products, pricing, GST, and stock levels.</p>
+    </div>
+    <div class="page-header__actions">
+        <a asp-controller="Items" asp-action="Create" class="btn primary">+ Add New Product</a>
+    </div>
+</header>
+
+<section class="card" aria-label="Product list">
+    <div class="card__header">
+        <h3 class="card__title">Products</h3>
+        <p class="card__subtitle">All items currently available for billing and sales.</p>
+    </div>
+
+    <div class="table-wrap" role="region" aria-label="Product table" tabindex="0">
+        <table class="table table--minimal">
+            <thead>
+                <tr>
+                    <th scope="col">Item Name</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Product Type</th>
+                    <th scope="col" class="is-right">Sales Price</th>
+                    <th scope="col" class="is-right">Stock Quantity</th>
+                    <th scope="col" class="is-right">GST %</th>
+                    <th scope="col">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="cell-title">Premium A4 Paper</div>
+                        <div class="cell-subtitle">SKU: PAP-A4-80G</div>
+                    </td>
+                    <td>Stationery</td>
+                    <td><span class="badge badge--soft">Goods</span></td>
+                    <td class="is-right">₹ 220.00</td>
+                    <td class="is-right">124</td>
+                    <td class="is-right">12</td>
+                    <td><span class="badge badge--success">Active</span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="cell-title">Laptop Service (Standard)</div>
+                        <div class="cell-subtitle">Item Code: SRV-LAP-STD</div>
+                    </td>
+                    <td>Services</td>
+                    <td><span class="badge badge--soft">Service</span></td>
+                    <td class="is-right">₹ 499.00</td>
+                    <td class="is-right">—</td>
+                    <td class="is-right">18</td>
+                    <td><span class="badge badge--success">Active</span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="cell-title">Cold Coffee (500ml)</div>
+                        <div class="cell-subtitle">Batch: CC-500-DEC</div>
+                    </td>
+                    <td>Beverages</td>
+                    <td><span class="badge badge--soft">Goods</span></td>
+                    <td class="is-right">₹ 90.00</td>
+                    <td class="is-right">8</td>
+                    <td class="is-right">5</td>
+                    <td><span class="badge badge--warning">Low stock</span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="cell-title">Old Stock Item</div>
+                        <div class="cell-subtitle">Item Code: OLD-001</div>
+                    </td>
+                    <td>Misc</td>
+                    <td><span class="badge badge--soft">Goods</span></td>
+                    <td class="is-right">₹ 0.00</td>
+                    <td class="is-right">0</td>
+                    <td class="is-right">0</td>
+                    <td><span class="badge badge--muted">Inactive</span></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </section>
-
-<div class="trend-card">
-    <header>
-        <h3 style="margin: 0;">Coming soon</h3>
-        <a asp-controller="Home" asp-action="Pos">Open selling screen</a>
-    </header>
-    <div class="empty">
-        Inventory management will be connected here next.
-    </div>
-</div>

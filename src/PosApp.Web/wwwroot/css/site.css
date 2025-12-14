@@ -407,6 +407,296 @@ body.settings-menu .nav-menu [data-nav-settings] {
   font-weight: 600;
 }
 
+/* ---------- Minimal billing-style UI helpers (Inventory module) ---------- */
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.page-header__copy p {
+  margin: 0;
+}
+
+.page-header__copy h2 {
+  margin: 6px 0 6px;
+}
+
+.page-header__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 20px;
+  padding: 18px;
+}
+
+.card + .card {
+  margin-top: 16px;
+}
+
+.card--sub {
+  padding: 16px;
+}
+
+.card__header {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.card__title {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+.card__subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.60);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.card__legend {
+  padding: 0 6px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.table-wrap {
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 980px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.table th,
+.table td {
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: rgba(17, 19, 34, 0.92);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  z-index: 1;
+}
+
+.table tbody tr {
+  background: transparent;
+}
+
+.table tbody tr + tr td {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.table--minimal tbody tr:hover td {
+  background: rgba(245, 0, 135, 0.06);
+}
+
+.is-right {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.cell-title {
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.cell-subtitle {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-weight: 800;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.badge--soft {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.badge--success {
+  background: rgba(46, 204, 113, 0.14);
+  border-color: rgba(46, 204, 113, 0.25);
+  color: rgba(220, 255, 235, 0.95);
+}
+
+.badge--warning {
+  background: rgba(241, 196, 15, 0.14);
+  border-color: rgba(241, 196, 15, 0.28);
+  color: rgba(255, 246, 214, 0.95);
+}
+
+.badge--muted {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.split-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field--full {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  padding: 10px 12px;
+  font: inherit;
+  outline: none;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: rgba(255, 128, 171, 0.55);
+  box-shadow: 0 0 0 4px rgba(245, 0, 135, 0.12);
+}
+
+.help-text {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+  font-size: 0.86rem;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn--sm {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .form-grid,
+  .split-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table {
+    min-width: 860px;
+  }
+}
+
+@media (max-width: 520px) {
+  .input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Light theme tweaks for module helpers */
+:root[data-theme="light"] .card {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(31, 33, 51, 0.10);
+}
+
+:root[data-theme="light"] .card__subtitle,
+:root[data-theme="light"] .cell-subtitle,
+:root[data-theme="light"] .help-text {
+  color: rgba(31, 33, 51, 0.60);
+}
+
+:root[data-theme="light"] .field label {
+  color: rgba(31, 33, 51, 0.82);
+}
+
+:root[data-theme="light"] .field input,
+:root[data-theme="light"] .field select,
+:root[data-theme="light"] .field textarea {
+  background: rgba(255, 255, 255, 0.85);
+  color: rgba(31, 33, 51, 0.92);
+  border-color: rgba(31, 33, 51, 0.14);
+}
+
+:root[data-theme="light"] .table thead th {
+  background: rgba(255, 255, 255, 0.96);
+  color: rgba(31, 33, 51, 0.68);
+  border-bottom-color: rgba(31, 33, 51, 0.12);
+}
+
+:root[data-theme="light"] .table tbody tr + tr td {
+  border-top-color: rgba(31, 33, 51, 0.10);
+}
+
 .main-column {
   flex: 1;
   background: rgba(255, 255, 255, 0.02);
