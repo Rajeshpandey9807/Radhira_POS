@@ -161,6 +161,210 @@ public class PartiesController : Controller
         return Ok(new { partyTypes, partyCategories });
     }
 
+    [HttpGet]
+    public IActionResult Import()
+    {
+        ViewData["Title"] = "Bulk upload parties";
+        return View();
+    }
+
+    [HttpGet]
+    public IActionResult ImportTemplate()
+    {
+        const string header =
+            "PartyName,MobileNumber,Email,OpeningBalance,GSTIN,PANNumber,PartyType,PartyCategory,BillingAddress,ShippingAddress,CreditPeriod,CreditLimit,ContactPersonName,DateOfBirth,AccountNumber,IFSC,BranchName,AccountHolderName,UPI";
+        var bytes = System.Text.Encoding.UTF8.GetBytes(header + "\n");
+        return File(bytes, "text/csv", "party-upload-template.csv");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Import(Microsoft.AspNetCore.Http.IFormFile? file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return BadRequest(new { ok = false, message = "Please choose a CSV file." });
+        }
+
+        IReadOnlyList<PartyTypeOption> partyTypes;
+        IReadOnlyList<PartyCategoryOption> partyCategories;
+        try
+        {
+            partyTypes = await _partyService.GetPartyTypesAsync(cancellationToken);
+            partyCategories = await _partyService.GetPartyCategoriesAsync(cancellationToken);
+        }
+        catch
+        {
+            return StatusCode(500, new { ok = false, message = "Unable to load master data. Please try again." });
+        }
+
+        var typeLookup = partyTypes.ToDictionary(x => x.TypeName.Trim(), x => x.PartyTypeId, StringComparer.OrdinalIgnoreCase);
+        var categoryLookup = partyCategories.ToDictionary(x => x.CategoryName.Trim(), x => x.PartyCategoryId, StringComparer.OrdinalIgnoreCase);
+
+        var results = new System.Collections.Generic.List<object>();
+        var created = 0;
+        var failed = 0;
+
+        using var stream = file.OpenReadStream();
+        using var reader = new System.IO.StreamReader(stream, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: false);
+
+        var headerLine = await reader.ReadLineAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(headerLine))
+        {
+            return BadRequest(new { ok = false, message = "CSV file is empty." });
+        }
+
+        var headers = ParseCsvLine(headerLine).Select(h => (h ?? string.Empty).Trim()).ToList();
+        var headerIndex = headers
+            .Select((name, idx) => new { name, idx })
+            .ToDictionary(x => x.name, x => x.idx, StringComparer.OrdinalIgnoreCase);
+
+        string? line;
+        var rowNumber = 1; // header row
+        while ((line = await reader.ReadLineAsync(cancellationToken)) is not null)
+        {
+            rowNumber++;
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                continue;
+            }
+
+            var cols = ParseCsvLine(line);
+            string Get(string name)
+            {
+                if (!headerIndex.TryGetValue(name, out var idx)) return string.Empty;
+                return idx >= 0 && idx < cols.Count ? (cols[idx] ?? string.Empty).Trim() : string.Empty;
+            }
+
+            var errors = new System.Collections.Generic.List<string>();
+
+            var partyName = Get("PartyName");
+            if (string.IsNullOrWhiteSpace(partyName))
+            {
+                errors.Add("PartyName is required.");
+            }
+
+            var typeName = Get("PartyType");
+            if (string.IsNullOrWhiteSpace(typeName) || !typeLookup.TryGetValue(typeName, out var partyTypeId))
+            {
+                errors.Add("PartyType is invalid.");
+                partyTypeId = 0;
+            }
+
+            var categoryName = Get("PartyCategory");
+            if (string.IsNullOrWhiteSpace(categoryName) || !categoryLookup.TryGetValue(categoryName, out var partyCategoryId))
+            {
+                errors.Add("PartyCategory is invalid.");
+                partyCategoryId = 0;
+            }
+
+            static decimal? ParseDecimal(string value)
+                => decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : null;
+            static int? ParseInt(string value)
+                => int.TryParse(value, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var i) ? i : null;
+            static System.DateTime? ParseDate(string value)
+                => System.DateTime.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeLocal, out var dt) ? dt.Date : null;
+
+            var req = new PartyCreateRequest
+            {
+                PartyName = partyName,
+                MobileNumber = Get("MobileNumber"),
+                Email = Get("Email"),
+                OpeningBalance = ParseDecimal(Get("OpeningBalance")),
+                GSTIN = Get("GSTIN"),
+                PANNumber = Get("PANNumber"),
+                PartyTypeId = partyTypeId == 0 ? null : partyTypeId,
+                PartyCategoryId = partyCategoryId == 0 ? null : partyCategoryId,
+                BillingAddress = Get("BillingAddress"),
+                ShippingAddress = Get("ShippingAddress"),
+                CreditPeriod = ParseInt(Get("CreditPeriod")),
+                CreditLimit = ParseDecimal(Get("CreditLimit")),
+                ContactPersonName = Get("ContactPersonName"),
+                DateOfBirth = ParseDate(Get("DateOfBirth")),
+                AccountNumber = Get("AccountNumber"),
+                ReEnterAccountNumber = Get("AccountNumber"),
+                IFSC = Get("IFSC"),
+                BranchName = Get("BranchName"),
+                AccountHolderName = Get("AccountHolderName"),
+                UPI = Get("UPI")
+            };
+
+            // Run model validation too (GSTIN length, account match, required fields).
+            var ctx = new System.ComponentModel.DataAnnotations.ValidationContext(req);
+            var validationResults = new System.Collections.Generic.List<System.ComponentModel.DataAnnotations.ValidationResult>();
+            if (!System.ComponentModel.DataAnnotations.Validator.TryValidateObject(req, ctx, validationResults, validateAllProperties: true))
+            {
+                errors.AddRange(validationResults.Select(v => v.ErrorMessage ?? "Invalid value."));
+            }
+
+            if (errors.Count > 0)
+            {
+                failed++;
+                results.Add(new { row = rowNumber, partyName, ok = false, errors });
+                continue;
+            }
+
+            try
+            {
+                var newId = await _partyService.CreateAsync(req, createdBy: GetActorId(), cancellationToken: cancellationToken);
+                created++;
+                results.Add(new { row = rowNumber, partyName, ok = true, partyId = newId });
+            }
+            catch
+            {
+                failed++;
+                results.Add(new { row = rowNumber, partyName, ok = false, errors = new[] { "Database insert failed." } });
+            }
+        }
+
+        return Ok(new
+        {
+            ok = true,
+            message = $"Imported {created} parties. {failed} failed.",
+            created,
+            failed,
+            results
+        });
+    }
+
+    private static System.Collections.Generic.List<string?> ParseCsvLine(string line)
+    {
+        // Minimal CSV parsing with quoted fields support.
+        var result = new System.Collections.Generic.List<string?>();
+        var sb = new System.Text.StringBuilder();
+        var inQuotes = false;
+
+        for (var i = 0; i < line.Length; i++)
+        {
+            var c = line[i];
+            if (c == '"')
+            {
+                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    sb.Append('"');
+                    i++;
+                }
+                else
+                {
+                    inQuotes = !inQuotes;
+                }
+                continue;
+            }
+
+            if (c == ',' && !inQuotes)
+            {
+                result.Add(sb.ToString());
+                sb.Clear();
+                continue;
+            }
+
+            sb.Append(c);
+        }
+
+        result.Add(sb.ToString());
+        return result;
+    }
+
     private bool WantsJson()
     {
         var accept = Request.Headers["Accept"].ToString();
