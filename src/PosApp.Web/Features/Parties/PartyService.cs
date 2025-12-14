@@ -21,21 +21,23 @@ public sealed class PartyService
     public async Task<IReadOnlyList<PartyLookupOption>> GetPartyTypesAsync(CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT PartyTypeId AS Id, PartyTypeName AS Name
-                             FROM PartyTypes
-                             ORDER BY PartyTypeName";
-        var result = await connection.QueryAsync<PartyLookupOption>(new CommandDefinition(sql, cancellationToken: cancellationToken));
-        return result.ToList();
+        return await QueryLookupAsync(
+            connection,
+            tableName: "PartyTypes",
+            idColumn: "PartyTypeId",
+            nameColumnCandidates: new[] { "TypeName", "PartyTypeName", "Name" },
+            cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyList<PartyLookupOption>> GetPartyCategoriesAsync(CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT PartyCategoryId AS Id, PartyCategoryName AS Name
-                             FROM PartyCategories
-                             ORDER BY PartyCategoryName";
-        var result = await connection.QueryAsync<PartyLookupOption>(new CommandDefinition(sql, cancellationToken: cancellationToken));
-        return result.ToList();
+        return await QueryLookupAsync(
+            connection,
+            tableName: "PartyCategories",
+            idColumn: "PartyCategoryId",
+            nameColumnCandidates: new[] { "CategoryName", "PartyCategoryName", "Name" },
+            cancellationToken: cancellationToken);
     }
 
     public async Task<int> CreateAsync(PartyCreateRequest request, int createdBy = 0, CancellationToken cancellationToken = default)
@@ -135,6 +137,62 @@ VALUES (@PartyId, @AccountNumber, @IFSC, @BranchName, @AccountHolderName, @UPI);
             transaction.Rollback();
             throw;
         }
+    }
+
+    private static async Task<IReadOnlyList<PartyLookupOption>> QueryLookupAsync(
+        IDbConnection connection,
+        string tableName,
+        string idColumn,
+        IReadOnlyList<string> nameColumnCandidates,
+        CancellationToken cancellationToken)
+    {
+        // We can't parameterize identifiers; keep this safe by only allowing known column names.
+        string PickCandidate(IEnumerable<string> existing)
+        {
+            var set = existing.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var candidate in nameColumnCandidates)
+            {
+                if (set.Contains(candidate))
+                {
+                    return candidate;
+                }
+            }
+            return string.Empty;
+        }
+
+        var providerName = connection.GetType().Name;
+        var isSqlite = providerName.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
+
+        string nameColumn;
+        if (isSqlite)
+        {
+            // SQLite: use PRAGMA table_info to discover columns.
+            var pragmaSql = "SELECT name FROM pragma_table_info(@TableName);";
+            var columns = await connection.QueryAsync<string>(new CommandDefinition(pragmaSql, new { TableName = tableName }, cancellationToken: cancellationToken));
+            nameColumn = PickCandidate(columns);
+        }
+        else
+        {
+            // SQL Server: INFORMATION_SCHEMA
+            const string columnsSql = @"
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'dbo'
+  AND TABLE_NAME = @TableName;";
+            var columns = await connection.QueryAsync<string>(new CommandDefinition(columnsSql, new { TableName = tableName }, cancellationToken: cancellationToken));
+            nameColumn = PickCandidate(columns);
+        }
+
+        if (string.IsNullOrWhiteSpace(nameColumn))
+        {
+            throw new InvalidOperationException($"Could not locate a name column for {tableName}. Tried: {string.Join(", ", nameColumnCandidates)}");
+        }
+
+        var sql = $@"SELECT {idColumn} AS Id, {nameColumn} AS Name
+                     FROM {tableName}
+                     ORDER BY {nameColumn};";
+        var result = await connection.QueryAsync<PartyLookupOption>(new CommandDefinition(sql, cancellationToken: cancellationToken));
+        return result.ToList();
     }
 }
 

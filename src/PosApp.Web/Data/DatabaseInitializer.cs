@@ -158,7 +158,7 @@ BEGIN
     CREATE TABLE dbo.PartyTypes
     (
         PartyTypeId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        PartyTypeName NVARCHAR(100) NOT NULL UNIQUE
+        TypeName NVARCHAR(100) NOT NULL UNIQUE
     );
 END
 
@@ -167,7 +167,7 @@ BEGIN
     CREATE TABLE dbo.PartyCategories
     (
         PartyCategoryId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        PartyCategoryName NVARCHAR(120) NOT NULL UNIQUE
+        CategoryName NVARCHAR(120) NOT NULL UNIQUE
     );
 END
 
@@ -236,14 +236,18 @@ END
 /* Seed master data if empty */
 IF NOT EXISTS (SELECT 1 FROM dbo.PartyTypes)
 BEGIN
-    INSERT INTO dbo.PartyTypes (PartyTypeName)
-    VALUES (N'Customer'), (N'Vendor'), (N'Both');
+    IF COL_LENGTH('dbo.PartyTypes', 'TypeName') IS NOT NULL
+        INSERT INTO dbo.PartyTypes (TypeName) VALUES (N'Customer'), (N'Vendor'), (N'Both');
+    ELSE IF COL_LENGTH('dbo.PartyTypes', 'PartyTypeName') IS NOT NULL
+        INSERT INTO dbo.PartyTypes (PartyTypeName) VALUES (N'Customer'), (N'Vendor'), (N'Both');
 END
 
 IF NOT EXISTS (SELECT 1 FROM dbo.PartyCategories)
 BEGIN
-    INSERT INTO dbo.PartyCategories (PartyCategoryName)
-    VALUES (N'Retail'), (N'Wholesale'), (N'Distributor'), (N'Other');
+    IF COL_LENGTH('dbo.PartyCategories', 'CategoryName') IS NOT NULL
+        INSERT INTO dbo.PartyCategories (CategoryName) VALUES (N'Retail'), (N'Wholesale'), (N'Distributor'), (N'Other');
+    ELSE IF COL_LENGTH('dbo.PartyCategories', 'PartyCategoryName') IS NOT NULL
+        INSERT INTO dbo.PartyCategories (PartyCategoryName) VALUES (N'Retail'), (N'Wholesale'), (N'Distributor'), (N'Other');
 END
 ";
 
