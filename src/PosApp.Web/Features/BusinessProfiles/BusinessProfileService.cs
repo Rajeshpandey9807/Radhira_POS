@@ -23,7 +23,7 @@ public sealed class BusinessProfileService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         var isSqlite = connection.GetType().Name.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
-        var sqlServerSchema = isSqlite ? (SqlServerBusinessSchema?)null : await GetSqlServerBusinessSchemaAsync(connection, cancellationToken);
+        var sqlServerSchema = isSqlite ? (SqlServerBusinessSchema?)null : await GetSqlServerBusinessSchemaAsync(connection, transaction: null, cancellationToken);
 
         var businessSql = isSqlite
             ? @"SELECT BusinessId, BusinessName, CompanyPhoneNumber, CompanyEmail,
@@ -56,7 +56,7 @@ public sealed class BusinessProfileService
         {
             if (sqlServerSchema?.HasBusinessAddressesTable == true)
             {
-                var addressSchema = await GetSqlServerBusinessAddressSchemaAsync(connection, cancellationToken);
+                var addressSchema = await GetSqlServerBusinessAddressSchemaAsync(connection, transaction: null, cancellationToken);
                 var addressSql = BuildSqlServerAddressSelect(addressSchema);
                 address = await connection.QuerySingleOrDefaultAsync<AddressRow>(
                     new CommandDefinition(addressSql, new { business.BusinessId }, cancellationToken: cancellationToken));
@@ -116,7 +116,7 @@ public sealed class BusinessProfileService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         var isSqlite = connection.GetType().Name.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
-        SqlServerBusinessSchema? sqlServerSchema = isSqlite ? null : await GetSqlServerBusinessSchemaAsync(connection, cancellationToken);
+        SqlServerBusinessSchema? sqlServerSchema = isSqlite ? null : await GetSqlServerBusinessSchemaAsync(connection, transaction: null, cancellationToken);
         using var transaction = connection.BeginTransaction();
 
         try
@@ -341,6 +341,11 @@ public sealed class BusinessProfileService
         int actorId,
         CancellationToken cancellationToken)
     {
+        // If we are in a SQL Server transaction, any metadata queries must be enlisted too.
+        SqlServerBusinessAddressSchema? sqlServerAddressSchema = isSqlite
+            ? null
+            : await GetSqlServerBusinessAddressSchemaAsync(connection, transaction, cancellationToken);
+
         const string existsSql = @"SELECT COUNT(1) FROM BusinessAddresses WHERE BusinessId = @BusinessId;";
         var exists = await connection.ExecuteScalarAsync<long>(new CommandDefinition(existsSql, new { BusinessId = businessId }, transaction: transaction, cancellationToken: cancellationToken));
 
@@ -355,7 +360,7 @@ public sealed class BusinessProfileService
                         UpdatedBy = @ActorId,
                         UpdatedOn = CURRENT_TIMESTAMP
                     WHERE BusinessId = @BusinessId;"
-                : BuildSqlServerAddressUpdate(await GetSqlServerBusinessAddressSchemaAsync(connection, cancellationToken));
+                : BuildSqlServerAddressUpdate(sqlServerAddressSchema ?? await GetSqlServerBusinessAddressSchemaAsync(connection, transaction, cancellationToken));
 
             await connection.ExecuteAsync(new CommandDefinition(updateSql, new
             {
@@ -374,7 +379,7 @@ public sealed class BusinessProfileService
                         (BusinessId, BillingAddress, City, Pincode, StateId, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn)
                     VALUES
                         (@BusinessId, @BillingAddress, @City, @Pincode, @StateId, @ActorId, CURRENT_TIMESTAMP, @ActorId, CURRENT_TIMESTAMP);"
-                : BuildSqlServerAddressInsert(await GetSqlServerBusinessAddressSchemaAsync(connection, cancellationToken));
+                : BuildSqlServerAddressInsert(sqlServerAddressSchema ?? await GetSqlServerBusinessAddressSchemaAsync(connection, transaction, cancellationToken));
 
             await connection.ExecuteAsync(new CommandDefinition(insertSql, new
             {
@@ -783,7 +788,22 @@ public sealed class BusinessProfileService
             HasBusinessBusinessTypesTable: true);
     }
 
-    private static async Task<SqlServerBusinessSchema> GetSqlServerBusinessSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
+    private readonly record struct SqlServerBusinessAddressSchema(
+        string BillingAddressColumn,
+        string CityColumn,
+        string PincodeColumn,
+        string StateIdColumn,
+        string BillingAddressColumnName,
+        string CityColumnName,
+        string PincodeColumnName,
+        string StateIdColumnName,
+        bool HasBusinessAddressIdColumn,
+        bool HasCreatedByColumn,
+        bool HasCreatedOnColumn,
+        bool HasUpdatedByColumn,
+        bool HasUpdatedOnColumn);
+
+    private static async Task<SqlServerBusinessSchema> GetSqlServerBusinessSchemaAsync(IDbConnection connection, IDbTransaction? transaction, CancellationToken cancellationToken)
     {
         // Cache is intentionally omitted (schema checks are cheap vs requests volume in this app).
         const string columnsSql = @"
@@ -792,7 +812,7 @@ FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'Businesses';";
 
         var columnNames = (await connection.QueryAsync<string>(
-            new CommandDefinition(columnsSql, cancellationToken: cancellationToken))).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            new CommandDefinition(columnsSql, transaction: transaction, cancellationToken: cancellationToken))).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         const string tablesSql = @"
 SELECT
@@ -800,7 +820,7 @@ SELECT
     CASE WHEN OBJECT_ID('dbo.BusinessBusinessTypes', 'U') IS NULL THEN 0 ELSE 1 END AS HasBusinessBusinessTypes;";
 
         var tables = await connection.QuerySingleAsync<(int HasBusinessAddresses, int HasBusinessBusinessTypes)>(
-            new CommandDefinition(tablesSql, cancellationToken: cancellationToken));
+            new CommandDefinition(tablesSql, transaction: transaction, cancellationToken: cancellationToken));
 
         var hasDetailedLogo = columnNames.Contains("LogoFileName")
                              && columnNames.Contains("LogoContentType")
@@ -821,22 +841,7 @@ SELECT
             HasBusinessBusinessTypesTable: tables.HasBusinessBusinessTypes == 1);
     }
 
-    private readonly record struct SqlServerBusinessAddressSchema(
-        string BillingAddressColumn,
-        string CityColumn,
-        string PincodeColumn,
-        string StateIdColumn,
-        string BillingAddressColumnName,
-        string CityColumnName,
-        string PincodeColumnName,
-        string StateIdColumnName,
-        bool HasBusinessAddressIdColumn,
-        bool HasCreatedByColumn,
-        bool HasCreatedOnColumn,
-        bool HasUpdatedByColumn,
-        bool HasUpdatedOnColumn);
-
-    private static async Task<SqlServerBusinessAddressSchema> GetSqlServerBusinessAddressSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
+    private static async Task<SqlServerBusinessAddressSchema> GetSqlServerBusinessAddressSchemaAsync(IDbConnection connection, IDbTransaction? transaction, CancellationToken cancellationToken)
     {
         const string columnsSql = @"
 SELECT COLUMN_NAME
@@ -844,7 +849,7 @@ FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'BusinessAddresses';";
 
         var columnNames = (await connection.QueryAsync<string>(
-            new CommandDefinition(columnsSql, cancellationToken: cancellationToken))).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            new CommandDefinition(columnsSql, transaction: transaction, cancellationToken: cancellationToken))).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Support legacy/alternate naming like Billing_address.
         var billingName = columnNames.Contains("BillingAddress")
