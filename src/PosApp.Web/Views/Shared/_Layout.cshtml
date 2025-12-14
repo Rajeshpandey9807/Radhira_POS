@@ -30,6 +30,7 @@
     var currentController = (ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty);
     bool IsActive(string controller) => string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase);
     var salesOpen = IsActive("Invoices") || IsActive("Payments") || IsActive("Sales");
+    var itemsOpen = IsActive("Items");
 }
     <header class="top-nav" role="banner">
         <nav class="top-nav__inner" aria-label="Primary navigation">
@@ -39,6 +40,13 @@
             <a class="top-nav__link @(IsActive("Parties") ? "is-active" : string.Empty)" asp-controller="Parties" asp-action="Index">
                 Parties
             </a>
+            <details class="top-nav__dropdown @(itemsOpen ? "is-active" : string.Empty)" data-nav-dropdown>
+                <summary class="top-nav__link" aria-label="Item">Item</summary>
+                <div class="top-nav__dropdown-menu" role="menu" aria-label="Item">
+                    <a role="menuitem" asp-controller="Items" asp-action="Inventory">Inventory</a>
+                    <a role="menuitem" asp-controller="Items" asp-action="Warehouse">Godown (Warehouse)</a>
+                </div>
+            </details>
             <details class="top-nav__dropdown @(salesOpen ? "is-active" : string.Empty)" data-nav-dropdown>
                 <summary class="top-nav__link" aria-label="Sales">Sales</summary>
                 <div class="top-nav__dropdown-menu" role="menu" aria-label="Sales">
@@ -79,7 +87,13 @@
                     <a asp-controller="Users" asp-action="Create">Register USER</a>
                     <a asp-controller="Roles" asp-action="Index">Roles</a>
                     <a asp-controller="Parties" asp-action="Index">Parties</a>
-                    <a href="#">Item</a>
+                    <details class="nav-group" @(itemsOpen ? "open" : null)>
+                        <summary>Item</summary>
+                        <div class="nav-submenu" role="group" aria-label="Item">
+                            <a asp-controller="Items" asp-action="Inventory">Inventory</a>
+                            <a asp-controller="Items" asp-action="Warehouse">Godown (Warehouse)</a>
+                        </div>
+                    </details>
                     <details class="nav-group" @(salesOpen ? "open" : null)>
                         <summary>Sales</summary>
                         <div class="nav-submenu" role="group" aria-label="Sales">
