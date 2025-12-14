@@ -29,6 +29,7 @@
     var pageTitle = (ViewData["Title"] as string) ?? "Dashboard";
     var currentController = (ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty);
     bool IsActive(string controller) => string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase);
+    var salesOpen = IsActive("Invoices") || IsActive("Payments") || IsActive("Sales");
 }
     <header class="top-nav" role="banner">
         <nav class="top-nav__inner" aria-label="Primary navigation">
@@ -69,7 +70,18 @@
                     <a asp-controller="Roles" asp-action="Index">Roles</a>
                     <a asp-controller="Parties" asp-action="Index">Parties</a>
                     <a href="#">Item</a>
-                    <a href="#">Sales</a>
+                    <details class="nav-group" @(salesOpen ? "open" : null)>
+                        <summary>Sales</summary>
+                        <div class="nav-submenu" role="group" aria-label="Sales">
+                            <a asp-controller="Invoices" asp-action="Index">Sales Invoice</a>
+                            <a asp-controller="Sales" asp-action="Quotation">Quotation / Estimate</a>
+                            <a asp-controller="Payments" asp-action="Index">Payment In</a>
+                            <a asp-controller="Sales" asp-action="SalesReturn">Sales Return</a>
+                            <a asp-controller="Sales" asp-action="CreditNote">Credit Note</a>
+                            <a asp-controller="Sales" asp-action="DeliveryChallan">Delivery Challan</a>
+                            <a asp-controller="Sales" asp-action="ProformaInvoice">Proforma Invoice</a>
+                        </div>
+                    </details>
                     <a href="#">Purchase</a>
                     <a href="#">Report</a>
                 </div>
