@@ -1,3 +1,4 @@
+@model IReadOnlyList<PartyListItem>
 @{
     ViewData["Title"] = "Parties";
 }
@@ -13,13 +14,56 @@
     </div>
 </section>
 
-<div class="trend-card">
-    <header>
-        <h3 style="margin: 0;">No parties yet</h3>
-        <a asp-action="Create">Create one</a>
-    </header>
-    <div class="empty">
-        Add your first party to start billing.
+@if (Model is null || Model.Count == 0)
+{
+    <div class="trend-card">
+        <header>
+            <h3 style="margin: 0;">No parties yet</h3>
+            <a asp-action="Create">Create one</a>
+        </header>
+        <div class="empty">
+            Add your first party to start billing.
+        </div>
     </div>
-</div>
+}
+else
+{
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>Party</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Mobile</th>
+                <th>Email</th>
+                <th>Created</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var party in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="avatar-circle">@party.PartyName.Substring(0, 1).ToUpperInvariant()</div>
+                            <div>
+                                <strong>@party.PartyName</strong>
+                                <div style="color: rgba(255,255,255,0.65); font-weight: 600; margin-top: 4px;">#@party.PartyId</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@party.PartyTypeName</td>
+                    <td>@party.PartyCategoryName</td>
+                    <td>@(string.IsNullOrWhiteSpace(party.MobileNumber) ? "-" : party.MobileNumber)</td>
+                    <td>@(string.IsNullOrWhiteSpace(party.Email) ? "-" : party.Email)</td>
+                    <td>@party.CreatedOn.ToString("yyyy-MM-dd")</td>
+                    <td class="actions actions--right">
+                        <a asp-action="Edit" asp-route-id="@party.PartyId">Edit</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 

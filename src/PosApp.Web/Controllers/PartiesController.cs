@@ -17,9 +17,10 @@ public class PartiesController : Controller
         _partyService = partyService;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        return View();
+        var parties = await _partyService.GetPartiesAsync(cancellationToken);
+        return View(parties);
     }
 
     public IActionResult Create()
@@ -85,6 +86,69 @@ public class PartiesController : Controller
 
             ModelState.AddModelError(string.Empty, "Unable to save party right now. Please try again.");
             ViewData["Title"] = "Create party";
+            return View(model);
+        }
+    }
+
+    public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
+    {
+        var model = await _partyService.GetPartyForEditAsync(id, cancellationToken);
+        if (model is null)
+        {
+            return NotFound();
+        }
+
+        ViewData["Title"] = "Edit party";
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, PartyEditRequest model, CancellationToken cancellationToken)
+    {
+        if (model.SameAsBilling)
+        {
+            model.ShippingAddress = model.BillingAddress;
+            ModelState.Remove(nameof(model.ShippingAddress));
+        }
+
+        if (!ModelState.IsValid)
+        {
+            ViewData["Title"] = "Edit party";
+            if (WantsJson())
+            {
+                return BadRequest(new
+                {
+                    ok = false,
+                    message = "Please fix the highlighted fields.",
+                    errors = ToErrorDictionary()
+                });
+            }
+
+            return View(model);
+        }
+
+        try
+        {
+            await _partyService.UpdateAsync(id, model, updatedBy: GetActorId(), cancellationToken: cancellationToken);
+
+            if (WantsJson())
+            {
+                return Ok(new { ok = true, partyId = id, message = $"Party {model.PartyName.Trim()} updated." });
+            }
+
+            TempData["ToastMessage"] = $"Party {model.PartyName.Trim()} updated";
+            return RedirectToAction(nameof(Index));
+        }
+        catch
+        {
+            if (WantsJson())
+            {
+                return StatusCode(500, new { ok = false, message = "Unable to update party right now. Please try again." });
+            }
+
+            ModelState.AddModelError(string.Empty, "Unable to update party right now. Please try again.");
+            ViewData["Title"] = "Edit party";
             return View(model);
         }
     }

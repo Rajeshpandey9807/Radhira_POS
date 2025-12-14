@@ -7,7 +7,17 @@ namespace PosApp.Web.Features.Parties;
 public sealed record PartyTypeOption(int PartyTypeId, string TypeName);
 public sealed record PartyCategoryOption(int PartyCategoryId, string CategoryName);
 
-public sealed class PartyCreateRequest : IValidatableObject
+public sealed record PartyListItem(
+    int PartyId,
+    string PartyName,
+    string? MobileNumber,
+    string? Email,
+    string PartyTypeName,
+    string PartyCategoryName,
+    int CreatedBy,
+    DateTime CreatedOn);
+
+public class PartyCreateRequest : IValidatableObject
 {
     [Required(ErrorMessage = "Party name is required.")]
     [Display(Name = "Party Name")]
@@ -105,5 +115,11 @@ public sealed class PartyCreateRequest : IValidatableObject
             yield return new ValidationResult("Enter the account number first.", new[] { nameof(AccountNumber) });
         }
     }
+}
+
+public sealed class PartyEditRequest : PartyCreateRequest
+{
+    [Required]
+    public int PartyId { get; set; }
 }
 
