@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PosApp.Web.Features.BusinessProfiles;
@@ -56,6 +57,32 @@ public class BusinessProfilesController : Controller
 
         await PopulateOptionsAsync(model);
         return View(model);
+    }
+
+    [HttpGet]
+    [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
+    public async Task<IActionResult> Logo(int businessId, CancellationToken cancellationToken)
+    {
+        var payload = await _businessProfileService.GetBusinessLogoAsync(businessId, cancellationToken);
+        if (payload?.Data is null || payload.Data.Length == 0)
+        {
+            return NotFound();
+        }
+
+        return File(payload.Data, payload.ContentType ?? "application/octet-stream");
+    }
+
+    [HttpGet]
+    [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
+    public async Task<IActionResult> Signature(int businessId, CancellationToken cancellationToken)
+    {
+        var payload = await _businessProfileService.GetSignatureAsync(businessId, cancellationToken);
+        if (payload?.Data is null || payload.Data.Length == 0)
+        {
+            return NotFound();
+        }
+
+        return File(payload.Data, payload.ContentType ?? "application/octet-stream");
     }
 
     private async Task<BusinessProfileFormViewModel> PopulateOptionsAsync(BusinessProfileFormViewModel model)

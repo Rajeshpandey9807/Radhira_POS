@@ -151,6 +151,116 @@ public sealed class BusinessProfileService
         }
     }
 
+    public async Task<ImagePayload?> GetBusinessLogoAsync(int businessId, CancellationToken cancellationToken = default)
+    {
+        using var connection = await _connectionFactory.CreateConnectionAsync();
+        var isSqlite = connection.GetType().Name.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
+
+        if (isSqlite)
+        {
+            const string sql = @"SELECT LogoContentType AS ContentType, LogoData AS Data
+                                 FROM Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            return await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+        }
+
+        var schema = await GetSqlServerBusinessSchemaAsync(connection, transaction: null, cancellationToken);
+        if (schema.HasDetailedLogoColumns)
+        {
+            const string sql = @"SELECT LogoContentType AS ContentType, LogoData AS Data
+                                 FROM dbo.Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            var payload = await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+
+            if (payload is null || payload.Data is null || payload.Data.Length == 0)
+            {
+                return null;
+            }
+
+            payload.ContentType ??= InferImageContentType(payload.Data);
+            return payload;
+        }
+
+        if (schema.HasBusinessLogoColumn)
+        {
+            const string sql = @"SELECT BusinessLogo AS Data
+                                 FROM dbo.Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            var payload = await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+
+            if (payload is null || payload.Data is null || payload.Data.Length == 0)
+            {
+                return null;
+            }
+
+            payload.ContentType = InferImageContentType(payload.Data);
+            return payload;
+        }
+
+        return null;
+    }
+
+    public async Task<ImagePayload?> GetSignatureAsync(int businessId, CancellationToken cancellationToken = default)
+    {
+        using var connection = await _connectionFactory.CreateConnectionAsync();
+        var isSqlite = connection.GetType().Name.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
+
+        if (isSqlite)
+        {
+            const string sql = @"SELECT SignatureContentType AS ContentType, SignatureData AS Data
+                                 FROM Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            return await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+        }
+
+        var schema = await GetSqlServerBusinessSchemaAsync(connection, transaction: null, cancellationToken);
+        if (schema.HasDetailedSignatureColumns)
+        {
+            const string sql = @"SELECT SignatureContentType AS ContentType, SignatureData AS Data
+                                 FROM dbo.Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            var payload = await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+
+            if (payload is null || payload.Data is null || payload.Data.Length == 0)
+            {
+                return null;
+            }
+
+            payload.ContentType ??= InferImageContentType(payload.Data);
+            return payload;
+        }
+
+        if (schema.HasSignatureColumn)
+        {
+            const string sql = @"SELECT Signature AS Data
+                                 FROM dbo.Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            var payload = await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+
+            if (payload is null || payload.Data is null || payload.Data.Length == 0)
+            {
+                return null;
+            }
+
+            payload.ContentType = InferImageContentType(payload.Data);
+            return payload;
+        }
+
+        return null;
+    }
+
     private static async Task<int> InsertBusinessAsync(
         IDbConnection connection,
         IDbTransaction transaction,
@@ -461,6 +571,47 @@ public sealed class BusinessProfileService
         public string? City { get; set; }
         public string? Pincode { get; set; }
         public int? StateId { get; set; }
+    }
+
+    public sealed class ImagePayload
+    {
+        public string? ContentType { get; set; }
+        public byte[]? Data { get; set; }
+    }
+
+    private static string InferImageContentType(byte[] data)
+    {
+        // PNG
+        if (data.Length >= 8 &&
+            data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47 &&
+            data[4] == 0x0D && data[5] == 0x0A && data[6] == 0x1A && data[7] == 0x0A)
+        {
+            return "image/png";
+        }
+
+        // JPEG
+        if (data.Length >= 3 && data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF)
+        {
+            return "image/jpeg";
+        }
+
+        // GIF
+        if (data.Length >= 6 &&
+            data[0] == (byte)'G' && data[1] == (byte)'I' && data[2] == (byte)'F' &&
+            data[3] == (byte)'8' && (data[4] == (byte)'7' || data[4] == (byte)'9') && data[5] == (byte)'a')
+        {
+            return "image/gif";
+        }
+
+        // WEBP (RIFF....WEBP)
+        if (data.Length >= 12 &&
+            data[0] == (byte)'R' && data[1] == (byte)'I' && data[2] == (byte)'F' && data[3] == (byte)'F' &&
+            data[8] == (byte)'W' && data[9] == (byte)'E' && data[10] == (byte)'B' && data[11] == (byte)'P')
+        {
+            return "image/webp";
+        }
+
+        return "application/octet-stream";
     }
 
     private static int? FirstOrNull(IEnumerable<int>? values)
