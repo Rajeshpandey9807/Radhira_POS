@@ -10,42 +10,61 @@
         </header>
         <div class="form-grid">
             <div class="field-group span-all">
-                <label asp-for="PartyName"></label>
-                <input asp-for="PartyName" placeholder="Enter party name" autocomplete="organization" />
+                <label asp-for="PartyName">Party Name <span class="required-mark">*</span></label>
+                <input asp-for="PartyName" placeholder="e.g., Radhira Retail" autocomplete="organization" autofocus />
+                <small class="field-hint">Required. Use the name you want on invoices and reports.</small>
                 <span asp-validation-for="PartyName"></span>
             </div>
 
             <div class="field-group">
                 <label asp-for="MobileNumber"></label>
                 <input asp-for="MobileNumber"
-                       placeholder="9876543210"
+                       placeholder="e.g., 9876543210"
                        inputmode="numeric"
                        autocomplete="tel"
-                       pattern="[0-9]*" />
+                       pattern="[0-9]*"
+                       maxlength="15" />
+                <small class="field-hint">Optional. Digits only.</small>
                 <span asp-validation-for="MobileNumber"></span>
             </div>
 
             <div class="field-group">
                 <label asp-for="Email"></label>
                 <input asp-for="Email" placeholder="name@company.com" type="email" autocomplete="email" />
+                <small class="field-hint">Optional. Used for sending invoices/updates.</small>
                 <span asp-validation-for="Email"></span>
             </div>
 
             <div class="field-group">
                 <label asp-for="OpeningBalance"></label>
-                <input asp-for="OpeningBalance" type="number" step="0.01" placeholder="0.00" />
+                <input asp-for="OpeningBalance" type="number" step="0.01" inputmode="decimal" placeholder="0.00" />
+                <small class="field-hint">Optional. Set to 0.00 if none.</small>
                 <span asp-validation-for="OpeningBalance"></span>
             </div>
 
             <div class="field-group">
                 <label asp-for="Gstin"></label>
-                <input asp-for="Gstin" maxlength="15" placeholder="15-character GSTIN" autocapitalize="characters" />
+                <input asp-for="Gstin"
+                       class="input-uppercase"
+                       maxlength="15"
+                       placeholder="e.g., 22AAAAA0000A1Z5"
+                       autocapitalize="characters"
+                       spellcheck="false"
+                       autocomplete="off" />
+                <small class="field-hint">Optional. Exactly 15 characters.</small>
                 <span asp-validation-for="Gstin"></span>
             </div>
 
             <div class="field-group">
                 <label asp-for="PanNumber"></label>
-                <input asp-for="PanNumber" placeholder="PAN number" autocapitalize="characters" />
+                <input asp-for="PanNumber"
+                       class="input-uppercase"
+                       maxlength="10"
+                       placeholder="e.g., AAAAA0000A"
+                       autocapitalize="characters"
+                       spellcheck="false"
+                       autocomplete="off" />
+                <small class="field-hint">Optional.</small>
                 <span asp-validation-for="PanNumber"></span>
             </div>
 
@@ -56,6 +75,7 @@
                     <option value="@((int)PartyType.Vendor)">Vendor</option>
                     <option value="@((int)PartyType.Both)">Both</option>
                 </select>
+                <small class="field-hint">Used for filtering and reporting.</small>
                 <span asp-validation-for="PartyType"></span>
             </div>
 
@@ -67,6 +87,7 @@
                     <option value="@((int)PartyCategory.Distributor)">Distributor</option>
                     <option value="@((int)PartyCategory.Other)">Other</option>
                 </select>
+                <small class="field-hint">Helps segment parties in summaries.</small>
                 <span asp-validation-for="PartyCategory"></span>
             </div>
         </div>
