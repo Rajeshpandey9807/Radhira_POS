@@ -1,4 +1,4 @@
-@model PartyFormViewModel
+@model PartyCreateRequest
 @{
     ViewData["Title"] = "Create party";
 }
@@ -15,7 +15,8 @@
     </div>
 </section>
 
-<form asp-action="Create" method="post" class="wizard-form">
+<form asp-action="Create" method="post" class="wizard-form" data-party-form>
+    @Html.AntiForgeryToken()
     <partial name="_Form" model="Model" />
 
     <div class="form-actions">
@@ -28,6 +29,162 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        (() => {
+            const toast = (message, isError) => {
+                const node = document.createElement('div');
+                node.className = 'toast' + (isError ? ' is-error' : '');
+                node.textContent = message || (isError ? 'Something went wrong.' : 'Done.');
+                document.body.appendChild(node);
+                setTimeout(() => node.classList.add('hide'), 3200);
+                setTimeout(() => node.remove(), 3800);
+            };
+
+            const clearFieldErrors = (form) => {
+                const messages = form.querySelectorAll('[data-valmsg-for]');
+                messages.forEach((m) => {
+                    m.textContent = '';
+                });
+            };
+
+            const setFieldError = (form, fieldName, message) => {
+                const msg = form.querySelector('[data-valmsg-for="' + CSS.escape(fieldName) + '"]');
+                if (msg) {
+                    msg.textContent = message || '';
+                }
+            };
+
+            const validateClient = (form) => {
+                let ok = true;
+                const partyName = form.querySelector('#PartyName');
+                const partyType = form.querySelector('#PartyTypeId');
+                const partyCategory = form.querySelector('#PartyCategoryId');
+
+                if (partyName && !partyName.value.trim()) {
+                    setFieldError(form, 'PartyName', 'Party name is required.');
+                    ok = false;
+                }
+
+                if (partyType && !partyType.value) {
+                    setFieldError(form, 'PartyTypeId', 'Party type is required.');
+                    ok = false;
+                }
+
+                if (partyCategory && !partyCategory.value) {
+                    setFieldError(form, 'PartyCategoryId', 'Party category is required.');
+                    ok = false;
+                }
+
+                const acc = form.querySelector('#AccountNumber');
+                const confirm = form.querySelector('#ReEnterAccountNumber');
+                if (acc && confirm) {
+                    const a = (acc.value || '').trim();
+                    const b = (confirm.value || '').trim();
+                    if (a && !b) {
+                        setFieldError(form, 'ReEnterAccountNumber', 'Please re-enter the account number.');
+                        ok = false;
+                    } else if (!a && b) {
+                        setFieldError(form, 'AccountNumber', 'Enter the account number first.');
+                        ok = false;
+                    } else if (a && b && a !== b) {
+                        setFieldError(form, 'ReEnterAccountNumber', 'Account numbers do not match.');
+                        ok = false;
+                    }
+                }
+
+                return ok;
+            };
+
+            const populateSelect = (select, items) => {
+                if (!select) return;
+                const current = select.value;
+                select.innerHTML = '';
+                const placeholder = document.createElement('option');
+                placeholder.value = '';
+                placeholder.textContent = 'Choose...';
+                select.appendChild(placeholder);
+                (items || []).forEach((it) => {
+                    const opt = document.createElement('option');
+                    opt.value = String(it.id);
+                    opt.textContent = it.name;
+                    select.appendChild(opt);
+                });
+                // preserve current if still present
+                if (current) {
+                    select.value = current;
+                }
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+
+            const form = document.querySelector('[data-party-form]');
+            if (!form) return;
+
+            // Load dropdown data dynamically
+            (async () => {
+                try {
+                    const res = await fetch('@Url.Action("Lookups", "Parties")', { headers: { 'Accept': 'application/json' } });
+                    if (!res.ok) throw new Error('Failed to load dropdowns.');
+                    const data = await res.json();
+                    populateSelect(form.querySelector('#PartyTypeId'), data.partyTypes);
+                    populateSelect(form.querySelector('#PartyCategoryId'), data.partyCategories);
+                } catch (e) {
+                    toast('Unable to load dropdown data. Please refresh.', true);
+                }
+            })();
+
+            // AJAX submit without reload
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearFieldErrors(form);
+
+                if (!validateClient(form)) {
+                    toast('Please fix the highlighted fields.', true);
+                    return;
+                }
+
+                const fd = new FormData(form);
+                const submitter = e.submitter;
+                if (submitter && submitter.name && submitter.value) {
+                    fd.set(submitter.name, submitter.value);
+                }
+
+                try {
+                    const res = await fetch(form.getAttribute('action') || window.location.href, {
+                        method: 'POST',
+                        body: fd,
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const payload = await res.json().catch(() => null);
+                    if (!res.ok) {
+                        const errors = payload && payload.errors ? payload.errors : null;
+                        if (errors) {
+                            Object.keys(errors).forEach((key) => {
+                                const messages = errors[key];
+                                setFieldError(form, key, Array.isArray(messages) ? (messages[0] || '') : String(messages));
+                            });
+                        }
+                        toast((payload && payload.message) || 'Unable to save party.', true);
+                        return;
+                    }
+
+                    toast((payload && payload.message) || 'Party saved.', false);
+
+                    const action = fd.get('submitAction');
+                    if (action === 'save-new') {
+                        form.reset();
+                        // make sure enhanced selects + shipping lock state refresh
+                        form.querySelectorAll('select').forEach((s) => s.dispatchEvent(new Event('change', { bubbles: true })));
+                        form.querySelectorAll('textarea,input').forEach((i) => i.dispatchEvent(new Event('input', { bubbles: true })));
+                    }
+                } catch (err) {
+                    toast('Network error while saving. Please try again.', true);
+                }
+            });
+        })();
+
         (function () {
             function enhanceSelect(select) {
                 if (!select || select.dataset.bpSelectEnhanced === "true") return;

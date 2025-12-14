@@ -1,4 +1,4 @@
-@model PartyFormViewModel
+@model PartyCreateRequest
 
 <div class="card-stack">
     <section class="card-form" aria-label="General details">
@@ -43,8 +43,8 @@
             </div>
 
             <div class="field-group">
-                <label asp-for="Gstin"></label>
-                <input asp-for="Gstin"
+                <label asp-for="GSTIN"></label>
+                <input asp-for="GSTIN"
                        class="input-uppercase"
                        maxlength="15"
                        placeholder="e.g., 22AAAAA0000A1Z5"
@@ -52,12 +52,12 @@
                        spellcheck="false"
                        autocomplete="off" />
                 <small class="field-hint">Optional. Exactly 15 characters.</small>
-                <span asp-validation-for="Gstin"></span>
+                <span asp-validation-for="GSTIN"></span>
             </div>
 
             <div class="field-group">
-                <label asp-for="PanNumber"></label>
-                <input asp-for="PanNumber"
+                <label asp-for="PANNumber"></label>
+                <input asp-for="PANNumber"
                        class="input-uppercase"
                        maxlength="10"
                        placeholder="e.g., AAAAA0000A"
@@ -65,30 +65,25 @@
                        spellcheck="false"
                        autocomplete="off" />
                 <small class="field-hint">Optional.</small>
-                <span asp-validation-for="PanNumber"></span>
+                <span asp-validation-for="PANNumber"></span>
             </div>
 
             <div class="field-group">
-                <label asp-for="PartyType"></label>
-                <select asp-for="PartyType" data-bp-select="true">
-                    <option value="@((int)PartyType.Customer)">Customer</option>
-                    <option value="@((int)PartyType.Vendor)">Vendor</option>
-                    <option value="@((int)PartyType.Both)">Both</option>
+                <label asp-for="PartyTypeId">Party Type <span class="required-mark">*</span></label>
+                <select asp-for="PartyTypeId" data-bp-select="true">
+                    <option value="">Choose...</option>
                 </select>
                 <small class="field-hint">Used for filtering and reporting.</small>
-                <span asp-validation-for="PartyType"></span>
+                <span asp-validation-for="PartyTypeId"></span>
             </div>
 
             <div class="field-group">
-                <label asp-for="PartyCategory"></label>
-                <select asp-for="PartyCategory" data-bp-select="true">
-                    <option value="@((int)PartyCategory.Retail)">Retail</option>
-                    <option value="@((int)PartyCategory.Wholesale)">Wholesale</option>
-                    <option value="@((int)PartyCategory.Distributor)">Distributor</option>
-                    <option value="@((int)PartyCategory.Other)">Other</option>
+                <label asp-for="PartyCategoryId">Party Category <span class="required-mark">*</span></label>
+                <select asp-for="PartyCategoryId" data-bp-select="true">
+                    <option value="">Choose...</option>
                 </select>
                 <small class="field-hint">Helps segment parties in summaries.</small>
-                <span asp-validation-for="PartyCategory"></span>
+                <span asp-validation-for="PartyCategoryId"></span>
             </div>
         </div>
     </section>
@@ -121,9 +116,9 @@
             </div>
 
             <div class="field-group">
-                <label asp-for="CreditPeriodDays"></label>
-                <input asp-for="CreditPeriodDays" type="number" min="0" step="1" placeholder="0" />
-                <span asp-validation-for="CreditPeriodDays"></span>
+                <label asp-for="CreditPeriod"></label>
+                <input asp-for="CreditPeriod" type="number" min="0" step="1" placeholder="0" />
+                <span asp-validation-for="CreditPeriod"></span>
             </div>
 
             <div class="field-group">
@@ -165,9 +160,9 @@
         </header>
         <div class="form-grid">
             <div class="field-group">
-                <label asp-for="BankAccountNumber"></label>
-                <input asp-for="BankAccountNumber" placeholder="Account number" inputmode="numeric" autocomplete="off" data-account-number />
-                <span asp-validation-for="BankAccountNumber"></span>
+                <label asp-for="AccountNumber"></label>
+                <input asp-for="AccountNumber" placeholder="Account number" inputmode="numeric" autocomplete="off" data-account-number />
+                <span asp-validation-for="AccountNumber"></span>
             </div>
 
             <div class="field-group">
@@ -177,9 +172,9 @@
             </div>
 
             <div class="field-group">
-                <label asp-for="IfscCode"></label>
-                <input asp-for="IfscCode" placeholder="IFSC" autocapitalize="characters" />
-                <span asp-validation-for="IfscCode"></span>
+                <label asp-for="IFSC"></label>
+                <input asp-for="IFSC" placeholder="IFSC" autocapitalize="characters" />
+                <span asp-validation-for="IFSC"></span>
             </div>
 
             <div class="field-group">
@@ -195,9 +190,9 @@
             </div>
 
             <div class="field-group">
-                <label asp-for="UpiId"></label>
-                <input asp-for="UpiId" placeholder="name@upi" autocapitalize="none" />
-                <span asp-validation-for="UpiId"></span>
+                <label asp-for="UPI"></label>
+                <input asp-for="UPI" placeholder="name@upi" autocapitalize="none" />
+                <span asp-validation-for="UPI"></span>
             </div>
         </div>
     </section>

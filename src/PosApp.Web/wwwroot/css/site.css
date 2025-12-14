@@ -995,6 +995,11 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
+.toast.is-error {
+  background: #d7263d;
+  box-shadow: 0 20px 35px rgba(215, 38, 61, 0.35);
+}
+
 .toast.hide {
   opacity: 0;
   transform: translateY(12px);
