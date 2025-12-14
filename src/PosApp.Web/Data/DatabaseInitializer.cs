@@ -238,16 +238,12 @@ IF NOT EXISTS (SELECT 1 FROM dbo.PartyTypes)
 BEGIN
     IF COL_LENGTH('dbo.PartyTypes', 'TypeName') IS NOT NULL
         INSERT INTO dbo.PartyTypes (TypeName) VALUES (N'Customer'), (N'Vendor'), (N'Both');
-    ELSE IF COL_LENGTH('dbo.PartyTypes', 'PartyTypeName') IS NOT NULL
-        INSERT INTO dbo.PartyTypes (PartyTypeName) VALUES (N'Customer'), (N'Vendor'), (N'Both');
 END
 
 IF NOT EXISTS (SELECT 1 FROM dbo.PartyCategories)
 BEGIN
     IF COL_LENGTH('dbo.PartyCategories', 'CategoryName') IS NOT NULL
         INSERT INTO dbo.PartyCategories (CategoryName) VALUES (N'Retail'), (N'Wholesale'), (N'Distributor'), (N'Other');
-    ELSE IF COL_LENGTH('dbo.PartyCategories', 'PartyCategoryName') IS NOT NULL
-        INSERT INTO dbo.PartyCategories (PartyCategoryName) VALUES (N'Retail'), (N'Wholesale'), (N'Distributor'), (N'Other');
 END
 ";
 
