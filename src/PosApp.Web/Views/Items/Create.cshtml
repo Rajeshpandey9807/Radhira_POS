@@ -13,6 +13,19 @@
     </div>
 </header>
 
+<nav class="steps" aria-label="Product form steps">
+    <ol class="steps__list">
+        <li class="steps__item is-active">
+            <span class="steps__dot" aria-hidden="true"></span>
+            <span class="steps__label">Basic Details</span>
+        </li>
+        <li class="steps__item">
+            <span class="steps__dot" aria-hidden="true"></span>
+            <span class="steps__label">Advanced Details</span>
+        </li>
+    </ol>
+</nav>
+
 <form class="form" action="#" method="post" aria-label="Add new product">
     <fieldset class="card">
         <legend class="card__legend">SECTION 1: Basic Details</legend>
@@ -168,10 +181,15 @@
             </section>
         </div>
 
-        <div class="form-actions" role="group" aria-label="Form actions">
-            <button type="submit" class="btn primary">Save</button>
-            <button type="submit" class="btn ghost">Save &amp; New</button>
-            <a asp-controller="Items" asp-action="Inventory" class="btn ghost">Cancel</a>
+        <div class="action-bar" role="group" aria-label="Form actions">
+            <div class="action-bar__left">
+                <span class="hint">Tip: keep Item Code short and consistent.</span>
+            </div>
+            <div class="action-bar__right">
+                <a asp-controller="Items" asp-action="Inventory" class="btn ghost">Cancel</a>
+                <button type="submit" class="btn ghost">Save &amp; New</button>
+                <button type="submit" class="btn primary">Save</button>
+            </div>
         </div>
     </fieldset>
 </form>
