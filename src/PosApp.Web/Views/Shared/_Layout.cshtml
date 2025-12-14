@@ -39,8 +39,18 @@
             <a class="top-nav__link @(IsActive("Parties") ? "is-active" : string.Empty)" asp-controller="Parties" asp-action="Index">
                 Parties
             </a>
-            <a class="top-nav__link @(IsActive("Invoices") ? "is-active" : string.Empty)" asp-controller="Invoices" asp-action="Index">Invoices</a>
-            <a class="top-nav__link @(IsActive("Payments") ? "is-active" : string.Empty)" asp-controller="Payments" asp-action="Index">Payments</a>
+            <details class="top-nav__dropdown @(salesOpen ? "is-active" : string.Empty)" data-nav-dropdown>
+                <summary class="top-nav__link" aria-label="Sales">Sales</summary>
+                <div class="top-nav__dropdown-menu" role="menu" aria-label="Sales">
+                    <a role="menuitem" asp-controller="Invoices" asp-action="Index">Sales Invoice</a>
+                    <a role="menuitem" asp-controller="Sales" asp-action="Quotation">Quotation / Estimate</a>
+                    <a role="menuitem" asp-controller="Payments" asp-action="Index">Payment In</a>
+                    <a role="menuitem" asp-controller="Sales" asp-action="SalesReturn">Sales Return</a>
+                    <a role="menuitem" asp-controller="Sales" asp-action="CreditNote">Credit Note</a>
+                    <a role="menuitem" asp-controller="Sales" asp-action="DeliveryChallan">Delivery Challan</a>
+                    <a role="menuitem" asp-controller="Sales" asp-action="ProformaInvoice">Proforma Invoice</a>
+                </div>
+            </details>
             <a class="top-nav__link @(IsActive("Reports") ? "is-active" : string.Empty)" asp-controller="Reports" asp-action="Index">Reports</a>
             <button type="button"
                     class="top-nav__link top-nav__link--button"
