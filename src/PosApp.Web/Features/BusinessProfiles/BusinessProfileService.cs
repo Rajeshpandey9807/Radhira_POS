@@ -317,6 +317,7 @@ public sealed class BusinessProfileService
         parameters.Add("SignatureContentType", model.SignatureFile?.ContentType);
         parameters.Add("SignatureData", signatureBytes, dbType: DbType.Binary);
         parameters.Add("Signature", signatureBytes, dbType: DbType.Binary);
+        parameters.Add("UserId", actorId);
         parameters.Add("ActorId", actorId);
 
         var newId = await connection.ExecuteScalarAsync<long>(new CommandDefinition(insertSql, parameters, transaction: transaction, cancellationToken: cancellationToken));
@@ -381,6 +382,7 @@ public sealed class BusinessProfileService
         parameters.Add("SignatureContentType", model.SignatureFile?.ContentType);
         parameters.Add("SignatureData", signatureBytes, dbType: DbType.Binary);
         parameters.Add("Signature", signatureBytes, dbType: DbType.Binary);
+        parameters.Add("UserId", actorId);
         parameters.Add("ActorId", actorId);
 
         await connection.ExecuteAsync(new CommandDefinition(sql, parameters, transaction: transaction, cancellationToken: cancellationToken));
@@ -703,6 +705,12 @@ public sealed class BusinessProfileService
             "@AdditionalInfo"
         };
 
+        if (schema.HasUserIdColumn)
+        {
+            columns.Add("UserId");
+            values.Add("@UserId");
+        }
+
         if (schema.HasBusinessTypeIdColumn)
         {
             columns.Add("BusinessTypeId");
@@ -773,6 +781,11 @@ public sealed class BusinessProfileService
             "Website = @Website",
             "AdditionalInfo = @AdditionalInfo"
         };
+
+        if (schema.HasUserIdColumn)
+        {
+            sets.Add("UserId = @UserId");
+        }
 
         if (schema.HasBusinessTypeIdColumn)
         {
@@ -921,6 +934,7 @@ public sealed class BusinessProfileService
         bool HasDetailedSignatureColumns,
         bool HasBusinessLogoColumn,
         bool HasSignatureColumn,
+        bool HasUserIdColumn,
         bool HasBusinessTypeIdColumn,
         bool HasStateIdColumn,
         bool HasPincodeColumn,
@@ -932,6 +946,7 @@ public sealed class BusinessProfileService
             HasDetailedSignatureColumns: true,
             HasBusinessLogoColumn: false,
             HasSignatureColumn: false,
+            HasUserIdColumn: false,
             HasBusinessTypeIdColumn: false,
             HasStateIdColumn: false,
             HasPincodeColumn: false,
@@ -985,6 +1000,7 @@ SELECT
             HasDetailedSignatureColumns: hasDetailedSignature,
             HasBusinessLogoColumn: columnNames.Contains("BusinessLogo"),
             HasSignatureColumn: columnNames.Contains("Signature"),
+            HasUserIdColumn: columnNames.Contains("UserId"),
             HasBusinessTypeIdColumn: columnNames.Contains("BusinessTypeId"),
             HasStateIdColumn: columnNames.Contains("StateId"),
             HasPincodeColumn: columnNames.Contains("Pincode"),
