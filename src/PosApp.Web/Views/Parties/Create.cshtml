@@ -3,6 +3,10 @@
     ViewData["Title"] = "Create party";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/business-profile.css" asp-append-version="true" />
+}
+
 <section class="users-header">
     <div>
         <p class="eyebrow">Parties</p>
@@ -24,6 +28,159 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        (function () {
+            function enhanceSelect(select) {
+                if (!select || select.dataset.bpSelectEnhanced === "true") return;
+
+                var wrapper = document.createElement("div");
+                wrapper.className = "bp-select";
+
+                // Keep the original select for model binding/validation, but prevent native UI interaction.
+                select.classList.add("bp-select__native");
+
+                var button = document.createElement("button");
+                button.type = "button";
+                button.className = "bp-select__button";
+                button.setAttribute("aria-haspopup", "listbox");
+                button.setAttribute("aria-expanded", "false");
+
+                var labelSpan = document.createElement("span");
+                labelSpan.className = "bp-select__label";
+                button.appendChild(labelSpan);
+
+                var menu = document.createElement("div");
+                menu.className = "bp-select__menu";
+                menu.setAttribute("role", "listbox");
+                menu.style.display = "none";
+                document.body.appendChild(menu);
+
+                function getSelectedText() {
+                    var opt = select.options[select.selectedIndex];
+                    return opt ? opt.text : "Choose...";
+                }
+
+                function syncButtonLabel() {
+                    labelSpan.textContent = getSelectedText();
+                    button.classList.toggle("is-placeholder", !select.value);
+                }
+
+                function buildMenu() {
+                    menu.innerHTML = "";
+                    for (var i = 0; i < select.options.length; i++) {
+                        var opt = select.options[i];
+                        var item = document.createElement("button");
+                        item.type = "button";
+                        item.className = "bp-select__option";
+                        item.setAttribute("role", "option");
+                        item.setAttribute("data-value", opt.value);
+                        item.textContent = opt.text;
+                        if (opt.disabled) {
+                            item.disabled = true;
+                            item.setAttribute("aria-disabled", "true");
+                        }
+                        if (opt.value === select.value) {
+                            item.classList.add("is-selected");
+                            item.setAttribute("aria-selected", "true");
+                        } else {
+                            item.setAttribute("aria-selected", "false");
+                        }
+                        menu.appendChild(item);
+                    }
+                }
+
+                function positionMenu() {
+                    var rect = button.getBoundingClientRect();
+                    var maxHeight = Math.max(220, window.innerHeight - rect.bottom - 16);
+                    menu.style.position = "fixed";
+                    menu.style.left = rect.left + "px";
+                    menu.style.top = (rect.bottom + 8) + "px";
+                    menu.style.width = rect.width + "px";
+                    menu.style.maxHeight = maxHeight + "px";
+                }
+
+                function openMenu() {
+                    buildMenu();
+                    positionMenu();
+                    menu.style.display = "block";
+                    button.setAttribute("aria-expanded", "true");
+
+                    var selected = menu.querySelector(".bp-select__option.is-selected");
+                    if (selected && selected.scrollIntoView) {
+                        selected.scrollIntoView({ block: "nearest" });
+                    }
+                }
+
+                function closeMenu() {
+                    menu.style.display = "none";
+                    button.setAttribute("aria-expanded", "false");
+                }
+
+                function isOpen() {
+                    return menu.style.display !== "none";
+                }
+
+                button.addEventListener("click", function () {
+                    if (isOpen()) {
+                        closeMenu();
+                    } else {
+                        openMenu();
+                    }
+                });
+
+                menu.addEventListener("click", function (e) {
+                    var target = e.target;
+                    if (!target || !target.classList || !target.classList.contains("bp-select__option")) return;
+                    var value = target.getAttribute("data-value");
+                    select.value = value;
+                    select.dispatchEvent(new Event("change", { bubbles: true }));
+                    syncButtonLabel();
+                    closeMenu();
+                });
+
+                select.addEventListener("change", function () {
+                    syncButtonLabel();
+                });
+
+                document.addEventListener("click", function (e) {
+                    if (!isOpen()) return;
+                    var t = e.target;
+                    if (t === button || button.contains(t) || t === menu || menu.contains(t)) return;
+                    closeMenu();
+                }, true);
+
+                document.addEventListener("keydown", function (e) {
+                    if (!isOpen()) return;
+                    if (e.key === "Escape") {
+                        e.preventDefault();
+                        closeMenu();
+                        button.focus();
+                    }
+                });
+
+                window.addEventListener("resize", function () {
+                    if (!isOpen()) return;
+                    positionMenu();
+                });
+
+                window.addEventListener("scroll", function () {
+                    if (!isOpen()) return;
+                    positionMenu();
+                }, true);
+
+                select.parentNode.insertBefore(wrapper, select);
+                wrapper.appendChild(select);
+                wrapper.appendChild(button);
+
+                select.dataset.bpSelectEnhanced = "true";
+                syncButtonLabel();
+            }
+
+            var selects = document.querySelectorAll('select[data-bp-select="true"]');
+            for (var i = 0; i < selects.length; i++) {
+                enhanceSelect(selects[i]);
+            }
+        })();
+
         (() => {
             const billing = document.querySelector('[data-billing-address]');
             const shipping = document.querySelector('[data-shipping-address]');

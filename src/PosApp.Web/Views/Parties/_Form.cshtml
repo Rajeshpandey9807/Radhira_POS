@@ -70,7 +70,7 @@
 
             <div class="field-group">
                 <label asp-for="PartyType"></label>
-                <select asp-for="PartyType">
+                <select asp-for="PartyType" data-bp-select="true">
                     <option value="@((int)PartyType.Customer)">Customer</option>
                     <option value="@((int)PartyType.Vendor)">Vendor</option>
                     <option value="@((int)PartyType.Both)">Both</option>
@@ -81,7 +81,7 @@
 
             <div class="field-group">
                 <label asp-for="PartyCategory"></label>
-                <select asp-for="PartyCategory">
+                <select asp-for="PartyCategory" data-bp-select="true">
                     <option value="@((int)PartyCategory.Retail)">Retail</option>
                     <option value="@((int)PartyCategory.Wholesale)">Wholesale</option>
                     <option value="@((int)PartyCategory.Distributor)">Distributor</option>
