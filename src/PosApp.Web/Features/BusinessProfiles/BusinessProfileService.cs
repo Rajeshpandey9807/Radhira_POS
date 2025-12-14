@@ -56,9 +56,8 @@ public sealed class BusinessProfileService
         {
             if (sqlServerSchema?.HasBusinessAddressesTable == true)
             {
-                const string addressSql = @"SELECT BusinessAddressId, BusinessId, BillingAddress, City, Pincode, StateId
-                                            FROM BusinessAddresses
-                                            WHERE BusinessId = @BusinessId";
+                var addressSchema = await GetSqlServerBusinessAddressSchemaAsync(connection, cancellationToken);
+                var addressSql = BuildSqlServerAddressSelect(addressSchema);
                 address = await connection.QuerySingleOrDefaultAsync<AddressRow>(
                     new CommandDefinition(addressSql, new { business.BusinessId }, cancellationToken: cancellationToken));
             }
@@ -356,14 +355,7 @@ public sealed class BusinessProfileService
                         UpdatedBy = @ActorId,
                         UpdatedOn = CURRENT_TIMESTAMP
                     WHERE BusinessId = @BusinessId;"
-                : @"UPDATE BusinessAddresses
-                    SET BillingAddress = @BillingAddress,
-                        City = @City,
-                        Pincode = @Pincode,
-                        StateId = @StateId,
-                        UpdatedBy = @ActorId,
-                        UpdatedOn = SYSUTCDATETIME()
-                    WHERE BusinessId = @BusinessId;";
+                : BuildSqlServerAddressUpdate(await GetSqlServerBusinessAddressSchemaAsync(connection, cancellationToken));
 
             await connection.ExecuteAsync(new CommandDefinition(updateSql, new
             {
@@ -382,10 +374,7 @@ public sealed class BusinessProfileService
                         (BusinessId, BillingAddress, City, Pincode, StateId, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn)
                     VALUES
                         (@BusinessId, @BillingAddress, @City, @Pincode, @StateId, @ActorId, CURRENT_TIMESTAMP, @ActorId, CURRENT_TIMESTAMP);"
-                : @"INSERT INTO BusinessAddresses
-                        (BusinessId, BillingAddress, City, Pincode, StateId, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn)
-                    VALUES
-                        (@BusinessId, @BillingAddress, @City, @Pincode, @StateId, @ActorId, SYSUTCDATETIME(), @ActorId, SYSUTCDATETIME());";
+                : BuildSqlServerAddressInsert(await GetSqlServerBusinessAddressSchemaAsync(connection, cancellationToken));
 
             await connection.ExecuteAsync(new CommandDefinition(insertSql, new
             {
@@ -680,6 +669,97 @@ public sealed class BusinessProfileService
                 WHERE BusinessId = @BusinessId;";
     }
 
+    private static string BuildSqlServerAddressSelect(SqlServerBusinessAddressSchema schema)
+    {
+        var selectCols = new List<string>();
+
+        if (schema.HasBusinessAddressIdColumn)
+        {
+            selectCols.Add("BusinessAddressId");
+        }
+
+        selectCols.Add("BusinessId");
+
+        selectCols.Add($"{schema.BillingAddressColumn} AS BillingAddress");
+        selectCols.Add($"{schema.CityColumn} AS City");
+        selectCols.Add($"{schema.PincodeColumn} AS Pincode");
+        selectCols.Add($"{schema.StateIdColumn} AS StateId");
+
+        return $@"SELECT {string.Join(", ", selectCols)}
+                FROM BusinessAddresses
+                WHERE BusinessId = @BusinessId;";
+    }
+
+    private static string BuildSqlServerAddressUpdate(SqlServerBusinessAddressSchema schema)
+    {
+        var sets = new List<string>
+        {
+            $"{schema.BillingAddressColumn} = @BillingAddress",
+            $"{schema.CityColumn} = @City",
+            $"{schema.PincodeColumn} = @Pincode",
+            $"{schema.StateIdColumn} = @StateId"
+        };
+
+        if (schema.HasUpdatedByColumn)
+        {
+            sets.Add("UpdatedBy = @ActorId");
+        }
+
+        if (schema.HasUpdatedOnColumn)
+        {
+            sets.Add("UpdatedOn = SYSUTCDATETIME()");
+        }
+
+        return $@"UPDATE BusinessAddresses
+                SET {string.Join(",\n                    ", sets)}
+                WHERE BusinessId = @BusinessId;";
+    }
+
+    private static string BuildSqlServerAddressInsert(SqlServerBusinessAddressSchema schema)
+    {
+        var cols = new List<string> { "BusinessId" };
+        var vals = new List<string> { "@BusinessId" };
+
+        cols.Add(schema.BillingAddressColumnName);
+        vals.Add("@BillingAddress");
+
+        cols.Add(schema.CityColumnName);
+        vals.Add("@City");
+
+        cols.Add(schema.PincodeColumnName);
+        vals.Add("@Pincode");
+
+        cols.Add(schema.StateIdColumnName);
+        vals.Add("@StateId");
+
+        if (schema.HasCreatedByColumn)
+        {
+            cols.Add("CreatedBy");
+            vals.Add("@ActorId");
+        }
+
+        if (schema.HasCreatedOnColumn)
+        {
+            cols.Add("CreatedOn");
+            vals.Add("SYSUTCDATETIME()");
+        }
+
+        if (schema.HasUpdatedByColumn)
+        {
+            cols.Add("UpdatedBy");
+            vals.Add("@ActorId");
+        }
+
+        if (schema.HasUpdatedOnColumn)
+        {
+            cols.Add("UpdatedOn");
+            vals.Add("SYSUTCDATETIME()");
+        }
+
+        return $@"INSERT INTO BusinessAddresses ({string.Join(", ", cols)})
+                VALUES ({string.Join(", ", vals)});";
+    }
+
     private readonly record struct SqlServerBusinessSchema(
         bool HasDetailedLogoColumns,
         bool HasDetailedSignatureColumns,
@@ -739,6 +819,76 @@ SELECT
             HasPincodeColumn: columnNames.Contains("Pincode"),
             HasBusinessAddressesTable: tables.HasBusinessAddresses == 1,
             HasBusinessBusinessTypesTable: tables.HasBusinessBusinessTypes == 1);
+    }
+
+    private readonly record struct SqlServerBusinessAddressSchema(
+        string BillingAddressColumn,
+        string CityColumn,
+        string PincodeColumn,
+        string StateIdColumn,
+        string BillingAddressColumnName,
+        string CityColumnName,
+        string PincodeColumnName,
+        string StateIdColumnName,
+        bool HasBusinessAddressIdColumn,
+        bool HasCreatedByColumn,
+        bool HasCreatedOnColumn,
+        bool HasUpdatedByColumn,
+        bool HasUpdatedOnColumn);
+
+    private static async Task<SqlServerBusinessAddressSchema> GetSqlServerBusinessAddressSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
+    {
+        const string columnsSql = @"
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'BusinessAddresses';";
+
+        var columnNames = (await connection.QueryAsync<string>(
+            new CommandDefinition(columnsSql, cancellationToken: cancellationToken))).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Support legacy/alternate naming like Billing_address.
+        var billingName = columnNames.Contains("BillingAddress")
+            ? "BillingAddress"
+            : columnNames.Contains("Billing_address")
+                ? "Billing_address"
+                : "BillingAddress";
+
+        var cityName = columnNames.Contains("City")
+            ? "City"
+            : columnNames.Contains("City_name")
+                ? "City_name"
+                : "City";
+
+        var pincodeName = columnNames.Contains("Pincode")
+            ? "Pincode"
+            : columnNames.Contains("PinCode")
+                ? "PinCode"
+                : columnNames.Contains("Pin_code")
+                    ? "Pin_code"
+                    : "Pincode";
+
+        var stateIdName = columnNames.Contains("StateId")
+            ? "StateId"
+            : columnNames.Contains("State_id")
+                ? "State_id"
+                : "StateId";
+
+        static string Bracket(string name) => $"[{name}]";
+
+        return new SqlServerBusinessAddressSchema(
+            BillingAddressColumn: Bracket(billingName),
+            CityColumn: Bracket(cityName),
+            PincodeColumn: Bracket(pincodeName),
+            StateIdColumn: Bracket(stateIdName),
+            BillingAddressColumnName: Bracket(billingName),
+            CityColumnName: Bracket(cityName),
+            PincodeColumnName: Bracket(pincodeName),
+            StateIdColumnName: Bracket(stateIdName),
+            HasBusinessAddressIdColumn: columnNames.Contains("BusinessAddressId"),
+            HasCreatedByColumn: columnNames.Contains("CreatedBy"),
+            HasCreatedOnColumn: columnNames.Contains("CreatedOn"),
+            HasUpdatedByColumn: columnNames.Contains("UpdatedBy"),
+            HasUpdatedOnColumn: columnNames.Contains("UpdatedOn"));
     }
 }
 
