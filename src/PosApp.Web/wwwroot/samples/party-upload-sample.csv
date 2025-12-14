@@ -1,0 +1,4 @@
+PartyName,MobileNumber,Email,OpeningBalance,GSTIN,PANNumber,PartyType,PartyCategory,BillingAddress,ShippingAddress,CreditPeriod,CreditLimit,ContactPersonName,DateOfBirth,AccountNumber,IFSC,BranchName,AccountHolderName,UPI
+Radhira Retail,9876543210,accounts@radhira.com,1500.00,22AAAAA0000A1Z5,AAAAA0000A,Customer,Retail,"12 Market Road, Chennai, TN 600001","12 Market Road, Chennai, TN 600001",30,50000.00,Anita Kumar,1992-03-14,123456789012,HDFC0001234,T Nagar,Anita Kumar,anita@upi
+Sri Ganesh Traders,9123456780,,0.00,,ABCDE1234F,Vendor,Wholesale,"Plot 9, Industrial Area, Bengaluru, KA 560001","Warehouse 2, Industrial Area, Bengaluru, KA 560001",15,25000.00,Rahul Sharma,1988-11-02,998877665544,SBIN0000456,MG Road,Rahul Sharma,rahul@upi
+BlueStone Distributors,,,,,,Both,Distributor,"Dock Yard Street, Mumbai, MH 400001",,0,,Priya Nair,1995-07-22,,,,,
