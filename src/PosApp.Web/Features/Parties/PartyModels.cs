@@ -4,7 +4,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PosApp.Web.Features.Parties;
 
-public sealed record PartyLookupOption(int Id, string Name);
+public sealed record PartyTypeOption(int PartyTypeId, string TypeName);
+public sealed record PartyCategoryOption(int PartyCategoryId, string CategoryName);
 
 public sealed class PartyCreateRequest : IValidatableObject
 {

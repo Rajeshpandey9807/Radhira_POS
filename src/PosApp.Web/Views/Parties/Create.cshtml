@@ -94,7 +94,7 @@
                 return ok;
             };
 
-            const populateSelect = (select, items) => {
+            const populateSelect = (select, items, idKey, nameKey) => {
                 if (!select) return;
                 const current = select.value;
                 select.innerHTML = '';
@@ -104,8 +104,8 @@
                 select.appendChild(placeholder);
                 (items || []).forEach((it) => {
                     const opt = document.createElement('option');
-                    opt.value = String(it.id);
-                    opt.textContent = it.name;
+                    opt.value = String(it[idKey]);
+                    opt.textContent = it[nameKey];
                     select.appendChild(opt);
                 });
                 // preserve current if still present
@@ -124,8 +124,8 @@
                     const res = await fetch('@Url.Action("Lookups", "Parties")', { headers: { 'Accept': 'application/json' } });
                     if (!res.ok) throw new Error('Failed to load dropdowns.');
                     const data = await res.json();
-                    populateSelect(form.querySelector('#PartyTypeId'), data.partyTypes);
-                    populateSelect(form.querySelector('#PartyCategoryId'), data.partyCategories);
+                    populateSelect(form.querySelector('#PartyTypeId'), data.partyTypes, 'partyTypeId', 'typeName');
+                    populateSelect(form.querySelector('#PartyCategoryId'), data.partyCategories, 'partyCategoryId', 'categoryName');
                 } catch (e) {
                     toast('Unable to load dropdown data. Please refresh.', true);
                 }

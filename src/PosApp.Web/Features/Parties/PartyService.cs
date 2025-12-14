@@ -18,26 +18,22 @@ public sealed class PartyService
         _connectionFactory = connectionFactory;
     }
 
-    public async Task<IReadOnlyList<PartyLookupOption>> GetPartyTypesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PartyTypeOption>> GetPartyTypesAsync(CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        return await QueryLookupAsync(
-            connection,
-            tableName: "PartyTypes",
-            idColumn: "PartyTypeId",
-            nameColumnCandidates: new[] { "TypeName", "PartyTypeName", "Name" },
-            cancellationToken: cancellationToken);
+        const string sql = @"SELECT PartyTypeId, TypeName
+                             FROM PartyTypes
+                             ORDER BY TypeName;";
+        var result = await connection.QueryAsync<PartyTypeOption>(new CommandDefinition(sql, cancellationToken: cancellationToken));
+        return result.ToList();
     }
 
-    public async Task<IReadOnlyList<PartyLookupOption>> GetPartyCategoriesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PartyCategoryOption>> GetPartyCategoriesAsync(CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        return await QueryLookupAsync(
-            connection,
-            tableName: "PartyCategories",
-            idColumn: "PartyCategoryId",
-            nameColumnCandidates: new[] { "CategoryName", "PartyCategoryName", "Name" },
-            cancellationToken: cancellationToken);
+        // Keep categories resilient across environments.
+        // Preferred column name is CategoryName, but older schemas may use PartyCategoryName.
+        return await QueryCategoryLookupAsync(connection, cancellationToken);
     }
 
     public async Task<int> CreateAsync(PartyCreateRequest request, int createdBy = 0, CancellationToken cancellationToken = default)
@@ -139,37 +135,22 @@ VALUES (@PartyId, @AccountNumber, @IFSC, @BranchName, @AccountHolderName, @UPI);
         }
     }
 
-    private static async Task<IReadOnlyList<PartyLookupOption>> QueryLookupAsync(
+    private static async Task<IReadOnlyList<PartyCategoryOption>> QueryCategoryLookupAsync(
         IDbConnection connection,
-        string tableName,
-        string idColumn,
-        IReadOnlyList<string> nameColumnCandidates,
         CancellationToken cancellationToken)
     {
-        // We can't parameterize identifiers; keep this safe by only allowing known column names.
-        string PickCandidate(IEnumerable<string> existing)
-        {
-            var set = existing.ToHashSet(StringComparer.OrdinalIgnoreCase);
-            foreach (var candidate in nameColumnCandidates)
-            {
-                if (set.Contains(candidate))
-                {
-                    return candidate;
-                }
-            }
-            return string.Empty;
-        }
-
         var providerName = connection.GetType().Name;
         var isSqlite = providerName.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
 
-        string nameColumn;
+        string nameColumn = string.Empty;
         if (isSqlite)
         {
             // SQLite: use PRAGMA table_info to discover columns.
             var pragmaSql = "SELECT name FROM pragma_table_info(@TableName);";
-            var columns = await connection.QueryAsync<string>(new CommandDefinition(pragmaSql, new { TableName = tableName }, cancellationToken: cancellationToken));
-            nameColumn = PickCandidate(columns);
+            var columns = (await connection.QueryAsync<string>(new CommandDefinition(pragmaSql, new { TableName = "PartyCategories" }, cancellationToken: cancellationToken)))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (columns.Contains("CategoryName")) nameColumn = "CategoryName";
+            else if (columns.Contains("PartyCategoryName")) nameColumn = "PartyCategoryName";
         }
         else
         {
@@ -179,19 +160,21 @@ SELECT COLUMN_NAME
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA = 'dbo'
   AND TABLE_NAME = @TableName;";
-            var columns = await connection.QueryAsync<string>(new CommandDefinition(columnsSql, new { TableName = tableName }, cancellationToken: cancellationToken));
-            nameColumn = PickCandidate(columns);
+            var columns = (await connection.QueryAsync<string>(new CommandDefinition(columnsSql, new { TableName = "PartyCategories" }, cancellationToken: cancellationToken)))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (columns.Contains("CategoryName")) nameColumn = "CategoryName";
+            else if (columns.Contains("PartyCategoryName")) nameColumn = "PartyCategoryName";
         }
 
         if (string.IsNullOrWhiteSpace(nameColumn))
         {
-            throw new InvalidOperationException($"Could not locate a name column for {tableName}. Tried: {string.Join(", ", nameColumnCandidates)}");
+            throw new InvalidOperationException("Could not locate a name column for PartyCategories. Tried: CategoryName, PartyCategoryName");
         }
 
-        var sql = $@"SELECT {idColumn} AS Id, {nameColumn} AS Name
-                     FROM {tableName}
+        var sql = $@"SELECT PartyCategoryId, {nameColumn} AS CategoryName
+                     FROM PartyCategories
                      ORDER BY {nameColumn};";
-        var result = await connection.QueryAsync<PartyLookupOption>(new CommandDefinition(sql, cancellationToken: cancellationToken));
+        var result = await connection.QueryAsync<PartyCategoryOption>(new CommandDefinition(sql, cancellationToken: cancellationToken));
         return result.ToList();
     }
 }
