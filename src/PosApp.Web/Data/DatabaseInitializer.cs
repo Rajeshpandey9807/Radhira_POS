@@ -184,10 +184,23 @@ BEGIN
         PANNumber NVARCHAR(20) NULL,
         PartyTypeId INT NOT NULL,
         PartyCategoryId INT NOT NULL,
+        CreatedBy INT NOT NULL CONSTRAINT DF_Parties_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_Parties_CreatedOn DEFAULT SYSUTCDATETIME(),
+        UpdatedBy INT NULL,
+        UpdatedOn DATETIME2 NULL,
         CONSTRAINT FK_Parties_PartyTypes FOREIGN KEY (PartyTypeId) REFERENCES dbo.PartyTypes(PartyTypeId),
         CONSTRAINT FK_Parties_PartyCategories FOREIGN KEY (PartyCategoryId) REFERENCES dbo.PartyCategories(PartyCategoryId)
     );
 END
+
+IF COL_LENGTH('dbo.Parties', 'CreatedBy') IS NULL
+    ALTER TABLE dbo.Parties ADD CreatedBy INT NOT NULL CONSTRAINT DF_Parties_CreatedBy_Alt DEFAULT(0);
+IF COL_LENGTH('dbo.Parties', 'CreatedOn') IS NULL
+    ALTER TABLE dbo.Parties ADD CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_Parties_CreatedOn_Alt DEFAULT SYSUTCDATETIME();
+IF COL_LENGTH('dbo.Parties', 'UpdatedBy') IS NULL
+    ALTER TABLE dbo.Parties ADD UpdatedBy INT NULL;
+IF COL_LENGTH('dbo.Parties', 'UpdatedOn') IS NULL
+    ALTER TABLE dbo.Parties ADD UpdatedOn DATETIME2 NULL;
 
 IF OBJECT_ID('dbo.PartyAddresses', 'U') IS NULL
 BEGIN
@@ -199,10 +212,17 @@ BEGIN
         Address NVARCHAR(500) NULL,
         CreditPeriod INT NULL,
         CreditLimit DECIMAL(18,2) NULL,
+        CreatedBy INT NOT NULL CONSTRAINT DF_PartyAddresses_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyAddresses_CreatedOn DEFAULT SYSUTCDATETIME(),
         CONSTRAINT FK_PartyAddresses_Parties FOREIGN KEY (PartyId) REFERENCES dbo.Parties(PartyId) ON DELETE CASCADE
     );
     CREATE INDEX IX_PartyAddresses_PartyId ON dbo.PartyAddresses(PartyId);
 END
+
+IF COL_LENGTH('dbo.PartyAddresses', 'CreatedBy') IS NULL
+    ALTER TABLE dbo.PartyAddresses ADD CreatedBy INT NOT NULL CONSTRAINT DF_PartyAddresses_CreatedBy_Alt DEFAULT(0);
+IF COL_LENGTH('dbo.PartyAddresses', 'CreatedOn') IS NULL
+    ALTER TABLE dbo.PartyAddresses ADD CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyAddresses_CreatedOn_Alt DEFAULT SYSUTCDATETIME();
 
 IF OBJECT_ID('dbo.PartyContacts', 'U') IS NULL
 BEGIN
@@ -212,10 +232,17 @@ BEGIN
         PartyId INT NOT NULL,
         ContactPersonName NVARCHAR(200) NULL,
         DateOfBirth DATE NULL,
+        CreatedBy INT NOT NULL CONSTRAINT DF_PartyContacts_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyContacts_CreatedOn DEFAULT SYSUTCDATETIME(),
         CONSTRAINT FK_PartyContacts_Parties FOREIGN KEY (PartyId) REFERENCES dbo.Parties(PartyId) ON DELETE CASCADE
     );
     CREATE INDEX IX_PartyContacts_PartyId ON dbo.PartyContacts(PartyId);
 END
+
+IF COL_LENGTH('dbo.PartyContacts', 'CreatedBy') IS NULL
+    ALTER TABLE dbo.PartyContacts ADD CreatedBy INT NOT NULL CONSTRAINT DF_PartyContacts_CreatedBy_Alt DEFAULT(0);
+IF COL_LENGTH('dbo.PartyContacts', 'CreatedOn') IS NULL
+    ALTER TABLE dbo.PartyContacts ADD CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyContacts_CreatedOn_Alt DEFAULT SYSUTCDATETIME();
 
 IF OBJECT_ID('dbo.PartyBankDetails', 'U') IS NULL
 BEGIN
@@ -228,10 +255,17 @@ BEGIN
         BranchName NVARCHAR(120) NULL,
         AccountHolderName NVARCHAR(200) NULL,
         UPI NVARCHAR(80) NULL,
+        CreatedBy INT NOT NULL CONSTRAINT DF_PartyBankDetails_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyBankDetails_CreatedOn DEFAULT SYSUTCDATETIME(),
         CONSTRAINT FK_PartyBankDetails_Parties FOREIGN KEY (PartyId) REFERENCES dbo.Parties(PartyId) ON DELETE CASCADE
     );
     CREATE INDEX IX_PartyBankDetails_PartyId ON dbo.PartyBankDetails(PartyId);
 END
+
+IF COL_LENGTH('dbo.PartyBankDetails', 'CreatedBy') IS NULL
+    ALTER TABLE dbo.PartyBankDetails ADD CreatedBy INT NOT NULL CONSTRAINT DF_PartyBankDetails_CreatedBy_Alt DEFAULT(0);
+IF COL_LENGTH('dbo.PartyBankDetails', 'CreatedOn') IS NULL
+    ALTER TABLE dbo.PartyBankDetails ADD CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyBankDetails_CreatedOn_Alt DEFAULT SYSUTCDATETIME();
 
 /* Seed master data if empty */
 IF NOT EXISTS (SELECT 1 FROM dbo.PartyTypes)

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -55,7 +56,7 @@ public class PartiesController : Controller
 
         try
         {
-            var partyId = await _partyService.CreateAsync(model, createdBy: 0, cancellationToken: cancellationToken);
+            var partyId = await _partyService.CreateAsync(model, createdBy: GetActorId(), cancellationToken: cancellationToken);
 
             if (WantsJson())
             {
@@ -110,6 +111,20 @@ public class PartiesController : Controller
             .ToDictionary(
                 kvp => kvp.Key,
                 kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
+    }
+
+    private int GetActorId()
+    {
+        if (User?.Identity?.IsAuthenticated == true)
+        {
+            var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(idValue, out var actorId))
+            {
+                return actorId;
+            }
+        }
+
+        return 0;
     }
 }
 

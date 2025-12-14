@@ -44,8 +44,8 @@ public sealed class PartyService
         try
         {
             const string insertPartySql = @"
-INSERT INTO Parties (PartyName, MobileNumber, Email, OpeningBalance, GSTIN, PANNumber, PartyTypeId, PartyCategoryId)
-VALUES (@PartyName, @MobileNumber, @Email, @OpeningBalance, @GSTIN, @PANNumber, @PartyTypeId, @PartyCategoryId);
+INSERT INTO Parties (PartyName, MobileNumber, Email, OpeningBalance, GSTIN, PANNumber, PartyTypeId, PartyCategoryId, CreatedBy)
+VALUES (@PartyName, @MobileNumber, @Email, @OpeningBalance, @GSTIN, @PANNumber, @PartyTypeId, @PartyCategoryId, @CreatedBy);
 SELECT CAST(SCOPE_IDENTITY() AS int);";
 
             var partyId = await connection.ExecuteScalarAsync<int>(new CommandDefinition(insertPartySql, new
@@ -57,12 +57,13 @@ SELECT CAST(SCOPE_IDENTITY() AS int);";
                 GSTIN = request.GSTIN?.Trim(),
                 PANNumber = request.PANNumber?.Trim(),
                 PartyTypeId = request.PartyTypeId,
-                PartyCategoryId = request.PartyCategoryId
+                PartyCategoryId = request.PartyCategoryId,
+                CreatedBy = createdBy
             }, transaction: transaction, cancellationToken: cancellationToken));
 
             const string insertAddressSql = @"
-INSERT INTO PartyAddresses (PartyId, AddressType, Address, CreditPeriod, CreditLimit)
-VALUES (@PartyId, @AddressType, @Address, @CreditPeriod, @CreditLimit);";
+INSERT INTO PartyAddresses (PartyId, AddressType, Address, CreditPeriod, CreditLimit, CreatedBy)
+VALUES (@PartyId, @AddressType, @Address, @CreditPeriod, @CreditLimit, @CreatedBy);";
 
             // Billing
             if (!string.IsNullOrWhiteSpace(request.BillingAddress) || request.CreditPeriod.HasValue || request.CreditLimit.HasValue)
@@ -73,7 +74,8 @@ VALUES (@PartyId, @AddressType, @Address, @CreditPeriod, @CreditLimit);";
                     AddressType = "Billing",
                     Address = request.BillingAddress?.Trim(),
                     CreditPeriod = request.CreditPeriod,
-                    CreditLimit = request.CreditLimit
+                    CreditLimit = request.CreditLimit,
+                    CreatedBy = createdBy
                 }, transaction: transaction, cancellationToken: cancellationToken));
             }
 
@@ -86,13 +88,14 @@ VALUES (@PartyId, @AddressType, @Address, @CreditPeriod, @CreditLimit);";
                     AddressType = "Shipping",
                     Address = request.ShippingAddress?.Trim(),
                     CreditPeriod = request.CreditPeriod,
-                    CreditLimit = request.CreditLimit
+                    CreditLimit = request.CreditLimit,
+                    CreatedBy = createdBy
                 }, transaction: transaction, cancellationToken: cancellationToken));
             }
 
             const string insertContactSql = @"
-INSERT INTO PartyContacts (PartyId, ContactPersonName, DateOfBirth)
-VALUES (@PartyId, @ContactPersonName, @DateOfBirth);";
+INSERT INTO PartyContacts (PartyId, ContactPersonName, DateOfBirth, CreatedBy)
+VALUES (@PartyId, @ContactPersonName, @DateOfBirth, @CreatedBy);";
 
             if (!string.IsNullOrWhiteSpace(request.ContactPersonName) || request.DateOfBirth.HasValue)
             {
@@ -100,13 +103,14 @@ VALUES (@PartyId, @ContactPersonName, @DateOfBirth);";
                 {
                     PartyId = partyId,
                     ContactPersonName = request.ContactPersonName?.Trim(),
-                    DateOfBirth = request.DateOfBirth
+                    DateOfBirth = request.DateOfBirth,
+                    CreatedBy = createdBy
                 }, transaction: transaction, cancellationToken: cancellationToken));
             }
 
             const string insertBankSql = @"
-INSERT INTO PartyBankDetails (PartyId, AccountNumber, IFSC, BranchName, AccountHolderName, UPI)
-VALUES (@PartyId, @AccountNumber, @IFSC, @BranchName, @AccountHolderName, @UPI);";
+INSERT INTO PartyBankDetails (PartyId, AccountNumber, IFSC, BranchName, AccountHolderName, UPI, CreatedBy)
+VALUES (@PartyId, @AccountNumber, @IFSC, @BranchName, @AccountHolderName, @UPI, @CreatedBy);";
 
             if (!string.IsNullOrWhiteSpace(request.AccountNumber)
                 || !string.IsNullOrWhiteSpace(request.IFSC)
@@ -121,7 +125,8 @@ VALUES (@PartyId, @AccountNumber, @IFSC, @BranchName, @AccountHolderName, @UPI);
                     IFSC = request.IFSC?.Trim(),
                     BranchName = request.BranchName?.Trim(),
                     AccountHolderName = request.AccountHolderName?.Trim(),
-                    UPI = request.UPI?.Trim()
+                    UPI = request.UPI?.Trim(),
+                    CreatedBy = createdBy
                 }, transaction: transaction, cancellationToken: cancellationToken));
             }
 
