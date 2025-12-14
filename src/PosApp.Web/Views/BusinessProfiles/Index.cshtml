@@ -214,6 +214,27 @@
                 });
             }
 
+            function wireExistingImage(imgId, placeholderId) {
+                var img = document.getElementById(imgId);
+                var placeholder = document.getElementById(placeholderId);
+                if (!img) return;
+
+                var src = img.getAttribute("data-existing-src");
+                if (!src) return;
+
+                img.onload = function () {
+                    img.style.display = "block";
+                    if (placeholder) placeholder.style.display = "none";
+                };
+                img.onerror = function () {
+                    img.style.display = "none";
+                    img.removeAttribute("src");
+                    if (placeholder) placeholder.style.display = "block";
+                };
+
+                img.src = src;
+            }
+
             function syncGstNumberVisibility() {
                 var gstSelect = document.getElementById("IsGstRegistered");
                 var gstGroup = document.getElementById("gstNumberGroup");
@@ -230,6 +251,8 @@
                 }
             }
 
+            wireExistingImage("BusinessLogoPreview", "BusinessLogoPlaceholder");
+            wireExistingImage("SignaturePreview", "SignaturePlaceholder");
             wireImagePreview("BusinessLogoFile", "BusinessLogoPreview", "BusinessLogoPlaceholder");
             wireImagePreview("SignatureFile", "SignaturePreview", "SignaturePlaceholder");
 

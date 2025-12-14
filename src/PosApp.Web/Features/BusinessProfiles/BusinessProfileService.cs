@@ -23,7 +23,7 @@ public sealed class BusinessProfileService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         var isSqlite = connection.GetType().Name.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
-        var sqlServerSchema = isSqlite ? (SqlServerBusinessSchema?)null : await GetSqlServerBusinessSchemaAsync(connection, cancellationToken);
+        var sqlServerSchema = isSqlite ? (SqlServerBusinessSchema?)null : await GetSqlServerBusinessSchemaAsync(connection, transaction: null, cancellationToken);
 
         var businessSql = isSqlite
             ? @"SELECT BusinessId, BusinessName, CompanyPhoneNumber, CompanyEmail,
@@ -56,9 +56,8 @@ public sealed class BusinessProfileService
         {
             if (sqlServerSchema?.HasBusinessAddressesTable == true)
             {
-                const string addressSql = @"SELECT BusinessAddressId, BusinessId, BillingAddress, City, Pincode, StateId
-                                            FROM BusinessAddresses
-                                            WHERE BusinessId = @BusinessId";
+                var addressSchema = await GetSqlServerBusinessAddressSchemaAsync(connection, transaction: null, cancellationToken);
+                var addressSql = BuildSqlServerAddressSelect(addressSchema);
                 address = await connection.QuerySingleOrDefaultAsync<AddressRow>(
                     new CommandDefinition(addressSql, new { business.BusinessId }, cancellationToken: cancellationToken));
             }
@@ -117,7 +116,7 @@ public sealed class BusinessProfileService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         var isSqlite = connection.GetType().Name.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
-        SqlServerBusinessSchema? sqlServerSchema = isSqlite ? null : await GetSqlServerBusinessSchemaAsync(connection, cancellationToken);
+        SqlServerBusinessSchema? sqlServerSchema = isSqlite ? null : await GetSqlServerBusinessSchemaAsync(connection, transaction: null, cancellationToken);
         using var transaction = connection.BeginTransaction();
 
         try
@@ -150,6 +149,116 @@ public sealed class BusinessProfileService
             transaction.Rollback();
             throw;
         }
+    }
+
+    public async Task<ImagePayload?> GetBusinessLogoAsync(int businessId, CancellationToken cancellationToken = default)
+    {
+        using var connection = await _connectionFactory.CreateConnectionAsync();
+        var isSqlite = connection.GetType().Name.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
+
+        if (isSqlite)
+        {
+            const string sql = @"SELECT LogoContentType AS ContentType, LogoData AS Data
+                                 FROM Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            return await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+        }
+
+        var schema = await GetSqlServerBusinessSchemaAsync(connection, transaction: null, cancellationToken);
+        if (schema.HasDetailedLogoColumns)
+        {
+            const string sql = @"SELECT LogoContentType AS ContentType, LogoData AS Data
+                                 FROM dbo.Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            var payload = await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+
+            if (payload is null || payload.Data is null || payload.Data.Length == 0)
+            {
+                return null;
+            }
+
+            payload.ContentType ??= InferImageContentType(payload.Data);
+            return payload;
+        }
+
+        if (schema.HasBusinessLogoColumn)
+        {
+            const string sql = @"SELECT BusinessLogo AS Data
+                                 FROM dbo.Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            var payload = await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+
+            if (payload is null || payload.Data is null || payload.Data.Length == 0)
+            {
+                return null;
+            }
+
+            payload.ContentType = InferImageContentType(payload.Data);
+            return payload;
+        }
+
+        return null;
+    }
+
+    public async Task<ImagePayload?> GetSignatureAsync(int businessId, CancellationToken cancellationToken = default)
+    {
+        using var connection = await _connectionFactory.CreateConnectionAsync();
+        var isSqlite = connection.GetType().Name.Contains("Sqlite", StringComparison.OrdinalIgnoreCase);
+
+        if (isSqlite)
+        {
+            const string sql = @"SELECT SignatureContentType AS ContentType, SignatureData AS Data
+                                 FROM Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            return await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+        }
+
+        var schema = await GetSqlServerBusinessSchemaAsync(connection, transaction: null, cancellationToken);
+        if (schema.HasDetailedSignatureColumns)
+        {
+            const string sql = @"SELECT SignatureContentType AS ContentType, SignatureData AS Data
+                                 FROM dbo.Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            var payload = await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+
+            if (payload is null || payload.Data is null || payload.Data.Length == 0)
+            {
+                return null;
+            }
+
+            payload.ContentType ??= InferImageContentType(payload.Data);
+            return payload;
+        }
+
+        if (schema.HasSignatureColumn)
+        {
+            const string sql = @"SELECT Signature AS Data
+                                 FROM dbo.Businesses
+                                 WHERE BusinessId = @BusinessId;";
+
+            var payload = await connection.QuerySingleOrDefaultAsync<ImagePayload>(
+                new CommandDefinition(sql, new { BusinessId = businessId }, cancellationToken: cancellationToken));
+
+            if (payload is null || payload.Data is null || payload.Data.Length == 0)
+            {
+                return null;
+            }
+
+            payload.ContentType = InferImageContentType(payload.Data);
+            return payload;
+        }
+
+        return null;
     }
 
     private static async Task<int> InsertBusinessAsync(
@@ -208,6 +317,7 @@ public sealed class BusinessProfileService
         parameters.Add("SignatureContentType", model.SignatureFile?.ContentType);
         parameters.Add("SignatureData", signatureBytes, dbType: DbType.Binary);
         parameters.Add("Signature", signatureBytes, dbType: DbType.Binary);
+        parameters.Add("UserId", actorId);
         parameters.Add("ActorId", actorId);
 
         var newId = await connection.ExecuteScalarAsync<long>(new CommandDefinition(insertSql, parameters, transaction: transaction, cancellationToken: cancellationToken));
@@ -272,6 +382,7 @@ public sealed class BusinessProfileService
         parameters.Add("SignatureContentType", model.SignatureFile?.ContentType);
         parameters.Add("SignatureData", signatureBytes, dbType: DbType.Binary);
         parameters.Add("Signature", signatureBytes, dbType: DbType.Binary);
+        parameters.Add("UserId", actorId);
         parameters.Add("ActorId", actorId);
 
         await connection.ExecuteAsync(new CommandDefinition(sql, parameters, transaction: transaction, cancellationToken: cancellationToken));
@@ -342,6 +453,11 @@ public sealed class BusinessProfileService
         int actorId,
         CancellationToken cancellationToken)
     {
+        // If we are in a SQL Server transaction, any metadata queries must be enlisted too.
+        SqlServerBusinessAddressSchema? sqlServerAddressSchema = isSqlite
+            ? null
+            : await GetSqlServerBusinessAddressSchemaAsync(connection, transaction, cancellationToken);
+
         const string existsSql = @"SELECT COUNT(1) FROM BusinessAddresses WHERE BusinessId = @BusinessId;";
         var exists = await connection.ExecuteScalarAsync<long>(new CommandDefinition(existsSql, new { BusinessId = businessId }, transaction: transaction, cancellationToken: cancellationToken));
 
@@ -356,14 +472,7 @@ public sealed class BusinessProfileService
                         UpdatedBy = @ActorId,
                         UpdatedOn = CURRENT_TIMESTAMP
                     WHERE BusinessId = @BusinessId;"
-                : @"UPDATE BusinessAddresses
-                    SET BillingAddress = @BillingAddress,
-                        City = @City,
-                        Pincode = @Pincode,
-                        StateId = @StateId,
-                        UpdatedBy = @ActorId,
-                        UpdatedOn = SYSUTCDATETIME()
-                    WHERE BusinessId = @BusinessId;";
+                : BuildSqlServerAddressUpdate(sqlServerAddressSchema ?? await GetSqlServerBusinessAddressSchemaAsync(connection, transaction, cancellationToken));
 
             await connection.ExecuteAsync(new CommandDefinition(updateSql, new
             {
@@ -382,10 +491,7 @@ public sealed class BusinessProfileService
                         (BusinessId, BillingAddress, City, Pincode, StateId, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn)
                     VALUES
                         (@BusinessId, @BillingAddress, @City, @Pincode, @StateId, @ActorId, CURRENT_TIMESTAMP, @ActorId, CURRENT_TIMESTAMP);"
-                : @"INSERT INTO BusinessAddresses
-                        (BusinessId, BillingAddress, City, Pincode, StateId, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn)
-                    VALUES
-                        (@BusinessId, @BillingAddress, @City, @Pincode, @StateId, @ActorId, SYSUTCDATETIME(), @ActorId, SYSUTCDATETIME());";
+                : BuildSqlServerAddressInsert(sqlServerAddressSchema ?? await GetSqlServerBusinessAddressSchemaAsync(connection, transaction, cancellationToken));
 
             await connection.ExecuteAsync(new CommandDefinition(insertSql, new
             {
@@ -467,6 +573,47 @@ public sealed class BusinessProfileService
         public string? City { get; set; }
         public string? Pincode { get; set; }
         public int? StateId { get; set; }
+    }
+
+    public sealed class ImagePayload
+    {
+        public string? ContentType { get; set; }
+        public byte[]? Data { get; set; }
+    }
+
+    private static string InferImageContentType(byte[] data)
+    {
+        // PNG
+        if (data.Length >= 8 &&
+            data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47 &&
+            data[4] == 0x0D && data[5] == 0x0A && data[6] == 0x1A && data[7] == 0x0A)
+        {
+            return "image/png";
+        }
+
+        // JPEG
+        if (data.Length >= 3 && data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF)
+        {
+            return "image/jpeg";
+        }
+
+        // GIF
+        if (data.Length >= 6 &&
+            data[0] == (byte)'G' && data[1] == (byte)'I' && data[2] == (byte)'F' &&
+            data[3] == (byte)'8' && (data[4] == (byte)'7' || data[4] == (byte)'9') && data[5] == (byte)'a')
+        {
+            return "image/gif";
+        }
+
+        // WEBP (RIFF....WEBP)
+        if (data.Length >= 12 &&
+            data[0] == (byte)'R' && data[1] == (byte)'I' && data[2] == (byte)'F' && data[3] == (byte)'F' &&
+            data[8] == (byte)'W' && data[9] == (byte)'E' && data[10] == (byte)'B' && data[11] == (byte)'P')
+        {
+            return "image/webp";
+        }
+
+        return "application/octet-stream";
     }
 
     private static int? FirstOrNull(IEnumerable<int>? values)
@@ -558,6 +705,12 @@ public sealed class BusinessProfileService
             "@AdditionalInfo"
         };
 
+        if (schema.HasUserIdColumn)
+        {
+            columns.Add("UserId");
+            values.Add("@UserId");
+        }
+
         if (schema.HasBusinessTypeIdColumn)
         {
             columns.Add("BusinessTypeId");
@@ -629,6 +782,11 @@ public sealed class BusinessProfileService
             "AdditionalInfo = @AdditionalInfo"
         };
 
+        if (schema.HasUserIdColumn)
+        {
+            sets.Add("UserId = @UserId");
+        }
+
         if (schema.HasBusinessTypeIdColumn)
         {
             sets.Add("BusinessTypeId = @BusinessTypeId");
@@ -680,11 +838,103 @@ public sealed class BusinessProfileService
                 WHERE BusinessId = @BusinessId;";
     }
 
+    private static string BuildSqlServerAddressSelect(SqlServerBusinessAddressSchema schema)
+    {
+        var selectCols = new List<string>();
+
+        if (schema.HasBusinessAddressIdColumn)
+        {
+            selectCols.Add("BusinessAddressId");
+        }
+
+        selectCols.Add("BusinessId");
+
+        selectCols.Add($"{schema.BillingAddressColumn} AS BillingAddress");
+        selectCols.Add($"{schema.CityColumn} AS City");
+        selectCols.Add($"{schema.PincodeColumn} AS Pincode");
+        selectCols.Add($"{schema.StateIdColumn} AS StateId");
+
+        return $@"SELECT {string.Join(", ", selectCols)}
+                FROM BusinessAddresses
+                WHERE BusinessId = @BusinessId;";
+    }
+
+    private static string BuildSqlServerAddressUpdate(SqlServerBusinessAddressSchema schema)
+    {
+        var sets = new List<string>
+        {
+            $"{schema.BillingAddressColumn} = @BillingAddress",
+            $"{schema.CityColumn} = @City",
+            $"{schema.PincodeColumn} = @Pincode",
+            $"{schema.StateIdColumn} = @StateId"
+        };
+
+        if (schema.HasUpdatedByColumn)
+        {
+            sets.Add("UpdatedBy = @ActorId");
+        }
+
+        if (schema.HasUpdatedOnColumn)
+        {
+            sets.Add("UpdatedOn = SYSUTCDATETIME()");
+        }
+
+        return $@"UPDATE BusinessAddresses
+                SET {string.Join(",\n                    ", sets)}
+                WHERE BusinessId = @BusinessId;";
+    }
+
+    private static string BuildSqlServerAddressInsert(SqlServerBusinessAddressSchema schema)
+    {
+        var cols = new List<string> { "BusinessId" };
+        var vals = new List<string> { "@BusinessId" };
+
+        cols.Add(schema.BillingAddressColumnName);
+        vals.Add("@BillingAddress");
+
+        cols.Add(schema.CityColumnName);
+        vals.Add("@City");
+
+        cols.Add(schema.PincodeColumnName);
+        vals.Add("@Pincode");
+
+        cols.Add(schema.StateIdColumnName);
+        vals.Add("@StateId");
+
+        if (schema.HasCreatedByColumn)
+        {
+            cols.Add("CreatedBy");
+            vals.Add("@ActorId");
+        }
+
+        if (schema.HasCreatedOnColumn)
+        {
+            cols.Add("CreatedOn");
+            vals.Add("SYSUTCDATETIME()");
+        }
+
+        if (schema.HasUpdatedByColumn)
+        {
+            cols.Add("UpdatedBy");
+            vals.Add("@ActorId");
+        }
+
+        if (schema.HasUpdatedOnColumn)
+        {
+            cols.Add("UpdatedOn");
+            vals.Add("SYSUTCDATETIME()");
+        }
+
+        return $@"INSERT INTO BusinessAddresses ({string.Join(", ", cols)})
+                VALUES ({string.Join(", ", vals)});";
+    }
+
     private readonly record struct SqlServerBusinessSchema(
         bool HasDetailedLogoColumns,
         bool HasDetailedSignatureColumns,
         bool HasBusinessLogoColumn,
         bool HasSignatureColumn,
+        bool HasUserIdColumn,
         bool HasBusinessTypeIdColumn,
         bool HasStateIdColumn,
         bool HasPincodeColumn,
@@ -696,6 +946,7 @@ public sealed class BusinessProfileService
             HasDetailedSignatureColumns: true,
             HasBusinessLogoColumn: false,
             HasSignatureColumn: false,
+            HasUserIdColumn: false,
             HasBusinessTypeIdColumn: false,
             HasStateIdColumn: false,
             HasPincodeColumn: false,
@@ -703,7 +954,22 @@ public sealed class BusinessProfileService
             HasBusinessBusinessTypesTable: true);
     }
 
-    private static async Task<SqlServerBusinessSchema> GetSqlServerBusinessSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
+    private readonly record struct SqlServerBusinessAddressSchema(
+        string BillingAddressColumn,
+        string CityColumn,
+        string PincodeColumn,
+        string StateIdColumn,
+        string BillingAddressColumnName,
+        string CityColumnName,
+        string PincodeColumnName,
+        string StateIdColumnName,
+        bool HasBusinessAddressIdColumn,
+        bool HasCreatedByColumn,
+        bool HasCreatedOnColumn,
+        bool HasUpdatedByColumn,
+        bool HasUpdatedOnColumn);
+
+    private static async Task<SqlServerBusinessSchema> GetSqlServerBusinessSchemaAsync(IDbConnection connection, IDbTransaction? transaction, CancellationToken cancellationToken)
     {
         // Cache is intentionally omitted (schema checks are cheap vs requests volume in this app).
         const string columnsSql = @"
@@ -712,7 +978,7 @@ FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'Businesses';";
 
         var columnNames = (await connection.QueryAsync<string>(
-            new CommandDefinition(columnsSql, cancellationToken: cancellationToken))).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            new CommandDefinition(columnsSql, transaction: transaction, cancellationToken: cancellationToken))).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         const string tablesSql = @"
 SELECT
@@ -720,7 +986,7 @@ SELECT
     CASE WHEN OBJECT_ID('dbo.BusinessBusinessTypes', 'U') IS NULL THEN 0 ELSE 1 END AS HasBusinessBusinessTypes;";
 
         var tables = await connection.QuerySingleAsync<(int HasBusinessAddresses, int HasBusinessBusinessTypes)>(
-            new CommandDefinition(tablesSql, cancellationToken: cancellationToken));
+            new CommandDefinition(tablesSql, transaction: transaction, cancellationToken: cancellationToken));
 
         var hasDetailedLogo = columnNames.Contains("LogoFileName")
                              && columnNames.Contains("LogoContentType")
@@ -734,11 +1000,67 @@ SELECT
             HasDetailedSignatureColumns: hasDetailedSignature,
             HasBusinessLogoColumn: columnNames.Contains("BusinessLogo"),
             HasSignatureColumn: columnNames.Contains("Signature"),
+            HasUserIdColumn: columnNames.Contains("UserId"),
             HasBusinessTypeIdColumn: columnNames.Contains("BusinessTypeId"),
             HasStateIdColumn: columnNames.Contains("StateId"),
             HasPincodeColumn: columnNames.Contains("Pincode"),
             HasBusinessAddressesTable: tables.HasBusinessAddresses == 1,
             HasBusinessBusinessTypesTable: tables.HasBusinessBusinessTypes == 1);
+    }
+
+    private static async Task<SqlServerBusinessAddressSchema> GetSqlServerBusinessAddressSchemaAsync(IDbConnection connection, IDbTransaction? transaction, CancellationToken cancellationToken)
+    {
+        const string columnsSql = @"
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'BusinessAddresses';";
+
+        var columnNames = (await connection.QueryAsync<string>(
+            new CommandDefinition(columnsSql, transaction: transaction, cancellationToken: cancellationToken))).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Support legacy/alternate naming like Billing_address.
+        var billingName = columnNames.Contains("BillingAddress")
+            ? "BillingAddress"
+            : columnNames.Contains("Billing_address")
+                ? "Billing_address"
+                : "BillingAddress";
+
+        var cityName = columnNames.Contains("City")
+            ? "City"
+            : columnNames.Contains("City_name")
+                ? "City_name"
+                : "City";
+
+        var pincodeName = columnNames.Contains("Pincode")
+            ? "Pincode"
+            : columnNames.Contains("PinCode")
+                ? "PinCode"
+                : columnNames.Contains("Pin_code")
+                    ? "Pin_code"
+                    : "Pincode";
+
+        var stateIdName = columnNames.Contains("StateId")
+            ? "StateId"
+            : columnNames.Contains("State_id")
+                ? "State_id"
+                : "StateId";
+
+        static string Bracket(string name) => $"[{name}]";
+
+        return new SqlServerBusinessAddressSchema(
+            BillingAddressColumn: Bracket(billingName),
+            CityColumn: Bracket(cityName),
+            PincodeColumn: Bracket(pincodeName),
+            StateIdColumn: Bracket(stateIdName),
+            BillingAddressColumnName: Bracket(billingName),
+            CityColumnName: Bracket(cityName),
+            PincodeColumnName: Bracket(pincodeName),
+            StateIdColumnName: Bracket(stateIdName),
+            HasBusinessAddressIdColumn: columnNames.Contains("BusinessAddressId"),
+            HasCreatedByColumn: columnNames.Contains("CreatedBy"),
+            HasCreatedOnColumn: columnNames.Contains("CreatedOn"),
+            HasUpdatedByColumn: columnNames.Contains("UpdatedBy"),
+            HasUpdatedOnColumn: columnNames.Contains("UpdatedOn"));
     }
 }
 

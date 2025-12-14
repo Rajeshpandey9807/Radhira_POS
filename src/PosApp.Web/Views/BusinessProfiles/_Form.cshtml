@@ -16,7 +16,10 @@
                 <small class="bp-help">Recommended: square logo, PNG preferred.</small>
                 <div class="bp-preview">
                     <div id="BusinessLogoPlaceholder" class="bp-preview__placeholder">Logo preview will appear here</div>
-                    <img id="BusinessLogoPreview" alt="Business logo preview" style="display:none;" />
+                    <img id="BusinessLogoPreview"
+                         alt="Business logo preview"
+                         data-existing-src="@(Model.BusinessId.HasValue ? Url.Action("Logo", "BusinessProfiles", new { businessId = Model.BusinessId.Value }) : null)"
+                         style="display:none;" />
                 </div>
                 <span asp-validation-for="BusinessLogoFile"></span>
             </div>
@@ -27,7 +30,10 @@
                 <small class="bp-help">Used for invoice authorization (PNG/JPG).</small>
                 <div class="bp-preview">
                     <div id="SignaturePlaceholder" class="bp-preview__placeholder">Signature preview will appear here</div>
-                    <img id="SignaturePreview" alt="Signature preview" style="display:none;" />
+                    <img id="SignaturePreview"
+                         alt="Signature preview"
+                         data-existing-src="@(Model.BusinessId.HasValue ? Url.Action("Signature", "BusinessProfiles", new { businessId = Model.BusinessId.Value }) : null)"
+                         style="display:none;" />
                 </div>
                 <span asp-validation-for="SignatureFile"></span>
             </div>
