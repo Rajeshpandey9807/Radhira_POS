@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Parties";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Parties</p>
+        <h2>Parties</h2>
+        <p>Customers and vendors used across invoices, payments, and reports.</p>
+    </div>
+    <div class="hero-actions">
+        <a asp-action="Create" class="btn primary">New party</a>
+    </div>
+</section>
+
+<div class="trend-card">
+    <header>
+        <h3 style="margin: 0;">No parties yet</h3>
+        <a asp-action="Create">Create one</a>
+    </header>
+    <div class="empty">
+        Add your first party to start billing.
+    </div>
+</div>
+

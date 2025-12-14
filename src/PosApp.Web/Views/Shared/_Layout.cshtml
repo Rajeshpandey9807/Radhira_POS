@@ -27,7 +27,29 @@
 <body>
 @{
     var pageTitle = (ViewData["Title"] as string) ?? "Dashboard";
+    var currentController = (ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty);
+    bool IsActive(string controller) => string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase);
 }
+    <header class="top-nav" role="banner">
+        <nav class="top-nav__inner" aria-label="Primary navigation">
+            <a class="top-nav__link @(IsActive("Home") ? "is-active" : string.Empty)" asp-controller="Home" asp-action="Index">
+                Dashboard
+            </a>
+            <a class="top-nav__link @(IsActive("Parties") ? "is-active" : string.Empty)" asp-controller="Parties" asp-action="Index">
+                Parties
+            </a>
+            <a class="top-nav__link @(IsActive("Invoices") ? "is-active" : string.Empty)" asp-controller="Invoices" asp-action="Index">Invoices</a>
+            <a class="top-nav__link @(IsActive("Payments") ? "is-active" : string.Empty)" asp-controller="Payments" asp-action="Index">Payments</a>
+            <a class="top-nav__link @(IsActive("Reports") ? "is-active" : string.Empty)" asp-controller="Reports" asp-action="Index">Reports</a>
+            <button type="button"
+                    class="top-nav__link top-nav__link--button"
+                    data-settings-toggle
+                    aria-pressed="false"
+                    aria-label="Settings">
+                <span data-settings-toggle-label>Settings</span>
+            </button>
+        </nav>
+    </header>
     <div class="app-shell">
         <aside class="side-nav">
             <a class="brand" asp-controller="Home" asp-action="Index">Radhira POS</a>
@@ -45,8 +67,7 @@
                     <a asp-controller="Users" asp-action="Index">Team</a>
                     <a asp-controller="Users" asp-action="Create">Register USER</a>
                     <a asp-controller="Roles" asp-action="Index">Roles</a>
-                    <a href="#">Customer</a>
-                    <a href="#">Vendors</a>
+                    <a asp-controller="Parties" asp-action="Index">Parties</a>
                     <a href="#">Item</a>
                     <a href="#">Sales</a>
                     <a href="#">Purchase</a>

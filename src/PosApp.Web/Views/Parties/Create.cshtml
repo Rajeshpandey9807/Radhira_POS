@@ -1,0 +1,91 @@
+@model PartyFormViewModel
+@{
+    ViewData["Title"] = "Create party";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Parties</p>
+        <h2>Create party</h2>
+        <p>Capture all details once—use them everywhere in billing.</p>
+    </div>
+</section>
+
+<form asp-action="Create" method="post" class="wizard-form">
+    <partial name="_Form" model="Model" />
+
+    <div class="form-actions">
+        <a class="btn ghost" asp-action="Index">Cancel</a>
+        <button class="btn ghost" type="submit" name="submitAction" value="save-new">Save &amp; New</button>
+        <button class="btn primary" type="submit" name="submitAction" value="save">Save</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const billing = document.querySelector('[data-billing-address]');
+            const shipping = document.querySelector('[data-shipping-address]');
+            const checkbox = document.querySelector('[data-same-as-billing]');
+
+            if (!billing || !shipping || !checkbox) {
+                return;
+            }
+
+            const apply = () => {
+                const same = checkbox.checked;
+                if (same) {
+                    shipping.value = billing.value;
+                }
+                shipping.readOnly = same;
+            };
+
+            checkbox.addEventListener('change', apply);
+            billing.addEventListener('input', () => {
+                if (checkbox.checked) {
+                    shipping.value = billing.value;
+                }
+            });
+
+            apply();
+        })();
+
+        (() => {
+            const account = document.querySelector('[data-account-number]');
+            const confirm = document.querySelector('[data-account-number-confirm]');
+
+            if (!account || !confirm) {
+                return;
+            }
+
+            const validate = () => {
+                const a = (account.value || '').trim();
+                const b = (confirm.value || '').trim();
+
+                if (!a && !b) {
+                    confirm.setCustomValidity('');
+                    return;
+                }
+
+                if (a && !b) {
+                    confirm.setCustomValidity('Please re-enter the account number.');
+                    return;
+                }
+
+                if (!a && b) {
+                    confirm.setCustomValidity('Enter the account number first.');
+                    return;
+                }
+
+                confirm.setCustomValidity(a === b ? '' : 'Account numbers do not match.');
+            };
+
+            account.addEventListener('input', validate);
+            confirm.addEventListener('input', validate);
+            confirm.addEventListener('blur', validate);
+            validate();
+        })();
+    </script>
+}
+

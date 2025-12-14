@@ -1,0 +1,184 @@
+@model PartyFormViewModel
+
+<div class="card-stack">
+    <section class="card-form" aria-label="General details">
+        <header class="card-form__header">
+            <div>
+                <h3>General details</h3>
+                <p class="card-form__subtitle">Basic party identity, tax, and classification.</p>
+            </div>
+        </header>
+        <div class="form-grid">
+            <div class="field-group span-all">
+                <label asp-for="PartyName"></label>
+                <input asp-for="PartyName" placeholder="Enter party name" autocomplete="organization" />
+                <span asp-validation-for="PartyName"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="MobileNumber"></label>
+                <input asp-for="MobileNumber"
+                       placeholder="9876543210"
+                       inputmode="numeric"
+                       autocomplete="tel"
+                       pattern="[0-9]*" />
+                <span asp-validation-for="MobileNumber"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" placeholder="name@company.com" type="email" autocomplete="email" />
+                <span asp-validation-for="Email"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="OpeningBalance"></label>
+                <input asp-for="OpeningBalance" type="number" step="0.01" placeholder="0.00" />
+                <span asp-validation-for="OpeningBalance"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="Gstin"></label>
+                <input asp-for="Gstin" maxlength="15" placeholder="15-character GSTIN" autocapitalize="characters" />
+                <span asp-validation-for="Gstin"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="PanNumber"></label>
+                <input asp-for="PanNumber" placeholder="PAN number" autocapitalize="characters" />
+                <span asp-validation-for="PanNumber"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="PartyType"></label>
+                <select asp-for="PartyType">
+                    <option value="@((int)PartyType.Customer)">Customer</option>
+                    <option value="@((int)PartyType.Vendor)">Vendor</option>
+                    <option value="@((int)PartyType.Both)">Both</option>
+                </select>
+                <span asp-validation-for="PartyType"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="PartyCategory"></label>
+                <select asp-for="PartyCategory">
+                    <option value="@((int)PartyCategory.Retail)">Retail</option>
+                    <option value="@((int)PartyCategory.Wholesale)">Wholesale</option>
+                    <option value="@((int)PartyCategory.Distributor)">Distributor</option>
+                    <option value="@((int)PartyCategory.Other)">Other</option>
+                </select>
+                <span asp-validation-for="PartyCategory"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="card-form" aria-label="Address details">
+        <header class="card-form__header">
+            <div>
+                <h3>Address details</h3>
+                <p class="card-form__subtitle">Billing/shipping addresses and credit terms.</p>
+            </div>
+        </header>
+        <div class="form-grid">
+            <div class="field-group span-all">
+                <label asp-for="BillingAddress"></label>
+                <textarea asp-for="BillingAddress" placeholder="Street, city, state, PIN" data-billing-address></textarea>
+                <span asp-validation-for="BillingAddress"></span>
+            </div>
+
+            <div class="field-group span-all">
+                <label asp-for="ShippingAddress"></label>
+                <textarea asp-for="ShippingAddress" placeholder="Street, city, state, PIN" data-shipping-address></textarea>
+                <span asp-validation-for="ShippingAddress"></span>
+            </div>
+
+            <div class="field-group checkbox span-all">
+                <label>
+                    <input asp-for="SameAsBilling" data-same-as-billing />
+                    Same as Billing
+                </label>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="CreditPeriodDays"></label>
+                <input asp-for="CreditPeriodDays" type="number" min="0" step="1" placeholder="0" />
+                <span asp-validation-for="CreditPeriodDays"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="CreditLimit"></label>
+                <input asp-for="CreditLimit" type="number" step="0.01" placeholder="0.00" />
+                <span asp-validation-for="CreditLimit"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="card-form" aria-label="Contact person details">
+        <header class="card-form__header">
+            <div>
+                <h3>Contact person</h3>
+                <p class="card-form__subtitle">Optional point of contact for billing and follow-ups.</p>
+            </div>
+        </header>
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="ContactPersonName"></label>
+                <input asp-for="ContactPersonName" placeholder="Contact person name" autocomplete="name" />
+                <span asp-validation-for="ContactPersonName"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="DateOfBirth"></label>
+                <input asp-for="DateOfBirth" type="date" />
+                <span asp-validation-for="DateOfBirth"></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="card-form" aria-label="Bank details">
+        <header class="card-form__header">
+            <div>
+                <h3>Bank details</h3>
+                <p class="card-form__subtitle">Bank and UPI information for receipts and settlements.</p>
+            </div>
+        </header>
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="BankAccountNumber"></label>
+                <input asp-for="BankAccountNumber" placeholder="Account number" inputmode="numeric" autocomplete="off" data-account-number />
+                <span asp-validation-for="BankAccountNumber"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="ReEnterAccountNumber"></label>
+                <input asp-for="ReEnterAccountNumber" placeholder="Re-enter account number" inputmode="numeric" autocomplete="off" data-account-number-confirm />
+                <span asp-validation-for="ReEnterAccountNumber"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="IfscCode"></label>
+                <input asp-for="IfscCode" placeholder="IFSC" autocapitalize="characters" />
+                <span asp-validation-for="IfscCode"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="BranchName"></label>
+                <input asp-for="BranchName" placeholder="Branch" />
+                <span asp-validation-for="BranchName"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="AccountHolderName"></label>
+                <input asp-for="AccountHolderName" placeholder="Account holder name" />
+                <span asp-validation-for="AccountHolderName"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="UpiId"></label>
+                <input asp-for="UpiId" placeholder="name@upi" autocapitalize="none" />
+                <span asp-validation-for="UpiId"></span>
+            </div>
+        </div>
+    </section>
+</div>
+
