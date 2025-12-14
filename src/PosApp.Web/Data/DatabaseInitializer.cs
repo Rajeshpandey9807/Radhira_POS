@@ -27,8 +27,8 @@ public sealed class DatabaseInitializer
 
         if (!isSqlite)
         {
-            _logger.LogInformation("SQLite schema setup skipped for provider {ProviderName}. Ensuring Business Profile tables exist.", providerName);
-            await EnsureSqlServerBusinessProfileSchemaAsync(connection, cancellationToken);
+            _logger.LogInformation("SQLite schema setup skipped for provider {ProviderName}. Ensuring required SQL Server tables exist.", providerName);
+            await EnsureSqlServerSchemaAsync(connection, cancellationToken);
             return;
         }
 
@@ -71,10 +71,10 @@ public sealed class DatabaseInitializer
         await SeedDefaultsAsync(connection, cancellationToken);
     }
 
-    private static async Task EnsureSqlServerBusinessProfileSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
+    private static async Task EnsureSqlServerSchemaAsync(IDbConnection connection, CancellationToken cancellationToken)
     {
-        // Keep this minimal: only ensure the Business Profile tables exist for SQL Server environments.
-        // Other schema is assumed to be managed externally (as per existing app behavior).
+        // SQL Server environments: ensure any required tables exist.
+        // (This app uses Dapper + direct SQL rather than migrations.)
         var sql = @"
 IF OBJECT_ID('dbo.Businesses', 'U') IS NULL
 BEGIN
@@ -148,6 +148,136 @@ BEGIN
     IF OBJECT_ID('dbo.BusinessTypes', 'U') IS NOT NULL
         ALTER TABLE dbo.BusinessBusinessTypes WITH CHECK ADD CONSTRAINT FK_BusinessBusinessTypes_BusinessTypes
             FOREIGN KEY (BusinessTypeId) REFERENCES dbo.BusinessTypes(BusinessTypeId);
+END
+
+/* --------------------------
+   Parties (billing) schema
+   -------------------------- */
+IF OBJECT_ID('dbo.PartyTypes', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PartyTypes
+    (
+        PartyTypeId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        TypeName NVARCHAR(100) NOT NULL UNIQUE
+    );
+END
+
+IF OBJECT_ID('dbo.PartyCategories', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PartyCategories
+    (
+        PartyCategoryId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        CategoryName NVARCHAR(120) NOT NULL UNIQUE
+    );
+END
+
+IF OBJECT_ID('dbo.Parties', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Parties
+    (
+        PartyId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        PartyName NVARCHAR(200) NOT NULL,
+        MobileNumber NVARCHAR(30) NULL,
+        Email NVARCHAR(200) NULL,
+        OpeningBalance DECIMAL(18,2) NULL,
+        GSTIN NVARCHAR(20) NULL,
+        PANNumber NVARCHAR(20) NULL,
+        PartyTypeId INT NOT NULL,
+        PartyCategoryId INT NOT NULL,
+        CreatedBy INT NOT NULL CONSTRAINT DF_Parties_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_Parties_CreatedOn DEFAULT SYSUTCDATETIME(),
+        UpdatedBy INT NULL,
+        UpdatedOn DATETIME2 NULL,
+        CONSTRAINT FK_Parties_PartyTypes FOREIGN KEY (PartyTypeId) REFERENCES dbo.PartyTypes(PartyTypeId),
+        CONSTRAINT FK_Parties_PartyCategories FOREIGN KEY (PartyCategoryId) REFERENCES dbo.PartyCategories(PartyCategoryId)
+    );
+END
+
+IF COL_LENGTH('dbo.Parties', 'CreatedBy') IS NULL
+    ALTER TABLE dbo.Parties ADD CreatedBy INT NOT NULL CONSTRAINT DF_Parties_CreatedBy_Alt DEFAULT(0);
+IF COL_LENGTH('dbo.Parties', 'CreatedOn') IS NULL
+    ALTER TABLE dbo.Parties ADD CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_Parties_CreatedOn_Alt DEFAULT SYSUTCDATETIME();
+IF COL_LENGTH('dbo.Parties', 'UpdatedBy') IS NULL
+    ALTER TABLE dbo.Parties ADD UpdatedBy INT NULL;
+IF COL_LENGTH('dbo.Parties', 'UpdatedOn') IS NULL
+    ALTER TABLE dbo.Parties ADD UpdatedOn DATETIME2 NULL;
+
+IF OBJECT_ID('dbo.PartyAddresses', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PartyAddresses
+    (
+        PartyAddressId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        PartyId INT NOT NULL,
+        AddressType NVARCHAR(20) NOT NULL,
+        Address NVARCHAR(500) NULL,
+        CreditPeriod INT NULL,
+        CreditLimit DECIMAL(18,2) NULL,
+        CreatedBy INT NOT NULL CONSTRAINT DF_PartyAddresses_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyAddresses_CreatedOn DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_PartyAddresses_Parties FOREIGN KEY (PartyId) REFERENCES dbo.Parties(PartyId) ON DELETE CASCADE
+    );
+    CREATE INDEX IX_PartyAddresses_PartyId ON dbo.PartyAddresses(PartyId);
+END
+
+IF COL_LENGTH('dbo.PartyAddresses', 'CreatedBy') IS NULL
+    ALTER TABLE dbo.PartyAddresses ADD CreatedBy INT NOT NULL CONSTRAINT DF_PartyAddresses_CreatedBy_Alt DEFAULT(0);
+IF COL_LENGTH('dbo.PartyAddresses', 'CreatedOn') IS NULL
+    ALTER TABLE dbo.PartyAddresses ADD CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyAddresses_CreatedOn_Alt DEFAULT SYSUTCDATETIME();
+
+IF OBJECT_ID('dbo.PartyContacts', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PartyContacts
+    (
+        ContactId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        PartyId INT NOT NULL,
+        ContactPersonName NVARCHAR(200) NULL,
+        DateOfBirth DATE NULL,
+        CreatedBy INT NOT NULL CONSTRAINT DF_PartyContacts_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyContacts_CreatedOn DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_PartyContacts_Parties FOREIGN KEY (PartyId) REFERENCES dbo.Parties(PartyId) ON DELETE CASCADE
+    );
+    CREATE INDEX IX_PartyContacts_PartyId ON dbo.PartyContacts(PartyId);
+END
+
+IF COL_LENGTH('dbo.PartyContacts', 'CreatedBy') IS NULL
+    ALTER TABLE dbo.PartyContacts ADD CreatedBy INT NOT NULL CONSTRAINT DF_PartyContacts_CreatedBy_Alt DEFAULT(0);
+IF COL_LENGTH('dbo.PartyContacts', 'CreatedOn') IS NULL
+    ALTER TABLE dbo.PartyContacts ADD CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyContacts_CreatedOn_Alt DEFAULT SYSUTCDATETIME();
+
+IF OBJECT_ID('dbo.PartyBankDetails', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PartyBankDetails
+    (
+        BankDetailId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        PartyId INT NOT NULL,
+        AccountNumber NVARCHAR(50) NULL,
+        IFSC NVARCHAR(20) NULL,
+        BranchName NVARCHAR(120) NULL,
+        AccountHolderName NVARCHAR(200) NULL,
+        UPI NVARCHAR(80) NULL,
+        CreatedBy INT NOT NULL CONSTRAINT DF_PartyBankDetails_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyBankDetails_CreatedOn DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_PartyBankDetails_Parties FOREIGN KEY (PartyId) REFERENCES dbo.Parties(PartyId) ON DELETE CASCADE
+    );
+    CREATE INDEX IX_PartyBankDetails_PartyId ON dbo.PartyBankDetails(PartyId);
+END
+
+IF COL_LENGTH('dbo.PartyBankDetails', 'CreatedBy') IS NULL
+    ALTER TABLE dbo.PartyBankDetails ADD CreatedBy INT NOT NULL CONSTRAINT DF_PartyBankDetails_CreatedBy_Alt DEFAULT(0);
+IF COL_LENGTH('dbo.PartyBankDetails', 'CreatedOn') IS NULL
+    ALTER TABLE dbo.PartyBankDetails ADD CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_PartyBankDetails_CreatedOn_Alt DEFAULT SYSUTCDATETIME();
+
+/* Seed master data if empty */
+IF NOT EXISTS (SELECT 1 FROM dbo.PartyTypes)
+BEGIN
+    IF COL_LENGTH('dbo.PartyTypes', 'TypeName') IS NOT NULL
+        INSERT INTO dbo.PartyTypes (TypeName) VALUES (N'Customer'), (N'Vendor'), (N'Both');
+END
+
+IF NOT EXISTS (SELECT 1 FROM dbo.PartyCategories)
+BEGIN
+    IF COL_LENGTH('dbo.PartyCategories', 'CategoryName') IS NOT NULL
+        INSERT INTO dbo.PartyCategories (CategoryName) VALUES (N'Retail'), (N'Wholesale'), (N'Distributor'), (N'Other');
 END
 ";
 

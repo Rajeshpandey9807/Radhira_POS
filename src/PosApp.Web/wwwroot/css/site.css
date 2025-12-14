@@ -11,6 +11,7 @@
   --surface: #1b1d2d;
   --card: #23253a;
   --radius: 18px;
+  --top-nav-height: 68px;
 }
 
 * {
@@ -38,7 +39,7 @@ html, body {
 }
 
 body {
-  padding: 32px 0 80px;
+  padding: calc(32px + var(--top-nav-height)) 0 80px;
 }
 
 footer {
@@ -112,7 +113,81 @@ a:hover {
 }
 
 .top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--top-nav-height);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  background: rgba(17, 19, 34, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.top-nav__inner {
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.top-nav__inner::-webkit-scrollbar {
   display: none;
+}
+
+.top-nav__link {
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 0.45rem 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.top-nav__link:hover,
+.top-nav__link:focus-visible {
+  border-color: rgba(255, 128, 171, 0.55);
+  background: rgba(245, 0, 135, 0.14);
+  color: #fff;
+}
+
+.top-nav__link:active {
+  transform: scale(0.98);
+}
+
+.top-nav__link.is-active {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(120deg, var(--pink-500), var(--pink-300));
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(245, 0, 135, 0.25);
+}
+
+.top-nav__link--button {
+  font: inherit;
+}
+
+.top-nav__link.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.top-nav__link.is-disabled:hover,
+.top-nav__link.is-disabled:focus-visible {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .brand {
@@ -134,7 +209,7 @@ a:hover {
   flex-direction: column;
   gap: 24px;
   position: sticky;
-  top: 32px;
+  top: calc(32px + var(--top-nav-height));
   height: fit-content;
 }
 
@@ -471,6 +546,38 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   margin-top: 12px;
 }
 
+.card-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.card-stack .card-form {
+  margin-top: 0;
+}
+
+.card-form__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 18px;
+}
+
+.card-form__header h3 {
+  margin: 0;
+}
+
+.card-form__subtitle {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -485,6 +592,17 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   display: block;
   margin-bottom: 6px;
   font-weight: 600;
+}
+
+.required-mark {
+  color: var(--pink-300);
+  margin-left: 4px;
+  font-weight: 800;
+}
+
+.input-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .field-group {
@@ -877,6 +995,11 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
+.toast.is-error {
+  background: #d7263d;
+  box-shadow: 0 20px 35px rgba(215, 38, 61, 0.35);
+}
+
 .toast.hide {
   opacity: 0;
   transform: translateY(12px);
@@ -1117,6 +1240,29 @@ body.sidebar-collapsed .sidebar-toggle-icon::after {
 
 :root[data-theme="light"] .nav-settings-group__label {
   color: rgba(31, 33, 51, 0.6);
+}
+
+:root[data-theme="light"] .top-nav {
+  background: rgba(255, 255, 255, 0.78);
+  border-bottom-color: rgba(17, 19, 34, 0.1);
+}
+
+:root[data-theme="light"] .top-nav__link {
+  border-color: rgba(31, 33, 51, 0.18);
+  background: rgba(31, 33, 51, 0.04);
+  color: #1f2133;
+}
+
+:root[data-theme="light"] .top-nav__link:hover,
+:root[data-theme="light"] .top-nav__link:focus-visible {
+  border-color: rgba(136, 14, 79, 0.35);
+  background: rgba(245, 0, 135, 0.08);
+  color: var(--pink-900);
+}
+
+:root[data-theme="light"] .top-nav__link.is-disabled {
+  background: rgba(31, 33, 51, 0.03);
+  color: rgba(31, 33, 51, 0.7);
 }
 
 :root[data-theme="light"] .toggle-switch__button {
