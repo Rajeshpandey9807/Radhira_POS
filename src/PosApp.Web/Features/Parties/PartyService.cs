@@ -112,7 +112,7 @@ WHERE PartyId = @PartyId;";
 SELECT TOP 1 ContactPersonName, DateOfBirth
 FROM PartyContacts
 WHERE PartyId = @PartyId
-ORDER BY PartyContactId DESC;";
+ORDER BY ContactId DESC;";
         var contact = await connection.QuerySingleOrDefaultAsync<(string? ContactPersonName, DateTime? DateOfBirth)>(
             new CommandDefinition(contactSql, new { PartyId = partyId }, cancellationToken: cancellationToken));
         party.ContactPersonName = contact.ContactPersonName;
@@ -122,7 +122,7 @@ ORDER BY PartyContactId DESC;";
 SELECT TOP 1 AccountNumber, IFSC, BranchName, AccountHolderName, UPI
 FROM PartyBankDetails
 WHERE PartyId = @PartyId
-ORDER BY PartyBankDetailId DESC;";
+ORDER BY BankDetailId DESC;";
         var bank = await connection.QuerySingleOrDefaultAsync<(string? AccountNumber, string? IFSC, string? BranchName, string? AccountHolderName, string? UPI)>(
             new CommandDefinition(bankSql, new { PartyId = partyId }, cancellationToken: cancellationToken));
 

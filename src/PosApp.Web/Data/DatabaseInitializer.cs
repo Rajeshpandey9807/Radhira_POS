@@ -228,7 +228,7 @@ IF OBJECT_ID('dbo.PartyContacts', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.PartyContacts
     (
-        PartyContactId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ContactId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
         PartyId INT NOT NULL,
         ContactPersonName NVARCHAR(200) NULL,
         DateOfBirth DATE NULL,
@@ -248,7 +248,7 @@ IF OBJECT_ID('dbo.PartyBankDetails', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.PartyBankDetails
     (
-        PartyBankDetailId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        BankDetailId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
         PartyId INT NOT NULL,
         AccountNumber NVARCHAR(50) NULL,
         IFSC NVARCHAR(20) NULL,
