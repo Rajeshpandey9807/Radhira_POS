@@ -1,0 +1,140 @@
+@{
+    ViewData["Title"] = "Inventory";
+}
+
+<header class="page-header">
+    <div class="page-header__copy">
+        <p class="eyebrow">Item</p>
+        <h2>Inventory</h2>
+        <p>Manage products, pricing, GST, and stock levels.</p>
+    </div>
+    <div class="page-header__actions">
+        <a asp-controller="Items" asp-action="Create" class="btn primary">+ Add New Product</a>
+    </div>
+</header>
+
+<section class="card" aria-label="Product list">
+    <div class="card__header">
+        <h3 class="card__title">Products</h3>
+        <p class="card__subtitle">All items currently available for billing and sales.</p>
+    </div>
+
+    <div class="table-toolbar" role="group" aria-label="Product filters">
+        <div class="table-toolbar__left">
+            <div class="field field--inline">
+                <label class="sr-only" for="inventorySearch">Search products</label>
+                <input id="inventorySearch" type="search" placeholder="Search item name, code, category…" />
+            </div>
+            <div class="field field--inline">
+                <label class="sr-only" for="inventoryCategory">Category</label>
+                <select id="inventoryCategory" aria-label="Category">
+                    <option selected>All categories</option>
+                    <option>Stationery</option>
+                    <option>Beverages</option>
+                    <option>Electronics</option>
+                    <option>Services</option>
+                    <option>Misc</option>
+                </select>
+            </div>
+            <div class="field field--inline">
+                <label class="sr-only" for="inventoryStatus">Status</label>
+                <select id="inventoryStatus" aria-label="Status">
+                    <option selected>All status</option>
+                    <option>Active</option>
+                    <option>Low stock</option>
+                    <option>Inactive</option>
+                </select>
+            </div>
+        </div>
+        <div class="table-toolbar__right">
+            <button type="button" class="btn ghost btn--sm">Export</button>
+        </div>
+    </div>
+
+    <div class="table-wrap" role="region" aria-label="Product table" tabindex="0">
+        <table class="table table--minimal">
+            <thead>
+                <tr>
+                    <th scope="col">Item Name</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Product Type</th>
+                    <th scope="col" class="is-right">Sales Price</th>
+                    <th scope="col" class="is-right">Stock Quantity</th>
+                    <th scope="col" class="is-right">GST %</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="is-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="cell-title">Premium A4 Paper</div>
+                        <div class="cell-subtitle">SKU: PAP-A4-80G</div>
+                    </td>
+                    <td>Stationery</td>
+                    <td><span class="badge badge--soft">Goods</span></td>
+                    <td class="is-right">₹ 220.00</td>
+                    <td class="is-right">124</td>
+                    <td class="is-right">12</td>
+                    <td><span class="badge badge--success"><span class="dot dot--success" aria-hidden="true"></span>Active</span></td>
+                    <td class="is-right">
+                        <a class="link link--muted" href="#" aria-label="View Premium A4 Paper">View</a>
+                        <span class="sep" aria-hidden="true">·</span>
+                        <a class="link" href="#" aria-label="Edit Premium A4 Paper">Edit</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="cell-title">Laptop Service (Standard)</div>
+                        <div class="cell-subtitle">Item Code: SRV-LAP-STD</div>
+                    </td>
+                    <td>Services</td>
+                    <td><span class="badge badge--soft">Service</span></td>
+                    <td class="is-right">₹ 499.00</td>
+                    <td class="is-right">—</td>
+                    <td class="is-right">18</td>
+                    <td><span class="badge badge--success"><span class="dot dot--success" aria-hidden="true"></span>Active</span></td>
+                    <td class="is-right">
+                        <a class="link link--muted" href="#" aria-label="View Laptop Service (Standard)">View</a>
+                        <span class="sep" aria-hidden="true">·</span>
+                        <a class="link" href="#" aria-label="Edit Laptop Service (Standard)">Edit</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="cell-title">Cold Coffee (500ml)</div>
+                        <div class="cell-subtitle">Batch: CC-500-DEC</div>
+                    </td>
+                    <td>Beverages</td>
+                    <td><span class="badge badge--soft">Goods</span></td>
+                    <td class="is-right">₹ 90.00</td>
+                    <td class="is-right">8</td>
+                    <td class="is-right">5</td>
+                    <td><span class="badge badge--warning"><span class="dot dot--warning" aria-hidden="true"></span>Low stock</span></td>
+                    <td class="is-right">
+                        <a class="link link--muted" href="#" aria-label="View Cold Coffee (500ml)">View</a>
+                        <span class="sep" aria-hidden="true">·</span>
+                        <a class="link" href="#" aria-label="Edit Cold Coffee (500ml)">Edit</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="cell-title">Old Stock Item</div>
+                        <div class="cell-subtitle">Item Code: OLD-001</div>
+                    </td>
+                    <td>Misc</td>
+                    <td><span class="badge badge--soft">Goods</span></td>
+                    <td class="is-right">₹ 0.00</td>
+                    <td class="is-right">0</td>
+                    <td class="is-right">0</td>
+                    <td><span class="badge badge--muted"><span class="dot dot--muted" aria-hidden="true"></span>Inactive</span></td>
+                    <td class="is-right">
+                        <a class="link link--muted" href="#" aria-label="View Old Stock Item">View</a>
+                        <span class="sep" aria-hidden="true">·</span>
+                        <a class="link" href="#" aria-label="Edit Old Stock Item">Edit</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>

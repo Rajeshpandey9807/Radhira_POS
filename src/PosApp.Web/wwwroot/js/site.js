@@ -174,3 +174,41 @@
     persistPreference(next);
   });
 })();
+
+(() => {
+  const dropdowns = Array.from(document.querySelectorAll('[data-nav-dropdown]'));
+  if (!dropdowns.length) {
+    return;
+  }
+
+  const closeAll = () => {
+    dropdowns.forEach((dropdown) => dropdown.removeAttribute('open'));
+  };
+
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    const clickedInside = dropdowns.some((dropdown) => dropdown.contains(target));
+    if (!clickedInside) {
+      closeAll();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closeAll();
+    }
+  });
+
+  dropdowns.forEach((dropdown) => {
+    dropdown.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target instanceof HTMLAnchorElement) {
+        dropdown.removeAttribute('open');
+      }
+    });
+  });
+})();
