@@ -1,34 +1,22 @@
-@model PosApp.Web.Features.Products.ProductCreateRequest
+@model PosApp.Web.Features.Products.ProductEditRequest
 @{
-    ViewData["Title"] = "Add New Product";
+    ViewData["Title"] = "Edit Product";
 }
 
 <header class="page-header">
     <div class="page-header__copy">
         <p class="eyebrow">Item</p>
-        <h2>Add New Product</h2>
-        <p>Create a new product with pricing, GST, and stock details.</p>
+        <h2>Edit Product</h2>
+        <p>Update product details, pricing, GST, and stock information.</p>
     </div>
     <div class="page-header__actions">
         <a asp-controller="Items" asp-action="Inventory" class="btn ghost">Back to Inventory</a>
     </div>
 </header>
 
-<nav class="steps" aria-label="Product form steps">
-    <ol class="steps__list">
-        <li class="steps__item is-active">
-            <span class="steps__dot" aria-hidden="true"></span>
-            <span class="steps__label">Basic Details</span>
-        </li>
-        <li class="steps__item">
-            <span class="steps__dot" aria-hidden="true"></span>
-            <span class="steps__label">Advanced Details</span>
-        </li>
-    </ol>
-</nav>
-
-<form class="form" asp-controller="Items" asp-action="Create" method="post" aria-label="Add new product" id="productForm">
+<form class="form" asp-controller="Items" asp-action="Edit" asp-route-id="@Model.ProductId" method="post" aria-label="Edit product" id="productForm">
     @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ProductId" />
     
     <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
     
@@ -39,7 +27,7 @@
             <div class="field">
                 <label asp-for="ProductTypeId">Product Type</label>
                 <select asp-for="ProductTypeId" id="productType" required>
-                    <option value="" selected disabled>Select product type</option>
+                    <option value="" disabled>Select product type</option>
                 </select>
                 <span asp-validation-for="ProductTypeId" class="field-validation-error"></span>
             </div>
@@ -47,7 +35,7 @@
             <div class="field">
                 <label asp-for="CategoryId">Category</label>
                 <select asp-for="CategoryId" id="category" required>
-                    <option value="" selected disabled>Select category</option>
+                    <option value="" disabled>Select category</option>
                 </select>
                 <span asp-validation-for="CategoryId" class="field-validation-error"></span>
             </div>
@@ -67,7 +55,7 @@
             <div class="field">
                 <label asp-for="GstRateId">GST Tax Rate (%)</label>
                 <select asp-for="GstRateId" id="gstRateBasic">
-                    <option value="" selected disabled>Select GST rate</option>
+                    <option value="" disabled>Select GST rate</option>
                 </select>
                 <span asp-validation-for="GstRateId" class="field-validation-error"></span>
             </div>
@@ -75,7 +63,7 @@
             <div class="field">
                 <label asp-for="UnitId">Measuring Unit</label>
                 <select asp-for="UnitId" id="unitBasic">
-                    <option value="" selected disabled>Select unit</option>
+                    <option value="" disabled>Select unit</option>
                 </select>
                 <span asp-validation-for="UnitId" class="field-validation-error"></span>
             </div>
@@ -84,6 +72,14 @@
                 <label asp-for="OpeningStock">Opening Stock</label>
                 <input asp-for="OpeningStock" type="number" step="1" min="0" placeholder="0" />
                 <span asp-validation-for="OpeningStock" class="field-validation-error"></span>
+            </div>
+
+            <div class="field">
+                <label asp-for="IsActive">Status</label>
+                <div class="checkbox-row">
+                    <input asp-for="IsActive" type="checkbox" />
+                    <span>Active</span>
+                </div>
             </div>
         </div>
     </fieldset>
@@ -101,11 +97,7 @@
                 <div class="form-grid">
                     <div class="field">
                         <label asp-for="ItemCode">Item Code</label>
-                        <div class="input-row">
-                            <input asp-for="ItemCode" type="text" placeholder="e.g., PAP-A4-80G" />
-                            <button type="button" class="btn ghost btn--sm" id="autoGenerateCode" aria-label="Auto-generate item code">Auto-generate</button>
-                        </div>
-                        <p class="help-text">You can enter a custom code or use auto-generate.</p>
+                        <input asp-for="ItemCode" type="text" placeholder="e.g., PAP-A4-80G" />
                         <span asp-validation-for="ItemCode" class="field-validation-error"></span>
                     </div>
 
@@ -113,13 +105,6 @@
                         <label asp-for="HSNCode">HSN Code</label>
                         <input asp-for="HSNCode" type="text" placeholder="e.g., 4802" />
                         <span asp-validation-for="HSNCode" class="field-validation-error"></span>
-                    </div>
-
-                    <div class="field">
-                        <label for="unitAdvanced">Measuring Unit</label>
-                        <select id="unitAdvanced" name="unitAdvanced">
-                            <option value="" selected disabled>Select unit</option>
-                        </select>
                     </div>
 
                     <div class="field">
@@ -144,11 +129,6 @@
 
                 <div class="form-grid">
                     <div class="field">
-                        <label for="salesPriceAdvanced">Sales Price</label>
-                        <input id="salesPriceAdvanced" name="salesPriceAdvanced" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
-                    </div>
-
-                    <div class="field">
                         <label asp-for="MRP">MRP</label>
                         <input asp-for="MRP" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
                         <span asp-validation-for="MRP" class="field-validation-error"></span>
@@ -159,25 +139,17 @@
                         <input asp-for="PurchasePrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
                         <span asp-validation-for="PurchasePrice" class="field-validation-error"></span>
                     </div>
-
-                    <div class="field">
-                        <label for="gstRateAdvanced">GST Tax Rate (%)</label>
-                        <select id="gstRateAdvanced" name="gstRateAdvanced">
-                            <option value="" selected disabled>Select GST rate</option>
-                        </select>
-                    </div>
                 </div>
             </section>
         </div>
 
         <div class="action-bar" role="group" aria-label="Form actions">
             <div class="action-bar__left">
-                <span class="hint">Tip: keep Item Code short and consistent.</span>
+                <span class="hint">Product ID: @Model.ProductId</span>
             </div>
             <div class="action-bar__right">
                 <a asp-controller="Items" asp-action="Inventory" class="btn ghost">Cancel</a>
-                <button type="submit" name="submitAction" value="save-new" class="btn ghost">Save &amp; New</button>
-                <button type="submit" name="submitAction" value="save" class="btn primary">Save</button>
+                <button type="submit" class="btn primary">Update</button>
             </div>
         </div>
     </fieldset>
@@ -186,6 +158,11 @@
 @section Scripts {
     <script>
         (function () {
+            const selectedProductTypeId = '@Model.ProductTypeId';
+            const selectedCategoryId = '@Model.CategoryId';
+            const selectedUnitId = '@Model.UnitId';
+            const selectedGstRateId = '@Model.GstRateId';
+
             // Load lookup data from API
             async function loadLookups() {
                 try {
@@ -202,6 +179,9 @@
                             const option = document.createElement('option');
                             option.value = pt.productTypeId;
                             option.textContent = pt.typeName;
+                            if (pt.productTypeId.toString() === selectedProductTypeId) {
+                                option.selected = true;
+                            }
                             productTypeSelect.appendChild(option);
                         });
                     }
@@ -213,84 +193,44 @@
                             const option = document.createElement('option');
                             option.value = cat.categoryId;
                             option.textContent = cat.categoryName;
+                            if (cat.categoryId.toString() === selectedCategoryId) {
+                                option.selected = true;
+                            }
                             categorySelect.appendChild(option);
                         });
                     }
 
                     // Populate Units
-                    const unitSelects = [document.getElementById('unitBasic'), document.getElementById('unitAdvanced')];
-                    unitSelects.forEach(function (select) {
-                        if (select && data.units) {
-                            data.units.forEach(function (unit) {
-                                const option = document.createElement('option');
-                                option.value = unit.unitId;
-                                option.textContent = unit.unitName;
-                                select.appendChild(option);
-                            });
-                        }
-                    });
+                    const unitSelect = document.getElementById('unitBasic');
+                    if (unitSelect && data.units) {
+                        data.units.forEach(function (unit) {
+                            const option = document.createElement('option');
+                            option.value = unit.unitId;
+                            option.textContent = unit.unitName;
+                            if (unit.unitId.toString() === selectedUnitId) {
+                                option.selected = true;
+                            }
+                            unitSelect.appendChild(option);
+                        });
+                    }
 
                     // Populate GST Rates
-                    const gstSelects = [document.getElementById('gstRateBasic'), document.getElementById('gstRateAdvanced')];
-                    gstSelects.forEach(function (select) {
-                        if (select && data.gstRates) {
-                            data.gstRates.forEach(function (rate) {
-                                const option = document.createElement('option');
-                                option.value = rate.gstRateId;
-                                option.textContent = rate.rateName;
-                                select.appendChild(option);
-                            });
-                        }
-                    });
+                    const gstSelect = document.getElementById('gstRateBasic');
+                    if (gstSelect && data.gstRates) {
+                        data.gstRates.forEach(function (rate) {
+                            const option = document.createElement('option');
+                            option.value = rate.gstRateId;
+                            option.textContent = rate.rateName;
+                            if (rate.gstRateId.toString() === selectedGstRateId) {
+                                option.selected = true;
+                            }
+                            gstSelect.appendChild(option);
+                        });
+                    }
 
                 } catch (error) {
                     console.error('Error loading lookups:', error);
                 }
-            }
-
-            // Auto-generate item code
-            document.getElementById('autoGenerateCode')?.addEventListener('click', function () {
-                const itemCodeInput = document.getElementById('ItemCode');
-                if (itemCodeInput) {
-                    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
-                    itemCodeInput.value = 'ITM-' + randomPart;
-                }
-            });
-
-            // Sync unit dropdowns
-            const unitBasic = document.getElementById('unitBasic');
-            const unitAdvanced = document.getElementById('unitAdvanced');
-            if (unitBasic && unitAdvanced) {
-                unitBasic.addEventListener('change', function () {
-                    unitAdvanced.value = this.value;
-                });
-                unitAdvanced.addEventListener('change', function () {
-                    unitBasic.value = this.value;
-                });
-            }
-
-            // Sync GST rate dropdowns
-            const gstBasic = document.getElementById('gstRateBasic');
-            const gstAdvanced = document.getElementById('gstRateAdvanced');
-            if (gstBasic && gstAdvanced) {
-                gstBasic.addEventListener('change', function () {
-                    gstAdvanced.value = this.value;
-                });
-                gstAdvanced.addEventListener('change', function () {
-                    gstBasic.value = this.value;
-                });
-            }
-
-            // Sync sales price fields
-            const salesBasic = document.getElementById('SalesPrice');
-            const salesAdvanced = document.getElementById('salesPriceAdvanced');
-            if (salesBasic && salesAdvanced) {
-                salesBasic.addEventListener('input', function () {
-                    salesAdvanced.value = this.value;
-                });
-                salesAdvanced.addEventListener('input', function () {
-                    salesBasic.value = this.value;
-                });
             }
 
             // Initialize on page load
