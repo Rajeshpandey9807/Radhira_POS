@@ -2,6 +2,8 @@
     ViewData["Title"] = "Inventory";
 }
 
+@model IReadOnlyList<PosApp.Web.Features.Inventory.ProductListItem>
+
 <header class="page-header">
     <div class="page-header__copy">
         <p class="eyebrow">Item</p>
@@ -66,74 +68,44 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <div class="cell-title">Premium A4 Paper</div>
-                        <div class="cell-subtitle">SKU: PAP-A4-80G</div>
-                    </td>
-                    <td>Stationery</td>
-                    <td><span class="badge badge--soft">Goods</span></td>
-                    <td class="is-right">₹ 220.00</td>
-                    <td class="is-right">124</td>
-                    <td class="is-right">12</td>
-                    <td><span class="badge badge--success"><span class="dot dot--success" aria-hidden="true"></span>Active</span></td>
-                    <td class="is-right">
-                        <a class="link link--muted" href="#" aria-label="View Premium A4 Paper">View</a>
-                        <span class="sep" aria-hidden="true">·</span>
-                        <a class="link" href="#" aria-label="Edit Premium A4 Paper">Edit</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="cell-title">Laptop Service (Standard)</div>
-                        <div class="cell-subtitle">Item Code: SRV-LAP-STD</div>
-                    </td>
-                    <td>Services</td>
-                    <td><span class="badge badge--soft">Service</span></td>
-                    <td class="is-right">₹ 499.00</td>
-                    <td class="is-right">—</td>
-                    <td class="is-right">18</td>
-                    <td><span class="badge badge--success"><span class="dot dot--success" aria-hidden="true"></span>Active</span></td>
-                    <td class="is-right">
-                        <a class="link link--muted" href="#" aria-label="View Laptop Service (Standard)">View</a>
-                        <span class="sep" aria-hidden="true">·</span>
-                        <a class="link" href="#" aria-label="Edit Laptop Service (Standard)">Edit</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="cell-title">Cold Coffee (500ml)</div>
-                        <div class="cell-subtitle">Batch: CC-500-DEC</div>
-                    </td>
-                    <td>Beverages</td>
-                    <td><span class="badge badge--soft">Goods</span></td>
-                    <td class="is-right">₹ 90.00</td>
-                    <td class="is-right">8</td>
-                    <td class="is-right">5</td>
-                    <td><span class="badge badge--warning"><span class="dot dot--warning" aria-hidden="true"></span>Low stock</span></td>
-                    <td class="is-right">
-                        <a class="link link--muted" href="#" aria-label="View Cold Coffee (500ml)">View</a>
-                        <span class="sep" aria-hidden="true">·</span>
-                        <a class="link" href="#" aria-label="Edit Cold Coffee (500ml)">Edit</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="cell-title">Old Stock Item</div>
-                        <div class="cell-subtitle">Item Code: OLD-001</div>
-                    </td>
-                    <td>Misc</td>
-                    <td><span class="badge badge--soft">Goods</span></td>
-                    <td class="is-right">₹ 0.00</td>
-                    <td class="is-right">0</td>
-                    <td class="is-right">0</td>
-                    <td><span class="badge badge--muted"><span class="dot dot--muted" aria-hidden="true"></span>Inactive</span></td>
-                    <td class="is-right">
-                        <a class="link link--muted" href="#" aria-label="View Old Stock Item">View</a>
-                        <span class="sep" aria-hidden="true">·</span>
-                        <a class="link" href="#" aria-label="Edit Old Stock Item">Edit</a>
-                    </td>
-                </tr>
+                @if (Model is null || Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty">No products yet. Click <strong>+ Add New Product</strong> to get started.</div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        var typeLabel = string.IsNullOrWhiteSpace(item.ProductTypeName) ? "—" : item.ProductTypeName;
+                        var categoryLabel = string.IsNullOrWhiteSpace(item.CategoryName) ? "—" : item.CategoryName;
+                        var codeLabel = string.IsNullOrWhiteSpace(item.ItemCode) ? "—" : item.ItemCode;
+                        var priceLabel = item.SalesPrice.HasValue ? $"₹ {item.SalesPrice.Value:0.00}" : "—";
+                        var stockLabel = item.CurrentStock.HasValue ? $"{item.CurrentStock.Value:0.##}" : "—";
+                        var gstLabel = item.GstRateId.HasValue ? item.GstRateId.Value.ToString() : "—";
+                        var statusClass = item.IsActive ? "badge--success" : "badge--muted";
+                        var dotClass = item.IsActive ? "dot--success" : "dot--muted";
+                        var statusText = item.IsActive ? "Active" : "Inactive";
+                        <tr>
+                            <td>
+                                <div class="cell-title">@item.ItemName</div>
+                                <div class="cell-subtitle">Item Code: @codeLabel</div>
+                            </td>
+                            <td>@categoryLabel</td>
+                            <td><span class="badge badge--soft">@typeLabel</span></td>
+                            <td class="is-right">@priceLabel</td>
+                            <td class="is-right">@stockLabel</td>
+                            <td class="is-right">@gstLabel</td>
+                            <td><span class="badge @statusClass"><span class="dot @dotClass" aria-hidden="true"></span>@statusText</span></td>
+                            <td class="is-right">
+                                <span class="link link--muted" title="View/edit coming soon">View</span>
+                            </td>
+                        </tr>
+                    }
+                }
             </tbody>
         </table>
     </div>

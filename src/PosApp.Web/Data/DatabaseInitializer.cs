@@ -279,6 +279,113 @@ BEGIN
     IF COL_LENGTH('dbo.PartyCategories', 'CategoryName') IS NOT NULL
         INSERT INTO dbo.PartyCategories (CategoryName) VALUES (N'Retail'), (N'Wholesale'), (N'Distributor'), (N'Other');
 END
+
+/* --------------------------
+   Inventory (Items) schema
+   -------------------------- */
+IF OBJECT_ID('dbo.ProductTypes', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ProductTypes
+    (
+        ProductTypeId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ProductTypeName NVARCHAR(120) NOT NULL UNIQUE,
+        IsActive BIT NOT NULL CONSTRAINT DF_ProductTypes_IsActive DEFAULT(1)
+    );
+END
+
+IF OBJECT_ID('dbo.Categories', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Categories
+    (
+        CategoryId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        CategoryName NVARCHAR(160) NOT NULL UNIQUE,
+        IsActive BIT NOT NULL CONSTRAINT DF_Categories_IsActive DEFAULT(1)
+    );
+END
+
+IF OBJECT_ID('dbo.Units', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Units
+    (
+        UnitId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        UnitName NVARCHAR(50) NOT NULL UNIQUE,
+        IsActive BIT NOT NULL CONSTRAINT DF_Units_IsActive DEFAULT(1)
+    );
+END
+
+IF OBJECT_ID('dbo.Products', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Products
+    (
+        ProductId UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Products PRIMARY KEY,
+        ProductTypeId INT NULL,
+        CategoryId INT NULL,
+        ItemName NVARCHAR(200) NOT NULL,
+        ItemCode NVARCHAR(80) NULL,
+        HSNCode NVARCHAR(50) NULL,
+        [Description] NVARCHAR(800) NULL,
+        IsActive BIT NOT NULL CONSTRAINT DF_Products_IsActive DEFAULT(1)
+    );
+
+    ALTER TABLE dbo.Products ADD CONSTRAINT DF_Products_ProductId DEFAULT NEWID() FOR ProductId;
+    ALTER TABLE dbo.Products WITH CHECK ADD CONSTRAINT FK_Products_ProductTypes
+        FOREIGN KEY (ProductTypeId) REFERENCES dbo.ProductTypes(ProductTypeId);
+    ALTER TABLE dbo.Products WITH CHECK ADD CONSTRAINT FK_Products_Categories
+        FOREIGN KEY (CategoryId) REFERENCES dbo.Categories(CategoryId);
+END
+
+IF OBJECT_ID('dbo.ProductPricing', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ProductPricing
+    (
+        PricingId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ProductId UNIQUEIDENTIFIER NOT NULL,
+        SalesPrice DECIMAL(18,2) NULL,
+        PurchasePrice DECIMAL(18,2) NULL,
+        MRP DECIMAL(18,2) NULL,
+        GstRateId INT NULL,
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_ProductPricing_CreatedOn DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_ProductPricing_Products FOREIGN KEY (ProductId) REFERENCES dbo.Products(ProductId) ON DELETE CASCADE
+    );
+    CREATE INDEX IX_ProductPricing_ProductId ON dbo.ProductPricing(ProductId);
+END
+
+IF OBJECT_ID('dbo.ProductStock', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ProductStock
+    (
+        StockId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ProductId UNIQUEIDENTIFIER NOT NULL,
+        OpeningStock DECIMAL(18,2) NULL,
+        CurrentStock DECIMAL(18,2) NULL,
+        UnitId INT NULL,
+        AsOfDate DATE NULL,
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_ProductStock_CreatedOn DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_ProductStock_Products FOREIGN KEY (ProductId) REFERENCES dbo.Products(ProductId) ON DELETE CASCADE
+    );
+    CREATE INDEX IX_ProductStock_ProductId ON dbo.ProductStock(ProductId);
+
+    IF OBJECT_ID('dbo.Units', 'U') IS NOT NULL
+        ALTER TABLE dbo.ProductStock WITH CHECK ADD CONSTRAINT FK_ProductStock_Units
+            FOREIGN KEY (UnitId) REFERENCES dbo.Units(UnitId);
+END
+
+/* Seed minimal inventory master data if empty */
+IF NOT EXISTS (SELECT 1 FROM dbo.ProductTypes)
+BEGIN
+    INSERT INTO dbo.ProductTypes (ProductTypeName, IsActive) VALUES (N'Goods', 1), (N'Service', 1);
+END
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Units)
+BEGIN
+    INSERT INTO dbo.Units (UnitName, IsActive) VALUES (N'pcs', 1), (N'kg', 1), (N'liter', 1), (N'box', 1), (N'meter', 1), (N'pack', 1);
+END
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Categories)
+BEGIN
+    INSERT INTO dbo.Categories (CategoryName, IsActive)
+    VALUES (N'Stationery', 1), (N'Beverages', 1), (N'Electronics', 1), (N'Services', 1), (N'Misc', 1);
+END
 ";
 
         await connection.ExecuteAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));

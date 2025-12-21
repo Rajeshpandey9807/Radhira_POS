@@ -8,6 +8,7 @@ using PosApp.Web.Features.RegistrationTypes;
 using PosApp.Web.Features.Users;
 using PosApp.Web.Features.States;
 using PosApp.Web.Features.Parties;
+using PosApp.Web.Features.Inventory;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +38,7 @@ builder.Services.AddScoped<StateService>();
 builder.Services.AddScoped<BusinessProfileService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<PartyService>();
+builder.Services.AddScoped<ProductService>();
 
 var app = builder.Build();
 

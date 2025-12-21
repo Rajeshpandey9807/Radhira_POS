@@ -326,10 +326,6 @@ a:hover {
   display: none;
 }
 
-body.settings-menu .nav-menu [data-nav-default] {
-  display: none;
-}
-
 body.settings-menu .nav-menu [data-nav-settings] {
   display: flex;
 }

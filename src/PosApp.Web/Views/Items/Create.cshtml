@@ -2,6 +2,9 @@
     ViewData["Title"] = "Add New Product";
 }
 
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model PosApp.Web.Features.Inventory.ProductCreatePageModel
+
 <header class="page-header">
     <div class="page-header__copy">
         <p class="eyebrow">Item</p>
@@ -26,70 +29,70 @@
     </ol>
 </nav>
 
-<form class="form" action="#" method="post" aria-label="Add new product">
+<form class="form" asp-controller="Items" asp-action="Create" method="post" aria-label="Add new product">
+    @Html.AntiForgeryToken()
+
+    <div class="card">
+        <div asp-validation-summary="ModelOnly" class="help-text"></div>
+    </div>
+
     <fieldset class="card">
         <legend class="card__legend">SECTION 1: Basic Details</legend>
 
         <div class="form-grid">
             <div class="field">
-                <label for="productType">Product Type</label>
-                <select id="productType" name="productType" required>
-                    <option value="" selected disabled>Select product type</option>
-                    <option>Goods</option>
-                    <option>Service</option>
+                <label asp-for="Form.ProductTypeId"></label>
+                <select asp-for="Form.ProductTypeId" asp-items="@(new SelectList(Model.ProductTypes, "Id", "Name", Model.Form.ProductTypeId))" required>
+                    <option value="" disabled selected="@(Model.Form.ProductTypeId is null ? "selected" : null)">Select product type</option>
                 </select>
+                <span asp-validation-for="Form.ProductTypeId" class="help-text"></span>
             </div>
 
             <div class="field">
-                <label for="category">Category</label>
-                <select id="category" name="category" required>
-                    <option value="" selected disabled>Select category</option>
-                    <option>Stationery</option>
-                    <option>Beverages</option>
-                    <option>Electronics</option>
-                    <option>Services</option>
-                    <option>Misc</option>
+                <label asp-for="Form.CategoryId"></label>
+                <select asp-for="Form.CategoryId" asp-items="@(new SelectList(Model.Categories, "Id", "Name", Model.Form.CategoryId))" required>
+                    <option value="" disabled selected="@(Model.Form.CategoryId is null ? "selected" : null)">Select category</option>
                 </select>
+                <span asp-validation-for="Form.CategoryId" class="help-text"></span>
             </div>
 
             <div class="field">
-                <label for="itemName">Item Name</label>
-                <input id="itemName" name="itemName" type="text" placeholder="e.g., Premium A4 Paper" required />
+                <label asp-for="Form.ItemName"></label>
+                <input asp-for="Form.ItemName" type="text" placeholder="e.g., Premium A4 Paper" required />
+                <span asp-validation-for="Form.ItemName" class="help-text"></span>
             </div>
 
             <div class="field">
-                <label for="salesPriceBasic">Sales Price</label>
-                <input id="salesPriceBasic" name="salesPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required />
+                <label asp-for="Form.SalesPrice"></label>
+                <input asp-for="Form.SalesPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required />
+                <span asp-validation-for="Form.SalesPrice" class="help-text"></span>
             </div>
 
             <div class="field">
-                <label for="gstRateBasic">GST Tax Rate (%)</label>
-                <select id="gstRateBasic" name="gstRate" required>
-                    <option value="" selected disabled>Select GST rate</option>
+                <label asp-for="Form.GstRateId"></label>
+                <select asp-for="Form.GstRateId" required>
+                    <option value="" disabled selected="@(Model.Form.GstRateId is null ? "selected" : null)">Select GST rate</option>
                     <option value="0">0%</option>
                     <option value="5">5%</option>
                     <option value="12">12%</option>
                     <option value="18">18%</option>
                     <option value="28">28%</option>
                 </select>
+                <span asp-validation-for="Form.GstRateId" class="help-text"></span>
             </div>
 
             <div class="field">
-                <label for="unitBasic">Measuring Unit</label>
-                <select id="unitBasic" name="unit" required>
-                    <option value="" selected disabled>Select unit</option>
-                    <option>pcs</option>
-                    <option>kg</option>
-                    <option>liter</option>
-                    <option>box</option>
-                    <option>meter</option>
-                    <option>pack</option>
+                <label asp-for="Form.UnitId"></label>
+                <select asp-for="Form.UnitId" asp-items="@(new SelectList(Model.Units, "Id", "Name", Model.Form.UnitId))">
+                    <option value="" disabled selected="@(Model.Form.UnitId is null ? "selected" : null)">Select unit</option>
                 </select>
+                <span asp-validation-for="Form.UnitId" class="help-text"></span>
             </div>
 
             <div class="field">
-                <label for="openingStock">Opening Stock</label>
-                <input id="openingStock" name="openingStock" type="number" step="1" min="0" placeholder="0" />
+                <label asp-for="Form.OpeningStock"></label>
+                <input asp-for="Form.OpeningStock" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0" />
+                <span asp-validation-for="Form.OpeningStock" class="help-text"></span>
             </div>
         </div>
     </fieldset>
@@ -106,40 +109,36 @@
 
                 <div class="form-grid">
                     <div class="field">
-                        <label for="itemCode">Item Code</label>
-                        <div class="input-row">
-                            <input id="itemCode" name="itemCode" type="text" placeholder="e.g., PAP-A4-80G" />
-                            <button type="button" class="btn ghost btn--sm" aria-label="Auto-generate item code">Auto-generate</button>
-                        </div>
+                        <label asp-for="Form.ItemCode"></label>
+                        <input asp-for="Form.ItemCode" type="text" placeholder="e.g., PAP-A4-80G" />
                         <p class="help-text">You can enter a custom code or use auto-generate.</p>
+                        <span asp-validation-for="Form.ItemCode" class="help-text"></span>
                     </div>
 
                     <div class="field">
-                        <label for="hsnCode">HSN Code</label>
-                        <input id="hsnCode" name="hsnCode" type="text" placeholder="e.g., 4802" />
+                        <label asp-for="Form.HSNCode"></label>
+                        <input asp-for="Form.HSNCode" type="text" placeholder="e.g., 4802" />
+                        <span asp-validation-for="Form.HSNCode" class="help-text"></span>
                     </div>
 
                     <div class="field">
-                        <label for="unitAdvanced">Measuring Unit</label>
-                        <select id="unitAdvanced" name="unitAdvanced">
-                            <option value="" selected disabled>Select unit</option>
-                            <option>pcs</option>
-                            <option>kg</option>
-                            <option>liter</option>
-                            <option>box</option>
-                            <option>meter</option>
-                            <option>pack</option>
+                        <label asp-for="Form.AsOfDate"></label>
+                        <input asp-for="Form.AsOfDate" type="date" />
+                        <span asp-validation-for="Form.AsOfDate" class="help-text"></span>
+                    </div>
+
+                    <div class="field">
+                        <label asp-for="Form.IsActive"></label>
+                        <select asp-for="Form.IsActive">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
                         </select>
                     </div>
 
-                    <div class="field">
-                        <label for="asOfDate">As Of Date</label>
-                        <input id="asOfDate" name="asOfDate" type="date" />
-                    </div>
-
                     <div class="field field--full">
-                        <label for="description">Description</label>
-                        <textarea id="description" name="description" rows="4" placeholder="Optional notes about this product"></textarea>
+                        <label asp-for="Form.Description"></label>
+                        <textarea asp-for="Form.Description" rows="4" placeholder="Optional notes about this product"></textarea>
+                        <span asp-validation-for="Form.Description" class="help-text"></span>
                     </div>
                 </div>
             </section>
@@ -152,30 +151,20 @@
 
                 <div class="form-grid">
                     <div class="field">
-                        <label for="salesPriceAdvanced">Sales Price</label>
-                        <input id="salesPriceAdvanced" name="salesPriceAdvanced" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <label asp-for="Form.PurchasePrice"></label>
+                        <input asp-for="Form.PurchasePrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <span asp-validation-for="Form.PurchasePrice" class="help-text"></span>
                     </div>
 
                     <div class="field">
-                        <label for="mrp">MRP</label>
-                        <input id="mrp" name="mrp" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <label asp-for="Form.MRP"></label>
+                        <input asp-for="Form.MRP" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <span asp-validation-for="Form.MRP" class="help-text"></span>
                     </div>
 
                     <div class="field">
-                        <label for="purchasePrice">Purchase Price</label>
-                        <input id="purchasePrice" name="purchasePrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
-                    </div>
-
-                    <div class="field">
-                        <label for="gstRateAdvanced">GST Tax Rate (%)</label>
-                        <select id="gstRateAdvanced" name="gstRateAdvanced">
-                            <option value="" selected disabled>Select GST rate</option>
-                            <option value="0">0%</option>
-                            <option value="5">5%</option>
-                            <option value="12">12%</option>
-                            <option value="18">18%</option>
-                            <option value="28">28%</option>
-                        </select>
+                        <label class="help-text">Pricing note</label>
+                        <p class="help-text">Sales Price and GST are set in Basic Details to keep billing consistent.</p>
                     </div>
                 </div>
             </section>
@@ -187,8 +176,8 @@
             </div>
             <div class="action-bar__right">
                 <a asp-controller="Items" asp-action="Inventory" class="btn ghost">Cancel</a>
-                <button type="submit" class="btn ghost">Save &amp; New</button>
-                <button type="submit" class="btn primary">Save</button>
+                <button type="submit" name="submitAction" value="save-new" class="btn ghost">Save &amp; New</button>
+                <button type="submit" name="submitAction" value="save" class="btn primary">Save</button>
             </div>
         </div>
     </fieldset>
