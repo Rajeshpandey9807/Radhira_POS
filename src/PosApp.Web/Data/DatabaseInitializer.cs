@@ -296,8 +296,20 @@ BEGIN
 END
 
 /* --------------------------
-   Categories (for products)
+   Categories (for products) - Drop old schema if exists
    -------------------------- */
+IF OBJECT_ID('dbo.Categories', 'U') IS NOT NULL AND COL_LENGTH('dbo.Categories', 'CategoryId') IS NULL
+BEGIN
+    -- Old schema detected (has Id instead of CategoryId), drop related tables first
+    IF OBJECT_ID('dbo.SaleItems', 'U') IS NOT NULL
+        DROP TABLE dbo.SaleItems;
+    IF OBJECT_ID('dbo.StockMovements', 'U') IS NOT NULL
+        DROP TABLE dbo.StockMovements;
+    IF OBJECT_ID('dbo.Products', 'U') IS NOT NULL
+        DROP TABLE dbo.Products;
+    DROP TABLE dbo.Categories;
+END
+
 IF OBJECT_ID('dbo.Categories', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Categories
@@ -342,8 +354,22 @@ BEGIN
 END
 
 /* --------------------------
-   Products
+   Products - Drop old schema if exists
    -------------------------- */
+IF OBJECT_ID('dbo.Products', 'U') IS NOT NULL AND COL_LENGTH('dbo.Products', 'ProductId') IS NULL
+BEGIN
+    -- Old schema detected (has Id instead of ProductId), drop related tables first
+    IF OBJECT_ID('dbo.ProductStock', 'U') IS NOT NULL
+        DROP TABLE dbo.ProductStock;
+    IF OBJECT_ID('dbo.ProductPricing', 'U') IS NOT NULL
+        DROP TABLE dbo.ProductPricing;
+    IF OBJECT_ID('dbo.SaleItems', 'U') IS NOT NULL
+        DROP TABLE dbo.SaleItems;
+    IF OBJECT_ID('dbo.StockMovements', 'U') IS NOT NULL
+        DROP TABLE dbo.StockMovements;
+    DROP TABLE dbo.Products;
+END
+
 IF OBJECT_ID('dbo.Products', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Products
