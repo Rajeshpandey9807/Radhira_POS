@@ -1,5 +1,10 @@
+@model PosApp.Web.Features.Products.ProductCreateRequest
 @{
     ViewData["Title"] = "Add New Product";
+    var productTypes = ViewBag.ProductTypes as IReadOnlyList<PosApp.Web.Features.Products.ProductTypeOption> ?? new List<PosApp.Web.Features.Products.ProductTypeOption>();
+    var categories = ViewBag.Categories as IReadOnlyList<PosApp.Web.Features.Products.CategoryOption> ?? new List<PosApp.Web.Features.Products.CategoryOption>();
+    var gstRates = ViewBag.GstRates as IReadOnlyList<PosApp.Web.Features.Products.GstRateOption> ?? new List<PosApp.Web.Features.Products.GstRateOption>();
+    var units = ViewBag.Units as IReadOnlyList<PosApp.Web.Features.Products.UnitOption> ?? new List<PosApp.Web.Features.Products.UnitOption>();
 }
 
 <header class="page-header">
@@ -26,70 +31,89 @@
     </ol>
 </nav>
 
-<form class="form" action="#" method="post" aria-label="Add new product">
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-error" role="alert">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<form class="form" asp-controller="Items" asp-action="Create" method="post" aria-label="Add new product">
+    @Html.AntiForgeryToken()
+    
     <fieldset class="card">
         <legend class="card__legend">SECTION 1: Basic Details</legend>
 
         <div class="form-grid">
             <div class="field">
-                <label for="productType">Product Type</label>
-                <select id="productType" name="productType" required>
+                <label asp-for="ProductTypeId">Product Type</label>
+                <select asp-for="ProductTypeId" required>
                     <option value="" selected disabled>Select product type</option>
-                    <option>Goods</option>
-                    <option>Service</option>
+                    @foreach (var type in productTypes)
+                    {
+                        <option value="@type.ProductTypeId">@type.ProductTypeName</option>
+                    }
                 </select>
+                <span asp-validation-for="ProductTypeId" class="field-error"></span>
             </div>
 
             <div class="field">
-                <label for="category">Category</label>
-                <select id="category" name="category" required>
+                <label asp-for="CategoryId">Category</label>
+                <select asp-for="CategoryId" required>
                     <option value="" selected disabled>Select category</option>
-                    <option>Stationery</option>
-                    <option>Beverages</option>
-                    <option>Electronics</option>
-                    <option>Services</option>
-                    <option>Misc</option>
+                    @foreach (var category in categories)
+                    {
+                        <option value="@category.CategoryId">@category.CategoryName</option>
+                    }
                 </select>
+                <span asp-validation-for="CategoryId" class="field-error"></span>
             </div>
 
             <div class="field">
-                <label for="itemName">Item Name</label>
-                <input id="itemName" name="itemName" type="text" placeholder="e.g., Premium A4 Paper" required />
+                <label asp-for="ItemName">Item Name</label>
+                <input asp-for="ItemName" type="text" placeholder="e.g., Premium A4 Paper" required />
+                <span asp-validation-for="ItemName" class="field-error"></span>
             </div>
 
             <div class="field">
-                <label for="salesPriceBasic">Sales Price</label>
-                <input id="salesPriceBasic" name="salesPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required />
+                <label asp-for="SalesPrice">Sales Price</label>
+                <input asp-for="SalesPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required />
+                <span asp-validation-for="SalesPrice" class="field-error"></span>
             </div>
 
             <div class="field">
-                <label for="gstRateBasic">GST Tax Rate (%)</label>
-                <select id="gstRateBasic" name="gstRate" required>
+                <label asp-for="GstRateId">GST Tax Rate (%)</label>
+                <select asp-for="GstRateId" required>
                     <option value="" selected disabled>Select GST rate</option>
-                    <option value="0">0%</option>
-                    <option value="5">5%</option>
-                    <option value="12">12%</option>
-                    <option value="18">18%</option>
-                    <option value="28">28%</option>
+                    @foreach (var rate in gstRates)
+                    {
+                        <option value="@rate.GstRateId">@rate.GstRateName (@rate.RatePercentage%)</option>
+                    }
                 </select>
+                <span asp-validation-for="GstRateId" class="field-error"></span>
             </div>
 
             <div class="field">
-                <label for="unitBasic">Measuring Unit</label>
-                <select id="unitBasic" name="unit" required>
+                <label asp-for="UnitId">Measuring Unit</label>
+                <select asp-for="UnitId" required>
                     <option value="" selected disabled>Select unit</option>
-                    <option>pcs</option>
-                    <option>kg</option>
-                    <option>liter</option>
-                    <option>box</option>
-                    <option>meter</option>
-                    <option>pack</option>
+                    @foreach (var unit in units)
+                    {
+                        <option value="@unit.UnitId">@unit.UnitName (@unit.UnitSymbol)</option>
+                    }
                 </select>
+                <span asp-validation-for="UnitId" class="field-error"></span>
             </div>
 
             <div class="field">
-                <label for="openingStock">Opening Stock</label>
-                <input id="openingStock" name="openingStock" type="number" step="1" min="0" placeholder="0" />
+                <label asp-for="OpeningStock">Opening Stock</label>
+                <input asp-for="OpeningStock" type="number" step="0.01" min="0" placeholder="0" />
+                <span asp-validation-for="OpeningStock" class="field-error"></span>
             </div>
         </div>
     </fieldset>
@@ -106,40 +130,37 @@
 
                 <div class="form-grid">
                     <div class="field">
-                        <label for="itemCode">Item Code</label>
+                        <label asp-for="ItemCode">Item Code</label>
                         <div class="input-row">
-                            <input id="itemCode" name="itemCode" type="text" placeholder="e.g., PAP-A4-80G" />
-                            <button type="button" class="btn ghost btn--sm" aria-label="Auto-generate item code">Auto-generate</button>
+                            <input asp-for="ItemCode" type="text" placeholder="e.g., PAP-A4-80G" />
+                            <button type="button" class="btn ghost btn--sm" id="autoGenerateCode" aria-label="Auto-generate item code">Auto-generate</button>
                         </div>
                         <p class="help-text">You can enter a custom code or use auto-generate.</p>
+                        <span asp-validation-for="ItemCode" class="field-error"></span>
                     </div>
 
                     <div class="field">
-                        <label for="hsnCode">HSN Code</label>
-                        <input id="hsnCode" name="hsnCode" type="text" placeholder="e.g., 4802" />
+                        <label asp-for="HSNCode">HSN Code</label>
+                        <input asp-for="HSNCode" type="text" placeholder="e.g., 4802" />
+                        <span asp-validation-for="HSNCode" class="field-error"></span>
                     </div>
 
                     <div class="field">
-                        <label for="unitAdvanced">Measuring Unit</label>
-                        <select id="unitAdvanced" name="unitAdvanced">
-                            <option value="" selected disabled>Select unit</option>
-                            <option>pcs</option>
-                            <option>kg</option>
-                            <option>liter</option>
-                            <option>box</option>
-                            <option>meter</option>
-                            <option>pack</option>
-                        </select>
+                        <label asp-for="CurrentStock">Current Stock</label>
+                        <input asp-for="CurrentStock" type="number" step="0.01" min="0" placeholder="0" />
+                        <span asp-validation-for="CurrentStock" class="field-error"></span>
                     </div>
 
                     <div class="field">
-                        <label for="asOfDate">As Of Date</label>
-                        <input id="asOfDate" name="asOfDate" type="date" />
+                        <label asp-for="AsOfDate">As Of Date</label>
+                        <input asp-for="AsOfDate" type="date" />
+                        <span asp-validation-for="AsOfDate" class="field-error"></span>
                     </div>
 
                     <div class="field field--full">
-                        <label for="description">Description</label>
-                        <textarea id="description" name="description" rows="4" placeholder="Optional notes about this product"></textarea>
+                        <label asp-for="Description">Description</label>
+                        <textarea asp-for="Description" rows="4" placeholder="Optional notes about this product"></textarea>
+                        <span asp-validation-for="Description" class="field-error"></span>
                     </div>
                 </div>
             </section>
@@ -152,30 +173,33 @@
 
                 <div class="form-grid">
                     <div class="field">
-                        <label for="salesPriceAdvanced">Sales Price</label>
-                        <input id="salesPriceAdvanced" name="salesPriceAdvanced" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <label asp-for="SalesPrice">Sales Price (Advanced)</label>
+                        <input asp-for="SalesPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <span asp-validation-for="SalesPrice" class="field-error"></span>
                     </div>
 
                     <div class="field">
-                        <label for="mrp">MRP</label>
-                        <input id="mrp" name="mrp" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <label asp-for="MRP">MRP</label>
+                        <input asp-for="MRP" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <span asp-validation-for="MRP" class="field-error"></span>
                     </div>
 
                     <div class="field">
-                        <label for="purchasePrice">Purchase Price</label>
-                        <input id="purchasePrice" name="purchasePrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <label asp-for="PurchasePrice">Purchase Price</label>
+                        <input asp-for="PurchasePrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <span asp-validation-for="PurchasePrice" class="field-error"></span>
                     </div>
 
                     <div class="field">
-                        <label for="gstRateAdvanced">GST Tax Rate (%)</label>
-                        <select id="gstRateAdvanced" name="gstRateAdvanced">
+                        <label asp-for="GstRateId">GST Tax Rate (%) (Advanced)</label>
+                        <select asp-for="GstRateId">
                             <option value="" selected disabled>Select GST rate</option>
-                            <option value="0">0%</option>
-                            <option value="5">5%</option>
-                            <option value="12">12%</option>
-                            <option value="18">18%</option>
-                            <option value="28">28%</option>
+                            @foreach (var rate in gstRates)
+                            {
+                                <option value="@rate.GstRateId">@rate.GstRateName (@rate.RatePercentage%)</option>
+                            }
                         </select>
+                        <span asp-validation-for="GstRateId" class="field-error"></span>
                     </div>
                 </div>
             </section>
@@ -187,9 +211,30 @@
             </div>
             <div class="action-bar__right">
                 <a asp-controller="Items" asp-action="Inventory" class="btn ghost">Cancel</a>
-                <button type="submit" class="btn ghost">Save &amp; New</button>
+                <button type="submit" name="saveAction" value="SaveAndNew" class="btn ghost">Save &amp; New</button>
                 <button type="submit" class="btn primary">Save</button>
             </div>
         </div>
     </fieldset>
 </form>
+
+@section Scripts {
+    <script>
+        document.getElementById('autoGenerateCode').addEventListener('click', async function() {
+            try {
+                const response = await fetch('@Url.Action("GenerateItemCode", "Items")');
+                const data = await response.json();
+                document.getElementById('ItemCode').value = data.itemCode;
+            } catch (error) {
+                console.error('Error generating item code:', error);
+            }
+        });
+
+        // Set default AsOfDate to today
+        const asOfDateInput = document.getElementById('AsOfDate');
+        if (asOfDateInput && !asOfDateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            asOfDateInput.value = today;
+        }
+    </script>
+}
