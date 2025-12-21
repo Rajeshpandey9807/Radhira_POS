@@ -43,7 +43,11 @@ public sealed class DatabaseInitializer
             "CREATE TABLE IF NOT EXISTS UserRoles (UserId TEXT PRIMARY KEY, RoleId TEXT NOT NULL, FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE, FOREIGN KEY(RoleId) REFERENCES RoleMaster(Id));",
             "CREATE TABLE IF NOT EXISTS UserAuth (UserId TEXT PRIMARY KEY, PasswordHash TEXT NOT NULL, PasswordSalt TEXT NOT NULL, FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE);",
             "CREATE TABLE IF NOT EXISTS Categories (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Color TEXT NULL);",
-            "CREATE TABLE IF NOT EXISTS Products (Id TEXT PRIMARY KEY, Sku TEXT NOT NULL UNIQUE, Name TEXT NOT NULL, CategoryId TEXT NULL, UnitPrice REAL NOT NULL, ReorderPoint INTEGER NOT NULL DEFAULT 0, IsActive INTEGER NOT NULL DEFAULT 1, FOREIGN KEY(CategoryId) REFERENCES Categories(Id));",
+            "CREATE TABLE IF NOT EXISTS Units (UnitId INTEGER PRIMARY KEY AUTOINCREMENT, UnitName TEXT NOT NULL UNIQUE);",
+            "CREATE TABLE IF NOT EXISTS GstRates (GstRateId INTEGER PRIMARY KEY AUTOINCREMENT, Rate REAL NOT NULL UNIQUE);",
+            "CREATE TABLE IF NOT EXISTS Products (ProductId TEXT PRIMARY KEY, ProductTypeId INTEGER, CategoryId TEXT, ItemName TEXT NOT NULL, ItemCode TEXT, HSNCode TEXT, Description TEXT, IsActive INTEGER NOT NULL DEFAULT 1, FOREIGN KEY(CategoryId) REFERENCES Categories(Id));",
+            "CREATE TABLE IF NOT EXISTS ProductPricing (PricingId INTEGER PRIMARY KEY AUTOINCREMENT, ProductId TEXT NOT NULL, SalesPrice REAL, PurchasePrice REAL, MRP REAL, GstRateId INTEGER, CreatedOn TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(ProductId) REFERENCES Products(ProductId) ON DELETE CASCADE, FOREIGN KEY(GstRateId) REFERENCES GstRates(GstRateId));",
+            "CREATE TABLE IF NOT EXISTS ProductStock (StockId INTEGER PRIMARY KEY AUTOINCREMENT, ProductId TEXT NOT NULL, OpeningStock REAL, CurrentStock REAL, UnitId INTEGER, AsOfDate TEXT, CreatedOn TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(ProductId) REFERENCES Products(ProductId) ON DELETE CASCADE, FOREIGN KEY(UnitId) REFERENCES Units(UnitId));",
             "CREATE TABLE IF NOT EXISTS Customers (Id TEXT PRIMARY KEY, DisplayName TEXT NOT NULL, Email TEXT NULL, Phone TEXT NULL, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);",
             "CREATE TABLE IF NOT EXISTS Sales (Id TEXT PRIMARY KEY, ReceiptNumber TEXT NOT NULL UNIQUE, CustomerId TEXT NULL, SubTotal REAL NOT NULL, Tax REAL NOT NULL, Discount REAL NOT NULL, GrandTotal REAL NOT NULL, Status TEXT NOT NULL, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(CustomerId) REFERENCES Customers(Id));",
             "CREATE TABLE IF NOT EXISTS SaleItems (Id TEXT PRIMARY KEY, SaleId TEXT NOT NULL, ProductId TEXT NOT NULL, Quantity INTEGER NOT NULL, UnitPrice REAL NOT NULL, LineTotal REAL NOT NULL, FOREIGN KEY(SaleId) REFERENCES Sales(Id), FOREIGN KEY(ProductId) REFERENCES Products(Id));",
@@ -148,6 +152,72 @@ BEGIN
     IF OBJECT_ID('dbo.BusinessTypes', 'U') IS NOT NULL
         ALTER TABLE dbo.BusinessBusinessTypes WITH CHECK ADD CONSTRAINT FK_BusinessBusinessTypes_BusinessTypes
             FOREIGN KEY (BusinessTypeId) REFERENCES dbo.BusinessTypes(BusinessTypeId);
+END
+
+/* --------------------------
+   Product Schema
+   -------------------------- */
+IF OBJECT_ID('dbo.Units', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Units (
+        UnitId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        UnitName NVARCHAR(50) NOT NULL UNIQUE
+    );
+    INSERT INTO dbo.Units (UnitName) VALUES ('pcs'), ('kg'), ('liter'), ('box'), ('meter'), ('pack');
+END
+
+IF OBJECT_ID('dbo.GstRates', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.GstRates (
+        GstRateId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        Rate DECIMAL(5,2) NOT NULL UNIQUE
+    );
+    INSERT INTO dbo.GstRates (Rate) VALUES (0), (5), (12), (18), (28);
+END
+
+IF OBJECT_ID('dbo.Products', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Products (
+        ProductId UNIQUEIDENTIFIER NOT NULL PRIMARY KEY DEFAULT NEWID(),
+        ProductTypeId INT NULL,
+        CategoryId UNIQUEIDENTIFIER NULL,
+        ItemName NVARCHAR(200) NOT NULL,
+        ItemCode NVARCHAR(50) NULL,
+        HSNCode NVARCHAR(20) NULL,
+        Description NVARCHAR(MAX) NULL,
+        IsActive BIT NOT NULL DEFAULT 1
+        -- FOREIGN KEY (CategoryId) REFERENCES dbo.Categories(Id) -- Categories usually text/guid in this app
+    );
+END
+
+IF OBJECT_ID('dbo.ProductPricing', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ProductPricing (
+        PricingId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ProductId UNIQUEIDENTIFIER NOT NULL,
+        SalesPrice DECIMAL(18,2) NULL,
+        PurchasePrice DECIMAL(18,2) NULL,
+        MRP DECIMAL(18,2) NULL,
+        GstRateId INT NULL,
+        CreatedOn DATETIME DEFAULT GETDATE(),
+        FOREIGN KEY (ProductId) REFERENCES dbo.Products(ProductId) ON DELETE CASCADE,
+        FOREIGN KEY (GstRateId) REFERENCES dbo.GstRates(GstRateId)
+    );
+END
+
+IF OBJECT_ID('dbo.ProductStock', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ProductStock (
+        StockId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ProductId UNIQUEIDENTIFIER NOT NULL,
+        OpeningStock DECIMAL(18,2) NULL,
+        CurrentStock DECIMAL(18,2) NULL,
+        UnitId INT NULL,
+        AsOfDate DATE NULL,
+        CreatedOn DATETIME DEFAULT GETDATE(),
+        FOREIGN KEY (ProductId) REFERENCES dbo.Products(ProductId) ON DELETE CASCADE,
+        FOREIGN KEY (UnitId) REFERENCES dbo.Units(UnitId)
+    );
 END
 
 /* --------------------------
@@ -490,6 +560,22 @@ END
         foreach (var name in defaultStates)
         {
             await connection.ExecuteAsync(new CommandDefinition(insertStateSql, new { Name = name }, cancellationToken: cancellationToken));
+        }
+
+        // Seed Units and GstRates (SQLite)
+        if (connection.GetType().Name.Contains("Sqlite", StringComparison.OrdinalIgnoreCase))
+        {
+            const string insertUnitSql = "INSERT OR IGNORE INTO Units (UnitName) VALUES (@Name);";
+            foreach (var name in new[] { "pcs", "kg", "liter", "box", "meter", "pack" })
+            {
+                await connection.ExecuteAsync(new CommandDefinition(insertUnitSql, new { Name = name }, cancellationToken: cancellationToken));
+            }
+
+            const string insertGstSql = "INSERT OR IGNORE INTO GstRates (Rate) VALUES (@Rate);";
+            foreach (var rate in new[] { 0, 5, 12, 18, 28 })
+            {
+                await connection.ExecuteAsync(new CommandDefinition(insertGstSql, new { Rate = rate }, cancellationToken: cancellationToken));
+            }
         }
     }
 }

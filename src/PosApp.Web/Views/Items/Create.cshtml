@@ -1,3 +1,4 @@
+@model PosApp.Web.Models.ProductViewModel
 @{
     ViewData["Title"] = "Add New Product";
 }
@@ -26,23 +27,25 @@
     </ol>
 </nav>
 
-<form class="form" action="#" method="post" aria-label="Add new product">
+<form class="form" asp-controller="Items" asp-action="Create" method="post" aria-label="Add new product">
+    <div asp-validation-summary="All" class="text-danger"></div>
     <fieldset class="card">
         <legend class="card__legend">SECTION 1: Basic Details</legend>
 
         <div class="form-grid">
             <div class="field">
-                <label for="productType">Product Type</label>
-                <select id="productType" name="productType" required>
+                <label asp-for="ProductType">Product Type</label>
+                <select asp-for="ProductType" required>
                     <option value="" selected disabled>Select product type</option>
                     <option>Goods</option>
                     <option>Service</option>
                 </select>
+                <span asp-validation-for="ProductType" class="text-danger"></span>
             </div>
 
             <div class="field">
-                <label for="category">Category</label>
-                <select id="category" name="category" required>
+                <label asp-for="Category">Category</label>
+                <select asp-for="Category" required>
                     <option value="" selected disabled>Select category</option>
                     <option>Stationery</option>
                     <option>Beverages</option>
@@ -50,21 +53,24 @@
                     <option>Services</option>
                     <option>Misc</option>
                 </select>
+                <span asp-validation-for="Category" class="text-danger"></span>
             </div>
 
             <div class="field">
-                <label for="itemName">Item Name</label>
-                <input id="itemName" name="itemName" type="text" placeholder="e.g., Premium A4 Paper" required />
+                <label asp-for="ItemName">Item Name</label>
+                <input asp-for="ItemName" placeholder="e.g., Premium A4 Paper" required />
+                <span asp-validation-for="ItemName" class="text-danger"></span>
             </div>
 
             <div class="field">
-                <label for="salesPriceBasic">Sales Price</label>
-                <input id="salesPriceBasic" name="salesPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required />
+                <label asp-for="SalesPrice">Sales Price</label>
+                <input asp-for="SalesPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required />
+                <span asp-validation-for="SalesPrice" class="text-danger"></span>
             </div>
 
             <div class="field">
-                <label for="gstRateBasic">GST Tax Rate (%)</label>
-                <select id="gstRateBasic" name="gstRate" required>
+                <label asp-for="GstRate">GST Tax Rate (%)</label>
+                <select asp-for="GstRate" required>
                     <option value="" selected disabled>Select GST rate</option>
                     <option value="0">0%</option>
                     <option value="5">5%</option>
@@ -72,11 +78,12 @@
                     <option value="18">18%</option>
                     <option value="28">28%</option>
                 </select>
+                <span asp-validation-for="GstRate" class="text-danger"></span>
             </div>
 
             <div class="field">
-                <label for="unitBasic">Measuring Unit</label>
-                <select id="unitBasic" name="unit" required>
+                <label asp-for="Unit">Measuring Unit</label>
+                <select asp-for="Unit" required>
                     <option value="" selected disabled>Select unit</option>
                     <option>pcs</option>
                     <option>kg</option>
@@ -85,11 +92,13 @@
                     <option>meter</option>
                     <option>pack</option>
                 </select>
+                <span asp-validation-for="Unit" class="text-danger"></span>
             </div>
 
             <div class="field">
-                <label for="openingStock">Opening Stock</label>
-                <input id="openingStock" name="openingStock" type="number" step="1" min="0" placeholder="0" />
+                <label asp-for="OpeningStock">Opening Stock</label>
+                <input asp-for="OpeningStock" type="number" step="1" min="0" placeholder="0" />
+                <span asp-validation-for="OpeningStock" class="text-danger"></span>
             </div>
         </div>
     </fieldset>
@@ -106,22 +115,24 @@
 
                 <div class="form-grid">
                     <div class="field">
-                        <label for="itemCode">Item Code</label>
+                        <label asp-for="ItemCode">Item Code</label>
                         <div class="input-row">
-                            <input id="itemCode" name="itemCode" type="text" placeholder="e.g., PAP-A4-80G" />
+                            <input asp-for="ItemCode" placeholder="e.g., PAP-A4-80G" />
                             <button type="button" class="btn ghost btn--sm" aria-label="Auto-generate item code">Auto-generate</button>
                         </div>
                         <p class="help-text">You can enter a custom code or use auto-generate.</p>
+                        <span asp-validation-for="ItemCode" class="text-danger"></span>
                     </div>
 
                     <div class="field">
-                        <label for="hsnCode">HSN Code</label>
-                        <input id="hsnCode" name="hsnCode" type="text" placeholder="e.g., 4802" />
+                        <label asp-for="HSNCode">HSN Code</label>
+                        <input asp-for="HSNCode" placeholder="e.g., 4802" />
+                        <span asp-validation-for="HSNCode" class="text-danger"></span>
                     </div>
 
                     <div class="field">
-                        <label for="unitAdvanced">Measuring Unit</label>
-                        <select id="unitAdvanced" name="unitAdvanced">
+                        <label asp-for="UnitAdvanced">Measuring Unit</label>
+                        <select asp-for="UnitAdvanced">
                             <option value="" selected disabled>Select unit</option>
                             <option>pcs</option>
                             <option>kg</option>
@@ -130,16 +141,19 @@
                             <option>meter</option>
                             <option>pack</option>
                         </select>
+                        <span asp-validation-for="UnitAdvanced" class="text-danger"></span>
                     </div>
 
                     <div class="field">
-                        <label for="asOfDate">As Of Date</label>
-                        <input id="asOfDate" name="asOfDate" type="date" />
+                        <label asp-for="AsOfDate">As Of Date</label>
+                        <input asp-for="AsOfDate" type="date" />
+                        <span asp-validation-for="AsOfDate" class="text-danger"></span>
                     </div>
 
                     <div class="field field--full">
-                        <label for="description">Description</label>
-                        <textarea id="description" name="description" rows="4" placeholder="Optional notes about this product"></textarea>
+                        <label asp-for="Description">Description</label>
+                        <textarea asp-for="Description" rows="4" placeholder="Optional notes about this product"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
                 </div>
             </section>
@@ -152,23 +166,26 @@
 
                 <div class="form-grid">
                     <div class="field">
-                        <label for="salesPriceAdvanced">Sales Price</label>
-                        <input id="salesPriceAdvanced" name="salesPriceAdvanced" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <label asp-for="SalesPriceAdvanced">Sales Price</label>
+                        <input asp-for="SalesPriceAdvanced" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <span asp-validation-for="SalesPriceAdvanced" class="text-danger"></span>
                     </div>
 
                     <div class="field">
-                        <label for="mrp">MRP</label>
-                        <input id="mrp" name="mrp" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <label asp-for="Mrp">MRP</label>
+                        <input asp-for="Mrp" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <span asp-validation-for="Mrp" class="text-danger"></span>
                     </div>
 
                     <div class="field">
-                        <label for="purchasePrice">Purchase Price</label>
-                        <input id="purchasePrice" name="purchasePrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <label asp-for="PurchasePrice">Purchase Price</label>
+                        <input asp-for="PurchasePrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" />
+                        <span asp-validation-for="PurchasePrice" class="text-danger"></span>
                     </div>
 
                     <div class="field">
-                        <label for="gstRateAdvanced">GST Tax Rate (%)</label>
-                        <select id="gstRateAdvanced" name="gstRateAdvanced">
+                        <label asp-for="GstRateAdvanced">GST Tax Rate (%)</label>
+                        <select asp-for="GstRateAdvanced">
                             <option value="" selected disabled>Select GST rate</option>
                             <option value="0">0%</option>
                             <option value="5">5%</option>
@@ -176,6 +193,7 @@
                             <option value="18">18%</option>
                             <option value="28">28%</option>
                         </select>
+                        <span asp-validation-for="GstRateAdvanced" class="text-danger"></span>
                     </div>
                 </div>
             </section>
@@ -193,3 +211,7 @@
         </div>
     </fieldset>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
