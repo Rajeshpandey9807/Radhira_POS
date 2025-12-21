@@ -1,3 +1,4 @@
+@model IReadOnlyList<PosApp.Web.Features.Products.ProductListItem>
 @{
     ViewData["Title"] = "Inventory";
 }
@@ -66,75 +67,91 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>
-                        <div class="cell-title">Premium A4 Paper</div>
-                        <div class="cell-subtitle">SKU: PAP-A4-80G</div>
-                    </td>
-                    <td>Stationery</td>
-                    <td><span class="badge badge--soft">Goods</span></td>
-                    <td class="is-right">₹ 220.00</td>
-                    <td class="is-right">124</td>
-                    <td class="is-right">12</td>
-                    <td><span class="badge badge--success"><span class="dot dot--success" aria-hidden="true"></span>Active</span></td>
-                    <td class="is-right">
-                        <a class="link link--muted" href="#" aria-label="View Premium A4 Paper">View</a>
-                        <span class="sep" aria-hidden="true">·</span>
-                        <a class="link" href="#" aria-label="Edit Premium A4 Paper">Edit</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="cell-title">Laptop Service (Standard)</div>
-                        <div class="cell-subtitle">Item Code: SRV-LAP-STD</div>
-                    </td>
-                    <td>Services</td>
-                    <td><span class="badge badge--soft">Service</span></td>
-                    <td class="is-right">₹ 499.00</td>
-                    <td class="is-right">—</td>
-                    <td class="is-right">18</td>
-                    <td><span class="badge badge--success"><span class="dot dot--success" aria-hidden="true"></span>Active</span></td>
-                    <td class="is-right">
-                        <a class="link link--muted" href="#" aria-label="View Laptop Service (Standard)">View</a>
-                        <span class="sep" aria-hidden="true">·</span>
-                        <a class="link" href="#" aria-label="Edit Laptop Service (Standard)">Edit</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="cell-title">Cold Coffee (500ml)</div>
-                        <div class="cell-subtitle">Batch: CC-500-DEC</div>
-                    </td>
-                    <td>Beverages</td>
-                    <td><span class="badge badge--soft">Goods</span></td>
-                    <td class="is-right">₹ 90.00</td>
-                    <td class="is-right">8</td>
-                    <td class="is-right">5</td>
-                    <td><span class="badge badge--warning"><span class="dot dot--warning" aria-hidden="true"></span>Low stock</span></td>
-                    <td class="is-right">
-                        <a class="link link--muted" href="#" aria-label="View Cold Coffee (500ml)">View</a>
-                        <span class="sep" aria-hidden="true">·</span>
-                        <a class="link" href="#" aria-label="Edit Cold Coffee (500ml)">Edit</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div class="cell-title">Old Stock Item</div>
-                        <div class="cell-subtitle">Item Code: OLD-001</div>
-                    </td>
-                    <td>Misc</td>
-                    <td><span class="badge badge--soft">Goods</span></td>
-                    <td class="is-right">₹ 0.00</td>
-                    <td class="is-right">0</td>
-                    <td class="is-right">0</td>
-                    <td><span class="badge badge--muted"><span class="dot dot--muted" aria-hidden="true"></span>Inactive</span></td>
-                    <td class="is-right">
-                        <a class="link link--muted" href="#" aria-label="View Old Stock Item">View</a>
-                        <span class="sep" aria-hidden="true">·</span>
-                        <a class="link" href="#" aria-label="Edit Old Stock Item">Edit</a>
-                    </td>
-                </tr>
+                @if (Model != null && Model.Count > 0)
+                {
+                    @foreach (var product in Model)
+                    {
+                        var statusClass = product.IsActive ? "badge--success" : "badge--muted";
+                        var dotClass = product.IsActive ? "dot--success" : "dot--muted";
+                        var statusText = product.IsActive ? "Active" : "Inactive";
+                        
+                        // Check for low stock
+                        if (product.IsActive && product.CurrentStock.HasValue && product.CurrentStock.Value < 10 && product.CurrentStock.Value > 0)
+                        {
+                            statusClass = "badge--warning";
+                            dotClass = "dot--warning";
+                            statusText = "Low stock";
+                        }
+                        
+                        <tr>
+                            <td>
+                                <div class="cell-title">@product.ItemName</div>
+                                @if (!string.IsNullOrWhiteSpace(product.ItemCode))
+                                {
+                                    <div class="cell-subtitle">SKU: @product.ItemCode</div>
+                                }
+                            </td>
+                            <td>@(product.CategoryName ?? "—")</td>
+                            <td><span class="badge badge--soft">@(product.ProductTypeName ?? "—")</span></td>
+                            <td class="is-right">@(product.SalesPrice.HasValue ? $"₹ {product.SalesPrice.Value:N2}" : "—")</td>
+                            <td class="is-right">@(product.CurrentStock.HasValue ? product.CurrentStock.Value.ToString("N0") : "—")</td>
+                            <td class="is-right">@(product.GstRate.HasValue ? product.GstRate.Value.ToString("N0") : "—")</td>
+                            <td><span class="badge @statusClass"><span class="dot @dotClass" aria-hidden="true"></span>@statusText</span></td>
+                            <td class="is-right">
+                                <a class="link link--muted" asp-controller="Items" asp-action="Edit" asp-route-id="@product.ProductId" aria-label="View @product.ItemName">View</a>
+                                <span class="sep" aria-hidden="true">·</span>
+                                <a class="link" asp-controller="Items" asp-action="Edit" asp-route-id="@product.ProductId" aria-label="Edit @product.ItemName">Edit</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="is-center">
+                            <p style="padding: 2rem; color: var(--text-muted);">No products found. <a asp-controller="Items" asp-action="Create">Add your first product</a></p>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        (function () {
+            // Client-side search filtering
+            const searchInput = document.getElementById('inventorySearch');
+            const categorySelect = document.getElementById('inventoryCategory');
+            const statusSelect = document.getElementById('inventoryStatus');
+            const tableBody = document.querySelector('.table tbody');
+
+            function filterTable() {
+                const searchTerm = (searchInput?.value || '').toLowerCase();
+                const selectedCategory = categorySelect?.value || 'All categories';
+                const selectedStatus = statusSelect?.value || 'All status';
+                const rows = tableBody?.querySelectorAll('tr') || [];
+
+                rows.forEach(function (row) {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length === 0) return; // Skip empty state row
+
+                    const itemName = (cells[0]?.textContent || '').toLowerCase();
+                    const category = (cells[1]?.textContent || '').trim();
+                    const statusBadge = cells[6]?.textContent?.trim() || '';
+
+                    const matchesSearch = !searchTerm || itemName.includes(searchTerm);
+                    const matchesCategory = selectedCategory === 'All categories' || category === selectedCategory;
+                    const matchesStatus = selectedStatus === 'All status' || statusBadge.includes(selectedStatus);
+
+                    row.style.display = matchesSearch && matchesCategory && matchesStatus ? '' : 'none';
+                });
+            }
+
+            searchInput?.addEventListener('input', filterTable);
+            categorySelect?.addEventListener('change', filterTable);
+            statusSelect?.addEventListener('change', filterTable);
+        })();
+    </script>
+}
