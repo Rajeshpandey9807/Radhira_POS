@@ -279,6 +279,126 @@ BEGIN
     IF COL_LENGTH('dbo.PartyCategories', 'CategoryName') IS NOT NULL
         INSERT INTO dbo.PartyCategories (CategoryName) VALUES (N'Retail'), (N'Wholesale'), (N'Distributor'), (N'Other');
 END
+
+/* --------------------------
+   Products schema
+   -------------------------- */
+IF OBJECT_ID('dbo.ProductTypes', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ProductTypes
+    (
+        ProductTypeId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ProductTypeName NVARCHAR(100) NOT NULL UNIQUE,
+        IsActive BIT NOT NULL CONSTRAINT DF_ProductTypes_IsActive DEFAULT(1)
+    );
+    INSERT INTO dbo.ProductTypes (ProductTypeName) VALUES (N'Goods'), (N'Service');
+END
+
+IF OBJECT_ID('dbo.Categories', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Categories
+    (
+        CategoryId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        CategoryName NVARCHAR(200) NOT NULL UNIQUE,
+        IsActive BIT NOT NULL CONSTRAINT DF_Categories_IsActive DEFAULT(1)
+    );
+END
+
+IF OBJECT_ID('dbo.Units', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Units
+    (
+        UnitId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        UnitName NVARCHAR(50) NOT NULL UNIQUE,
+        UnitCode NVARCHAR(10) NULL,
+        IsActive BIT NOT NULL CONSTRAINT DF_Units_IsActive DEFAULT(1)
+    );
+    INSERT INTO dbo.Units (UnitName, UnitCode) VALUES 
+        (N'Pieces', N'pcs'),
+        (N'Kilogram', N'kg'),
+        (N'Liter', N'liter'),
+        (N'Box', N'box'),
+        (N'Meter', N'meter'),
+        (N'Pack', N'pack');
+END
+
+IF OBJECT_ID('dbo.GstRates', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.GstRates
+    (
+        GstRateId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        Rate DECIMAL(5,2) NOT NULL UNIQUE,
+        Description NVARCHAR(200) NULL,
+        IsActive BIT NOT NULL CONSTRAINT DF_GstRates_IsActive DEFAULT(1)
+    );
+    INSERT INTO dbo.GstRates (Rate, Description) VALUES 
+        (0, N'0% GST'),
+        (5, N'5% GST'),
+        (12, N'12% GST'),
+        (18, N'18% GST'),
+        (28, N'28% GST');
+END
+
+IF OBJECT_ID('dbo.Products', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Products
+    (
+        ProductId UNIQUEIDENTIFIER NOT NULL PRIMARY KEY DEFAULT NEWID(),
+        ProductTypeId INT NOT NULL,
+        CategoryId INT NULL,
+        ItemName NVARCHAR(200) NOT NULL,
+        ItemCode NVARCHAR(100) NULL,
+        HSNCode NVARCHAR(50) NULL,
+        Description NVARCHAR(MAX) NULL,
+        IsActive BIT NOT NULL CONSTRAINT DF_Products_IsActive DEFAULT(1),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_Products_CreatedOn DEFAULT SYSUTCDATETIME(),
+        UpdatedOn DATETIME2 NULL,
+        CONSTRAINT FK_Products_ProductTypes FOREIGN KEY (ProductTypeId) REFERENCES dbo.ProductTypes(ProductTypeId)
+    );
+    IF OBJECT_ID('dbo.Categories', 'U') IS NOT NULL
+        ALTER TABLE dbo.Products WITH CHECK ADD CONSTRAINT FK_Products_Categories
+            FOREIGN KEY (CategoryId) REFERENCES dbo.Categories(CategoryId);
+    CREATE INDEX IX_Products_ItemCode ON dbo.Products(ItemCode);
+    CREATE INDEX IX_Products_CategoryId ON dbo.Products(CategoryId);
+END
+
+IF OBJECT_ID('dbo.ProductPricing', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ProductPricing
+    (
+        PricingId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ProductId UNIQUEIDENTIFIER NOT NULL,
+        SalesPrice DECIMAL(18,2) NULL,
+        PurchasePrice DECIMAL(18,2) NULL,
+        MRP DECIMAL(18,2) NULL,
+        GstRateId INT NULL,
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_ProductPricing_CreatedOn DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_ProductPricing_Products FOREIGN KEY (ProductId) REFERENCES dbo.Products(ProductId) ON DELETE CASCADE
+    );
+    IF OBJECT_ID('dbo.GstRates', 'U') IS NOT NULL
+        ALTER TABLE dbo.ProductPricing WITH CHECK ADD CONSTRAINT FK_ProductPricing_GstRates
+            FOREIGN KEY (GstRateId) REFERENCES dbo.GstRates(GstRateId);
+    CREATE INDEX IX_ProductPricing_ProductId ON dbo.ProductPricing(ProductId);
+END
+
+IF OBJECT_ID('dbo.ProductStock', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.ProductStock
+    (
+        StockId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        ProductId UNIQUEIDENTIFIER NOT NULL,
+        OpeningStock DECIMAL(18,2) NULL,
+        CurrentStock DECIMAL(18,2) NULL,
+        UnitId INT NULL,
+        AsOfDate DATE NULL,
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_ProductStock_CreatedOn DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_ProductStock_Products FOREIGN KEY (ProductId) REFERENCES dbo.Products(ProductId) ON DELETE CASCADE
+    );
+    IF OBJECT_ID('dbo.Units', 'U') IS NOT NULL
+        ALTER TABLE dbo.ProductStock WITH CHECK ADD CONSTRAINT FK_ProductStock_Units
+            FOREIGN KEY (UnitId) REFERENCES dbo.Units(UnitId);
+    CREATE INDEX IX_ProductStock_ProductId ON dbo.ProductStock(ProductId);
+END
 ";
 
         await connection.ExecuteAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
