@@ -18,6 +18,50 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = /workspace/src/PosApp.Web
 build_property._RazorSourceGeneratorDebug = 
 
+[/workspace/src/PosApp.Web/Views/Account/Login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9Mb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/BusinessProfiles/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQnVzaW5lc3NQcm9maWxlcy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/BusinessProfiles/_Form.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQnVzaW5lc3NQcm9maWxlcy9fRm9ybS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/BusinessTypes/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQnVzaW5lc3NUeXBlcy9DcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/BusinessTypes/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQnVzaW5lc3NUeXBlcy9FZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/BusinessTypes/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQnVzaW5lc3NUeXBlcy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/BusinessTypes/_Form.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQnVzaW5lc3NUeXBlcy9fRm9ybS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Categories/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQ2F0ZWdvcmllcy9DcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Categories/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQ2F0ZWdvcmllcy9FZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Categories/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQ2F0ZWdvcmllcy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Categories/_Form.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQ2F0ZWdvcmllcy9fRm9ybS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/workspace/src/PosApp.Web/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9JbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -30,12 +74,148 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Qcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/workspace/src/PosApp.Web/Views/IndustryTypes/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSW5kdXN0cnlUeXBlcy9DcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/IndustryTypes/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSW5kdXN0cnlUeXBlcy9FZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/IndustryTypes/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSW5kdXN0cnlUeXBlcy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/IndustryTypes/_Form.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSW5kdXN0cnlUeXBlcy9fRm9ybS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Invoices/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSW52b2ljZXMvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Items/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSXRlbXMvQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Items/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSXRlbXMvRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Items/Inventory.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSXRlbXMvSW52ZW50b3J5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Items/Warehouse.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSXRlbXMvV2FyZWhvdXNlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Parties/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGFydGllcy9DcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Parties/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGFydGllcy9FZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Parties/Import.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGFydGllcy9JbXBvcnQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Parties/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGFydGllcy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Parties/_Form.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGFydGllcy9fRm9ybS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Payments/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUGF5bWVudHMvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/RegistrationTypes/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUmVnaXN0cmF0aW9uVHlwZXMvQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/RegistrationTypes/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUmVnaXN0cmF0aW9uVHlwZXMvRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/RegistrationTypes/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUmVnaXN0cmF0aW9uVHlwZXMvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/RegistrationTypes/_Form.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUmVnaXN0cmF0aW9uVHlwZXMvX0Zvcm0uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Reports/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUmVwb3J0cy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Roles/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUm9sZXMvQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Roles/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUm9sZXMvRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Roles/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUm9sZXMvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Roles/_Form.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUm9sZXMvX0Zvcm0uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Sales/CreditNote.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2FsZXMvQ3JlZGl0Tm90ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Sales/DeliveryChallan.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2FsZXMvRGVsaXZlcnlDaGFsbGFuLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Sales/ProformaInvoice.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2FsZXMvUHJvZm9ybWFJbnZvaWNlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Sales/Quotation.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2FsZXMvUXVvdGF0aW9uLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/Sales/SalesReturn.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2FsZXMvU2FsZXNSZXR1cm4uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [/workspace/src/PosApp.Web/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL0Vycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/workspace/src/PosApp.Web/Views/Shared/_AuthLayout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19BdXRoTGF5b3V0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [/workspace/src/PosApp.Web/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/States/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU3RhdGVzL0NyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/States/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU3RhdGVzL0VkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/States/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU3RhdGVzL0luZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/workspace/src/PosApp.Web/Views/States/_Form.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU3RhdGVzL19Gb3JtLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/workspace/src/PosApp.Web/Views/Users/Create.cshtml]
