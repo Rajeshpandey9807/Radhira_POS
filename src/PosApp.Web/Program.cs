@@ -11,6 +11,7 @@ using PosApp.Web.Features.Parties;
 using PosApp.Web.Features.Products;
 using PosApp.Web.Features.Categories;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +64,14 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+if (!Directory.Exists(app.Environment.WebRootPath))
+{
+    Directory.CreateDirectory(app.Environment.WebRootPath);
+    app.Logger.LogWarning(
+        "Web root folder was missing and was created at '{WebRootPath}'. Static assets (CSS/JS/images) may be missing if the project was copied without its wwwroot contents.",
+        app.Environment.WebRootPath);
+}
+
 app.UseStaticFiles();
 
 app.UseRouting();
