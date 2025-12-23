@@ -12,6 +12,7 @@
         <div class="hero-actions">
             <a asp-controller="Users" asp-action="Create" class="btn primary">Invite teammate</a>
             <a asp-controller="Users" asp-action="Index" class="btn ghost">Manage users</a>
+            <a asp-controller="Categories" asp-action="Create" class="btn ghost">Create Category</a>
             <a asp-controller="Home" asp-action="Pos" class="btn ghost">Open selling screen</a>
         </div>
     </div>
@@ -32,6 +33,7 @@
         <span>Catalog</span>
         <strong>@Model.ActiveProducts</strong>
         <p>active SKUs</p>
+        <a asp-controller="Categories" asp-action="Create" class="link-small" style="margin-top: 8px; display: inline-block;">Create Category</a>
     </article>
     <article>
         <span>Today&apos;s sales</span>

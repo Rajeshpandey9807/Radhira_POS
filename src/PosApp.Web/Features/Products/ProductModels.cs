@@ -4,10 +4,30 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PosApp.Web.Features.Products;
 
-public sealed record ProductTypeOption(int ProductTypeId, string TypeName);
-public sealed record CategoryOption(int CategoryId, string CategoryName);
-public sealed record UnitOption(int UnitId, string UnitName);
-public sealed record GstRateOption(int GstRateId, string RateName, decimal Rate);
+public sealed class ProductTypeOption
+{
+    public int ProductTypeId { get; set; }
+    public string TypeName { get; set; } = string.Empty;
+}
+
+public sealed class CategoryOption
+{
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = string.Empty;
+}
+
+public sealed class UnitOption
+{
+    public int UnitId { get; set; }
+    public string UnitName { get; set; } = string.Empty;
+}
+
+public sealed class GstRateOption
+{
+    public int GstRateId { get; set; }
+    public string RateName { get; set; } = string.Empty;
+    public decimal Rate { get; set; }
+}
 
 public sealed record ProductListItem(
     Guid ProductId,

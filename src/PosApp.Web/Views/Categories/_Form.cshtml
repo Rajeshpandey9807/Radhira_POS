@@ -1,0 +1,39 @@
+@model CategoryFormViewModel
+
+<div class="form-grid">
+    <div class="field-group">
+        <label asp-for="CategoryName"></label>
+        <input asp-for="CategoryName" placeholder="Electronics" />
+        <span asp-validation-for="CategoryName"></span>
+    </div>
+    <div class="field-group">
+        <label asp-for="Color"></label>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <input asp-for="Color" type="text" placeholder="#f06292" pattern="^#[0-9A-Fa-f]{6}$" style="flex: 1;" />
+            <input type="color" id="colorPicker" value="@(Model.Color ?? "#f06292")" style="width: 50px; height: 38px; cursor: pointer;" />
+        </div>
+        <span asp-validation-for="Color"></span>
+        <small>Enter a hex color code (e.g., #f06292) or use the color picker</small>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const colorInput = document.querySelector('input[name="Color"]');
+            const colorPicker = document.getElementById('colorPicker');
+            
+            if (colorInput && colorPicker) {
+                // Update text input when color picker changes
+                colorPicker.addEventListener('input', function() {
+                    colorInput.value = this.value;
+                });
+                
+                // Update color picker when text input changes (if valid hex)
+                colorInput.addEventListener('input', function() {
+                    if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
+                        colorPicker.value = this.value;
+                    }
+                });
+            }
+        });
+    </script>
+</div>
+

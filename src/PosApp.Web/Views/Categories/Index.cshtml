@@ -1,0 +1,96 @@
+@model IReadOnlyList<CategoryListItem>
+@{
+    ViewData["Title"] = "Product categories";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Product management</p>
+        <h2>Product categories</h2>
+        <p>Organize your inventory with categories. Each category can have a color for visual identification.</p>
+    </div>
+    <div class="hero-actions">
+        <a asp-action="Create" class="btn primary">Add category</a>
+        <a asp-controller="Home" asp-action="Index" class="btn ghost">Back to dashboard</a>
+    </div>
+</section>
+
+<table class="modern-table">
+    <thead>
+        <tr>
+            <th>Category name</th>
+            <th>Color</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="4">
+                    <div class="empty">No categories yet. Create your first category.</div>
+                </td>
+            </tr>
+        }
+        else
+        {
+            foreach (var category in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@category.CategoryName</strong>
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(category.Color))
+                        {
+                            <span class="color-indicator" style="background-color: @category.Color;" title="@category.Color"></span>
+                            <span>@category.Color</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No color</span>
+                        }
+                    </td>
+                    <td>
+                        <form asp-action="Toggle"
+                              asp-route-id="@category.CategoryId"
+                              asp-route-activate="@(category.IsActive ? false : true)"
+                              method="post"
+                              class="toggle-switch">
+                            <button type="submit"
+                                    class="toggle-switch__button @(category.IsActive ? "is-active" : string.Empty)"
+                                    aria-pressed="@(category.IsActive ? "true" : "false")">
+                                <span class="toggle-switch__track">
+                                    <span class="toggle-switch__thumb"></span>
+                                </span>
+                                <span class="toggle-switch__label">@(
+                                        category.IsActive ? "Active" : "Inactive"
+                                    )</span>
+                            </button>
+                        </form>
+                    </td>
+                    <td class="actions">
+                        <a asp-action="Edit" asp-route-id="@category.CategoryId">Edit</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<style>
+    .color-indicator {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        margin-right: 8px;
+        vertical-align: middle;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .text-muted {
+        color: var(--text-secondary);
+    }
+</style>
+

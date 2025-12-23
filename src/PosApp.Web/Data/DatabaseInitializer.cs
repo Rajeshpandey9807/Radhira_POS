@@ -42,8 +42,8 @@ public sealed class DatabaseInitializer
             "CREATE TABLE IF NOT EXISTS Users (Id TEXT PRIMARY KEY, Username TEXT NOT NULL UNIQUE, DisplayName TEXT NOT NULL, Email TEXT NOT NULL, PhoneNumber TEXT NOT NULL, IsActive INTEGER NOT NULL DEFAULT 1, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, CreatedBy TEXT NULL, UpdatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy TEXT NULL);",
             "CREATE TABLE IF NOT EXISTS UserRoles (UserId TEXT PRIMARY KEY, RoleId TEXT NOT NULL, FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE, FOREIGN KEY(RoleId) REFERENCES RoleMaster(Id));",
             "CREATE TABLE IF NOT EXISTS UserAuth (UserId TEXT PRIMARY KEY, PasswordHash TEXT NOT NULL, PasswordSalt TEXT NOT NULL, FOREIGN KEY(UserId) REFERENCES Users(Id) ON DELETE CASCADE);",
-            "CREATE TABLE IF NOT EXISTS Categories (Id TEXT PRIMARY KEY, Name TEXT NOT NULL UNIQUE, Color TEXT NULL);",
-            "CREATE TABLE IF NOT EXISTS Products (Id TEXT PRIMARY KEY, Sku TEXT NOT NULL UNIQUE, Name TEXT NOT NULL, CategoryId TEXT NULL, UnitPrice REAL NOT NULL, ReorderPoint INTEGER NOT NULL DEFAULT 0, IsActive INTEGER NOT NULL DEFAULT 1, FOREIGN KEY(CategoryId) REFERENCES Categories(Id));",
+            "CREATE TABLE IF NOT EXISTS Categories (CategoryId TEXT PRIMARY KEY, CategoryName TEXT NOT NULL UNIQUE, Color TEXT NULL, IsActive INTEGER NOT NULL DEFAULT 1, CreatedBy INTEGER NOT NULL DEFAULT 0, CreatedOn TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, UpdatedBy INTEGER NULL, UpdatedOn TEXT NULL);",
+            "CREATE TABLE IF NOT EXISTS Products (Id TEXT PRIMARY KEY, Sku TEXT NOT NULL UNIQUE, Name TEXT NOT NULL, CategoryId TEXT NULL, UnitPrice REAL NOT NULL, ReorderPoint INTEGER NOT NULL DEFAULT 0, IsActive INTEGER NOT NULL DEFAULT 1, FOREIGN KEY(CategoryId) REFERENCES Categories(CategoryId));",
             "CREATE TABLE IF NOT EXISTS Customers (Id TEXT PRIMARY KEY, DisplayName TEXT NOT NULL, Email TEXT NULL, Phone TEXT NULL, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);",
             "CREATE TABLE IF NOT EXISTS Sales (Id TEXT PRIMARY KEY, ReceiptNumber TEXT NOT NULL UNIQUE, CustomerId TEXT NULL, SubTotal REAL NOT NULL, Tax REAL NOT NULL, Discount REAL NOT NULL, GrandTotal REAL NOT NULL, Status TEXT NOT NULL, CreatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(CustomerId) REFERENCES Customers(Id));",
             "CREATE TABLE IF NOT EXISTS SaleItems (Id TEXT PRIMARY KEY, SaleId TEXT NOT NULL, ProductId TEXT NOT NULL, Quantity INTEGER NOT NULL, UnitPrice REAL NOT NULL, LineTotal REAL NOT NULL, FOREIGN KEY(SaleId) REFERENCES Sales(Id), FOREIGN KEY(ProductId) REFERENCES Products(Id));",
@@ -302,12 +302,34 @@ IF OBJECT_ID('dbo.Categories', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Categories
     (
-        CategoryId INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-        CategoryName NVARCHAR(100) NOT NULL UNIQUE,
+        CategoryId UNIQUEIDENTIFIER NOT NULL PRIMARY KEY DEFAULT NEWID(),
+        CategoryName NVARCHAR(200) NOT NULL UNIQUE,
+        Color NVARCHAR(50) NULL,
         IsActive BIT NOT NULL CONSTRAINT DF_Categories_IsActive DEFAULT(1),
-        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_Categories_CreatedOn DEFAULT SYSUTCDATETIME()
+        CreatedBy INT NOT NULL CONSTRAINT DF_Categories_CreatedBy DEFAULT(0),
+        CreatedOn DATETIME2 NOT NULL CONSTRAINT DF_Categories_CreatedOn DEFAULT SYSUTCDATETIME(),
+        UpdatedBy INT NULL,
+        UpdatedOn DATETIME2 NULL
     );
-    INSERT INTO dbo.Categories (CategoryName) VALUES (N'Stationery'), (N'Beverages'), (N'Electronics'), (N'Services'), (N'Misc');
+    INSERT INTO dbo.Categories (CategoryId, CategoryName, Color) VALUES 
+        (NEWID(), N'Stationery', N'#4CAF50'),
+        (NEWID(), N'Beverages', N'#2196F3'),
+        (NEWID(), N'Electronics', N'#FF9800'),
+        (NEWID(), N'Services', N'#9C27B0'),
+        (NEWID(), N'Misc', N'#607D8B');
+END
+
+-- Add missing columns if table exists but doesn't have them
+IF OBJECT_ID('dbo.Categories', 'U') IS NOT NULL
+BEGIN
+    IF COL_LENGTH('dbo.Categories', 'Color') IS NULL
+        ALTER TABLE dbo.Categories ADD Color NVARCHAR(50) NULL;
+    IF COL_LENGTH('dbo.Categories', 'CreatedBy') IS NULL
+        ALTER TABLE dbo.Categories ADD CreatedBy INT NOT NULL CONSTRAINT DF_Categories_CreatedBy_Alt DEFAULT(0);
+    IF COL_LENGTH('dbo.Categories', 'UpdatedBy') IS NULL
+        ALTER TABLE dbo.Categories ADD UpdatedBy INT NULL;
+    IF COL_LENGTH('dbo.Categories', 'UpdatedOn') IS NULL
+        ALTER TABLE dbo.Categories ADD UpdatedOn DATETIME2 NULL;
 END
 
 /* --------------------------
@@ -526,22 +548,22 @@ END
             Permissions = "sales:read,sales:create"
         }, cancellationToken: cancellationToken));
 
-        const string insertCategorySql = @"INSERT INTO Categories (Id, Name, Color) VALUES (@Id, @Name, @Color)
-            ON CONFLICT(Name) DO NOTHING;";
+        const string insertCategorySql = @"INSERT INTO Categories (CategoryId, CategoryName, Color, IsActive, CreatedBy) VALUES (@CategoryId, @CategoryName, @Color, 1, 0)
+            ON CONFLICT(CategoryName) DO NOTHING;";
 
         var defaultCategories = new[]
         {
-            new { Id = Guid.Parse("3d2d9b93-5a7d-4b65-8b9d-6d438baaca11"), Name = "Coffee", Color = "#f06292" },
-            new { Id = Guid.Parse("3d2d9b93-5a7d-4b65-8b9d-6d438baaca12"), Name = "Bakery", Color = "#f48fb1" },
-            new { Id = Guid.Parse("3d2d9b93-5a7d-4b65-8b9d-6d438baaca13"), Name = "Retail", Color = "#f8bbd0" }
+            new { CategoryId = Guid.Parse("3d2d9b93-5a7d-4b65-8b9d-6d438baaca11"), CategoryName = "Coffee", Color = "#f06292" },
+            new { CategoryId = Guid.Parse("3d2d9b93-5a7d-4b65-8b9d-6d438baaca12"), CategoryName = "Bakery", Color = "#f48fb1" },
+            new { CategoryId = Guid.Parse("3d2d9b93-5a7d-4b65-8b9d-6d438baaca13"), CategoryName = "Retail", Color = "#f8bbd0" }
         };
 
         foreach (var category in defaultCategories)
         {
             await connection.ExecuteAsync(new CommandDefinition(insertCategorySql, new
             {
-                Id = category.Id.ToString(),
-                category.Name,
+                CategoryId = category.CategoryId.ToString(),
+                category.CategoryName,
                 category.Color
             }, cancellationToken: cancellationToken));
         }

@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using PosApp.Web.Features.Products;
 
 namespace PosApp.Web.Controllers;
@@ -11,10 +12,12 @@ namespace PosApp.Web.Controllers;
 public class ItemsController : Controller
 {
     private readonly ProductService _productService;
+    private readonly ILogger<ItemsController> _logger;
 
-    public ItemsController(ProductService productService)
+    public ItemsController(ProductService productService, ILogger<ItemsController> logger)
     {
         _productService = productService;
+        _logger = logger;
     }
 
     public async Task<IActionResult> Inventory(CancellationToken cancellationToken)
@@ -145,11 +148,39 @@ public class ItemsController : Controller
     [HttpGet]
     public async Task<IActionResult> Lookups(CancellationToken cancellationToken)
     {
-        var productTypes = await _productService.GetProductTypesAsync(cancellationToken);
-        var categories = await _productService.GetCategoriesAsync(cancellationToken);
-        var units = await _productService.GetUnitsAsync(cancellationToken);
-        var gstRates = await _productService.GetGstRatesAsync(cancellationToken);
-        return Ok(new { productTypes, categories, units, gstRates });
+        try
+        {
+            _logger.LogInformation("Loading lookup data for dropdowns");
+            var productTypes = await _productService.GetProductTypesAsync(cancellationToken);
+            var categories = await _productService.GetCategoriesAsync(cancellationToken);
+            var units = await _productService.GetUnitsAsync(cancellationToken);
+            var gstRates = await _productService.GetGstRatesAsync(cancellationToken);
+            
+            _logger.LogInformation("Lookup data loaded successfully: {ProductTypeCount} types, {CategoryCount} categories, {UnitCount} units, {GstRateCount} rates", 
+                productTypes.Count, categories.Count, units.Count, gstRates.Count);
+            
+            return Ok(new { productTypes, categories, units, gstRates });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading lookup data: {Message}", ex.Message);
+            
+            // Return detailed error for debugging (in production, you might want to hide some details)
+            return StatusCode(500, new { 
+                ok = false, 
+                message = "Unable to load dropdown data. Please ensure the database is properly initialized.",
+                error = ex.Message,
+                innerException = ex.InnerException?.Message,
+                stackTrace = ex.StackTrace
+            });
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GenerateBarcode(CancellationToken cancellationToken)
+    {
+        var barcode = await _productService.GenerateBarcodeAsync(cancellationToken);
+        return Ok(new { barcode });
     }
 
     public IActionResult Warehouse()

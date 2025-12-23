@@ -18,13 +18,20 @@ public sealed class ProductService
         _connectionFactory = connectionFactory;
     }
 
+    /// <summary>
+    /// Gets all active product types from the ProductTypes table.
+    /// Returns ProductTypeId (value) and TypeName (display text) for dropdown binding.
+    /// </summary>
     public async Task<IReadOnlyList<ProductTypeOption>> GetProductTypesAsync(CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
-        const string sql = @"SELECT ProductTypeId, TypeName
-                             FROM ProductTypes
-                             WHERE IsActive = 1
-                             ORDER BY TypeName;";
+        const string sql = @"
+SELECT 
+    ProductTypeId,  -- Used as option value in dropdown
+    TypeName        -- Used as option display text in dropdown
+FROM dbo.ProductTypes
+WHERE IsActive = 1
+ORDER BY TypeName;";
         var result = await connection.QueryAsync<ProductTypeOption>(new CommandDefinition(sql, cancellationToken: cancellationToken));
         return result.ToList();
     }
@@ -33,7 +40,7 @@ public sealed class ProductService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT CategoryId, CategoryName
-                             FROM Categories
+                             FROM dbo.Categories
                              WHERE IsActive = 1
                              ORDER BY CategoryName;";
         var result = await connection.QueryAsync<CategoryOption>(new CommandDefinition(sql, cancellationToken: cancellationToken));
@@ -44,7 +51,7 @@ public sealed class ProductService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT UnitId, UnitName
-                             FROM Units
+                             FROM dbo.Units
                              WHERE IsActive = 1
                              ORDER BY UnitName;";
         var result = await connection.QueryAsync<UnitOption>(new CommandDefinition(sql, cancellationToken: cancellationToken));
@@ -55,7 +62,7 @@ public sealed class ProductService
     {
         using var connection = await _connectionFactory.CreateConnectionAsync();
         const string sql = @"SELECT GstRateId, RateName, Rate
-                             FROM GstRates
+                             FROM dbo.GstRates
                              WHERE IsActive = 1
                              ORDER BY Rate;";
         var result = await connection.QueryAsync<GstRateOption>(new CommandDefinition(sql, cancellationToken: cancellationToken));
@@ -275,6 +282,39 @@ VALUES (@ProductId, @OpeningStock, @OpeningStock, @UnitId, @AsOfDate, GETDATE())
             transaction.Rollback();
             throw;
         }
+    }
+
+    public async Task<string> GenerateBarcodeAsync(CancellationToken cancellationToken = default)
+    {
+        using var connection = await _connectionFactory.CreateConnectionAsync();
+        
+        // Generate a unique 8-digit barcode
+        const int maxAttempts = 10;
+        var random = new Random();
+        
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            // Generate random 8-digit number (10000000 to 99999999)
+            var barcode = random.Next(10000000, 99999999).ToString();
+            
+            // Check if barcode already exists
+            const string checkSql = @"
+SELECT COUNT(1) 
+FROM Products 
+WHERE ItemCode = @Barcode;";
+            
+            var exists = await connection.QuerySingleAsync<int>(
+                new CommandDefinition(checkSql, new { Barcode = barcode }, cancellationToken: cancellationToken));
+            
+            if (exists == 0)
+            {
+                return barcode;
+            }
+        }
+        
+        // If all attempts failed, use timestamp-based approach
+        var timestampBarcode = (DateTime.UtcNow.Ticks % 90000000 + 10000000).ToString();
+        return timestampBarcode;
     }
 
     private static async Task<string> GenerateItemCodeAsync(IDbConnection connection, IDbTransaction transaction, CancellationToken cancellationToken)

@@ -1,0 +1,26 @@
+@model CategoryFormViewModel
+@{
+    ViewData["Title"] = "Edit category";
+}
+
+<section class="users-header">
+    <div>
+        <p class="eyebrow">Product management</p>
+        <h2>Edit product category</h2>
+        <p>Update the category name or color without impacting existing products.</p>
+    </div>
+</section>
+
+<form asp-action="Edit" asp-route-id="@Model.CategoryId" method="post" class="card-form">
+    <input type="hidden" asp-for="CategoryId" />
+    <partial name="_Form" model="Model" />
+    <div class="form-actions">
+        <a class="btn ghost" asp-action="Index">Cancel</a>
+        <button class="btn primary" type="submit">Update category</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

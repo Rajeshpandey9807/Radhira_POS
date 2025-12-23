@@ -30,7 +30,7 @@
     var currentController = (ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty);
     bool IsActive(string controller) => string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase);
     var salesOpen = IsActive("Invoices") || IsActive("Payments") || IsActive("Sales");
-    var itemsOpen = IsActive("Items");
+    var itemsOpen = IsActive("Items") || IsActive("Categories");
 }
     <header class="top-nav" role="banner">
         <nav class="top-nav__inner" aria-label="Primary navigation">
@@ -46,6 +46,8 @@
                     <a role="menuitem" asp-controller="Items" asp-action="Inventory">Inventory</a>
                     <a role="menuitem" asp-controller="Items" asp-action="Create">Add New Product</a>
                     <a role="menuitem" asp-controller="Items" asp-action="Warehouse">Godown (Warehouse)</a>
+                    <a role="menuitem" asp-controller="Categories" asp-action="Index">Product Categories</a>
+                    <a role="menuitem" asp-controller="Categories" asp-action="Create">Add Category</a>
                 </div>
             </details>
             <details class="top-nav__dropdown @(salesOpen ? "is-active" : string.Empty)" data-nav-dropdown open>
@@ -88,12 +90,15 @@
                     <a asp-controller="Users" asp-action="Create">Register USER</a>
                     <a asp-controller="Roles" asp-action="Index">Roles</a>
                     <a asp-controller="Parties" asp-action="Index">Parties</a>
+                    <a asp-controller="Categories" asp-action="Create" class="@(IsActive("Categories") && ViewContext.RouteData.Values["action"]?.ToString() == "Create" ? "is-active" : string.Empty)">Create Category</a>
                     <details class="nav-group" open @(itemsOpen ? "open" : null)>
                         <summary>Item</summary>
                         <div class="nav-submenu" role="group" aria-label="Item">
                             <a asp-controller="Items" asp-action="Inventory">Inventory</a>
                             <a asp-controller="Items" asp-action="Create">Add New Product</a>
                             <a asp-controller="Items" asp-action="Warehouse">Godown (Warehouse)</a>
+                            <a asp-controller="Categories" asp-action="Index">Product Categories</a>
+                            <a asp-controller="Categories" asp-action="Create">Add Category</a>
                         </div>
                     </details>
                     <details class="nav-group" open @(salesOpen ? "open" : null)>
@@ -128,6 +133,7 @@
                         <a asp-controller="IndustryTypes" asp-action="Index">Industry types</a>
                         <a asp-controller="RegistrationTypes" asp-action="Index">Registration types</a>
                         <a asp-controller="States" asp-action="Index">States</a>
+                        <a asp-controller="Categories" asp-action="Index">Product Categories</a>
                     </div>
                 </div>
             </nav>

@@ -38,6 +38,10 @@
         <div class="form-grid">
             <div class="field">
                 <label asp-for="ProductTypeId">Product Type</label>
+                @* Product Type dropdown: Dynamically populated from ProductTypes table
+                   - Value: ProductTypeId (from ProductTypes.ProductTypeId)
+                   - Display: TypeName (from ProductTypes.TypeName)
+                   - Bound to: ProductTypeId model property *@
                 <select asp-for="ProductTypeId" id="productType" required>
                     <option value="" selected disabled>Select product type</option>
                 </select>
@@ -184,76 +188,262 @@
 </form>
 
 @section Scripts {
+    <style>
+        /* Error styling for dropdowns */
+        select.error {
+            border-color: #dc3545 !important;
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+        
+        select.error option[disabled] {
+            color: #dc3545;
+            font-weight: 500;
+            background-color: rgba(220, 53, 69, 0.15);
+        }
+        
+        select.error:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+    </style>
     <script>
         (function () {
+            // Helper function to show error message in a dropdown
+            function showDropdownError(selectElement, errorMessage) {
+                if (!selectElement) return;
+                
+                // Clear all options
+                selectElement.innerHTML = '';
+                
+                // Add error option
+                const errorOption = document.createElement('option');
+                errorOption.value = '';
+                errorOption.textContent = errorMessage;
+                errorOption.disabled = true;
+                errorOption.style.color = '#dc3545'; // Red color for error
+                selectElement.appendChild(errorOption);
+                
+                // Add error styling
+                selectElement.style.borderColor = '#dc3545';
+                selectElement.classList.add('error');
+            }
+
+            // Helper function to populate a select dropdown
+            function populateSelect(selectElement, items, idKey, nameKey) {
+                if (!selectElement) {
+                    console.warn('Select element not found');
+                    return;
+                }
+                
+                if (!items || items.length === 0) {
+                    console.warn('No items to populate:', idKey);
+                    showDropdownError(selectElement, `Error: No ${idKey.replace('Id', '')} data available`);
+                    return;
+                }
+
+                // Clear existing options except the first placeholder
+                const placeholder = selectElement.querySelector('option[value=""]');
+                const currentValue = selectElement.value;
+                selectElement.innerHTML = '';
+                
+                // Remove error styling
+                selectElement.style.borderColor = '';
+                selectElement.classList.remove('error');
+                
+                if (placeholder) {
+                    selectElement.appendChild(placeholder);
+                }
+
+                // Add options from data
+                items.forEach(function (item) {
+                    const option = document.createElement('option');
+                    // Use camelCase property names (as configured in Program.cs)
+                    const id = item[idKey];
+                    const name = item[nameKey];
+                    
+                    if (id !== undefined && id !== null && name) {
+                        option.value = String(id);
+                        option.textContent = String(name);
+                        selectElement.appendChild(option);
+                    }
+                });
+
+                // Restore previous selection if it still exists
+                if (currentValue) {
+                    selectElement.value = currentValue;
+                }
+            }
+
             // Load lookup data from API
             async function loadLookups() {
                 try {
+                    console.log('Loading lookups from /Items/Lookups...');
                     const response = await fetch('/Items/Lookups', {
                         headers: { 'Accept': 'application/json' }
                     });
-                    if (!response.ok) throw new Error('Failed to load lookups');
+                    
+                    if (!response.ok) {
+                        // Try to get error details from response
+                        let errorDetails = '';
+                        try {
+                            const errorData = await response.json();
+                            errorDetails = errorData.error || errorData.message || response.statusText;
+                        } catch (e) {
+                            errorDetails = response.statusText;
+                        }
+                        const error = new Error(`HTTP ${response.status}: ${errorDetails}`);
+                        error.response = response;
+                        throw error;
+                    }
+                    
                     const data = await response.json();
+                    console.log('Lookup data loaded:', data);
 
-                    // Populate Product Types
+                    // Populate Product Types dropdown
+                    // Dynamically binds from ProductTypes table: ProductTypeId (value) and TypeName (display)
                     const productTypeSelect = document.getElementById('productType');
-                    if (productTypeSelect && data.productTypes) {
-                        data.productTypes.forEach(function (pt) {
-                            const option = document.createElement('option');
-                            option.value = pt.productTypeId;
-                            option.textContent = pt.typeName;
-                            productTypeSelect.appendChild(option);
-                        });
+                    if (productTypeSelect) {
+                        if (data.productTypes && Array.isArray(data.productTypes) && data.productTypes.length > 0) {
+                            populateSelect(productTypeSelect, data.productTypes, 'productTypeId', 'typeName');
+                            console.log('Product Types populated:', productTypeSelect.options.length, 'items from ProductTypes table');
+                        } else {
+                            console.error('No product types found in response');
+                            showDropdownError(productTypeSelect, '⚠ Error loading product types');
+                        }
+                    } else {
+                        console.error('Product Type select element (#productType) not found');
                     }
 
-                    // Populate Categories
+                    // Populate Categories dropdown
+                    // Dynamically binds from Categories table: CategoryId (value) and CategoryName (display)
+                    // Only shows active categories (IsActive = 1)
                     const categorySelect = document.getElementById('category');
-                    if (categorySelect && data.categories) {
-                        data.categories.forEach(function (cat) {
-                            const option = document.createElement('option');
-                            option.value = cat.categoryId;
-                            option.textContent = cat.categoryName;
-                            categorySelect.appendChild(option);
-                        });
+                    if (categorySelect) {
+                        if (data.categories && Array.isArray(data.categories) && data.categories.length > 0) {
+                            populateSelect(categorySelect, data.categories, 'categoryId', 'categoryName');
+                            console.log('Categories populated:', categorySelect.options.length, 'items from Categories table (IsActive = 1)');
+                        } else {
+                            console.warn('No active categories found in database');
+                            // Show user-friendly message when no categories are available
+                            categorySelect.innerHTML = '';
+                            const noCategoryOption = document.createElement('option');
+                            noCategoryOption.value = '';
+                            noCategoryOption.textContent = 'Category not available';
+                            noCategoryOption.disabled = true;
+                            noCategoryOption.style.color = '#6c757d';
+                            noCategoryOption.style.fontStyle = 'italic';
+                            categorySelect.appendChild(noCategoryOption);
+                            categorySelect.disabled = true;
+                            categorySelect.style.cursor = 'not-allowed';
+                            console.log('Category dropdown disabled - no active categories in database');
+                        }
+                    } else {
+                        console.error('Category select element (#category) not found');
                     }
 
-                    // Populate Units
+                    // Populate Units dropdowns
                     const unitSelects = [document.getElementById('unitBasic'), document.getElementById('unitAdvanced')];
                     unitSelects.forEach(function (select) {
-                        if (select && data.units) {
-                            data.units.forEach(function (unit) {
-                                const option = document.createElement('option');
-                                option.value = unit.unitId;
-                                option.textContent = unit.unitName;
-                                select.appendChild(option);
-                            });
+                        if (select) {
+                            populateSelect(select, data.units, 'unitId', 'unitName');
                         }
                     });
 
-                    // Populate GST Rates
+                    // Populate GST Rates dropdowns
                     const gstSelects = [document.getElementById('gstRateBasic'), document.getElementById('gstRateAdvanced')];
                     gstSelects.forEach(function (select) {
-                        if (select && data.gstRates) {
-                            data.gstRates.forEach(function (rate) {
-                                const option = document.createElement('option');
-                                option.value = rate.gstRateId;
-                                option.textContent = rate.rateName;
-                                select.appendChild(option);
-                            });
+                        if (select) {
+                            populateSelect(select, data.gstRates, 'gstRateId', 'rateName');
                         }
                     });
 
                 } catch (error) {
                     console.error('Error loading lookups:', error);
+                    
+                    // Extract error message - the error.message should already contain the detailed error from the response
+                    let errorMessage = 'Error loading data';
+                    let detailedError = error.message || 'Unknown error';
+                    
+                    // Parse the error message to extract the actual error details
+                    if (error.message && error.message.includes('HTTP 500')) {
+                        // The error message should contain the actual error details after the colon
+                        const parts = error.message.split(':');
+                        if (parts.length > 1) {
+                            detailedError = parts.slice(1).join(':').trim();
+                            errorMessage = '⚠ ' + detailedError;
+                        } else {
+                            errorMessage = '⚠ Server error - check console for details';
+                        }
+                    } else if (error.message && error.message.includes('HTTP 404')) {
+                        errorMessage = '⚠ API endpoint not found';
+                    } else if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+                        errorMessage = '⚠ Network error - check connection';
+                    } else if (error.message) {
+                        errorMessage = '⚠ ' + error.message;
+                    }
+                    
+                    // Show error messages in both dropdowns
+                    const productTypeSelect = document.getElementById('productType');
+                    const categorySelect = document.getElementById('category');
+                    
+                    if (productTypeSelect) {
+                        showDropdownError(productTypeSelect, errorMessage + ' (Product Types)');
+                    }
+                    if (categorySelect) {
+                        showDropdownError(categorySelect, errorMessage + ' (Categories)');
+                    }
+                    
+                    // Show user notification with detailed error
+                    console.error('Full error details:', error);
+                    console.error('Error message:', detailedError);
+                    alert('Unable to load dropdown data. Please check the browser console (F12) for detailed error information.\n\nError: ' + detailedError);
                 }
             }
 
-            // Auto-generate item code
-            document.getElementById('autoGenerateCode')?.addEventListener('click', function () {
+            // Generate 8-digit barcode number
+            async function generateBarcode() {
+                try {
+                    const response = await fetch('/Items/GenerateBarcode', {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    return data.barcode;
+                } catch (error) {
+                    console.error('Error generating barcode:', error);
+                    // Fallback: generate client-side 8-digit number
+                    const min = 10000000;
+                    const max = 99999999;
+                    return Math.floor(Math.random() * (max - min + 1) + min).toString();
+                }
+            }
+
+            // Auto-generate item code (8-digit barcode)
+            document.getElementById('autoGenerateCode')?.addEventListener('click', async function () {
                 const itemCodeInput = document.getElementById('ItemCode');
+                const button = this;
+                
                 if (itemCodeInput) {
-                    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
-                    itemCodeInput.value = 'ITM-' + randomPart;
+                    // Disable button while generating
+                    button.disabled = true;
+                    button.textContent = 'Generating...';
+                    
+                    try {
+                        const barcode = await generateBarcode();
+                        itemCodeInput.value = barcode;
+                    } catch (error) {
+                        console.error('Failed to generate barcode:', error);
+                        // Fallback to client-side generation
+                        const min = 10000000;
+                        const max = 99999999;
+                        itemCodeInput.value = Math.floor(Math.random() * (max - min + 1) + min).toString();
+                    } finally {
+                        // Re-enable button
+                        button.disabled = false;
+                        button.textContent = 'Auto-generate';
+                    }
                 }
             });
 
@@ -293,8 +483,13 @@
                 });
             }
 
-            // Initialize on page load
-            loadLookups();
+            // Initialize on page load - wait for DOM to be fully ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadLookups);
+            } else {
+                // DOM is already ready
+                loadLookups();
+            }
         })();
     </script>
 }

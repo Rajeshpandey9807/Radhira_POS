@@ -9,12 +9,17 @@ using PosApp.Web.Features.Users;
 using PosApp.Web.Features.States;
 using PosApp.Web.Features.Parties;
 using PosApp.Web.Features.Products;
+using PosApp.Web.Features.Categories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -39,6 +44,7 @@ builder.Services.AddScoped<BusinessProfileService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<PartyService>();
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<CategoryService>();
 
 var app = builder.Build();
 
