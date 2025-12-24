@@ -5,12 +5,36 @@
       "PackagePath": "staticwebassets/PosApp.Web.bundle.scp.css"
     },
     {
+      "Id": "/workspace/src/PosApp.Web/wwwroot/css/business-profile.css",
+      "PackagePath": "staticwebassets/css/business-profile.css"
+    },
+    {
+      "Id": "/workspace/src/PosApp.Web/wwwroot/css/login.css",
+      "PackagePath": "staticwebassets/css/login.css"
+    },
+    {
       "Id": "/workspace/src/PosApp.Web/wwwroot/css/site.css",
       "PackagePath": "staticwebassets/css/site.css"
     },
     {
       "Id": "/workspace/src/PosApp.Web/wwwroot/favicon.ico",
       "PackagePath": "staticwebassets/favicon.ico"
+    },
+    {
+      "Id": "/workspace/src/PosApp.Web/wwwroot/images/auth/brand-mark.svg",
+      "PackagePath": "staticwebassets/images/auth/brand-mark.svg"
+    },
+    {
+      "Id": "/workspace/src/PosApp.Web/wwwroot/images/auth/gradient-noise.svg",
+      "PackagePath": "staticwebassets/images/auth/gradient-noise.svg"
+    },
+    {
+      "Id": "/workspace/src/PosApp.Web/wwwroot/images/auth/lock-badge.svg",
+      "PackagePath": "staticwebassets/images/auth/lock-badge.svg"
+    },
+    {
+      "Id": "/workspace/src/PosApp.Web/wwwroot/images/auth/login-illustration.svg",
+      "PackagePath": "staticwebassets/images/auth/login-illustration.svg"
     },
     {
       "Id": "/workspace/src/PosApp.Web/wwwroot/js/site.js",
@@ -243,6 +267,10 @@
     {
       "Id": "/workspace/src/PosApp.Web/wwwroot/lib/jquery/dist/jquery.min.map",
       "PackagePath": "staticwebassets/lib/jquery/dist/jquery.min.map"
+    },
+    {
+      "Id": "/workspace/src/PosApp.Web/wwwroot/samples/party-upload-sample.csv",
+      "PackagePath": "staticwebassets/samples/party-upload-sample.csv"
     },
     {
       "Id": "obj/Debug/net8.0/staticwebassets/msbuild.PosApp.Web.Microsoft.AspNetCore.StaticWebAssets.props",

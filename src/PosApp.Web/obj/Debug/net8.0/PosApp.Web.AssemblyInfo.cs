@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PosApp.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e419d2d32eaac41e8fa81be7a3ef55f5ade57c6a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fa1e4b04c001013ecfb4a95a392a8d05a1f4607e")]
 [assembly: System.Reflection.AssemblyProductAttribute("PosApp.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PosApp.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

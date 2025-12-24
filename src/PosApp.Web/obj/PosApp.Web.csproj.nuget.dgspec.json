@@ -42,9 +42,9 @@
               "target": "Package",
               "version": "[2.1.66, )"
             },
-            "Microsoft.Data.Sqlite": {
+            "Microsoft.Data.SqlClient": {
               "target": "Package",
-              "version": "[10.0.0, )"
+              "version": "[5.2.0, )"
             }
           },
           "imports": [
